@@ -116,24 +116,24 @@ export default function About() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <img
-                src="/placeholder.svg?height=250&width=250"
+                src="/tower.jpeg"
                 alt="Mahakaleshwar Temple"
                 className="rounded-3xl shadow-lg"
               />
               <img
-                src="/placeholder.svg?height=250&width=250"
+                src="/mahakal5.jpeg"
                 alt="Ujjain Ghat"
                 className="rounded-3xl shadow-lg mt-8"
               />
               <img
-                src="/placeholder.svg?height=250&width=250"
+                src="/abt1.jpeg"
                 alt="Temple Rituals"
                 className="rounded-3xl shadow-lg -mt-8"
               />
               <img
-                src="/placeholder.svg?height=250&width=250"
+                src="/ic1.png"
                 alt="Spiritual Journey"
-                className="rounded-3xl shadow-lg"
+                className="rounded-3xl h-96 object-contain shadow-lg bg-gradient-to-b from-teal-100 via-sky-400 to-teal-400"
               />
             </div>
           </div>

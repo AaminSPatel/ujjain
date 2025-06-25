@@ -9,10 +9,11 @@ import { MdPlace, MdRateReview } from "react-icons/md"
 import Link from "next/link"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
+import { useUjjain } from "./components/UjjainContext"
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0)
-
+const {brand,places} = useUjjain()
   const heroSlides = [
     {
       image: "/tower.jpeg",
@@ -126,16 +127,16 @@ export default function Home() {
           className="h-full max-h-screen"
           onSlideChange={(swiper) => setCurrentSlide(swiper.realIndex)}
         >
-          {heroSlides.map((slide, index) => (
+          {places.map((slide, index) => (
             <SwiperSlide key={index}>
               <div className="relative h-full">
-                <img src={slide.image || "/placeholder.svg"} alt={slide.title} className="w-full sm:max-h-screen sm:h-screen h-[70vh] object-cover" />
+                <img src={slide.image[0] || "/placeholder.svg"} alt={slide.name} className="w-full sm:max-h-screen sm:h-screen h-[70vh] object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30">
                   <div className="container mx-auto px-4 h-full flex items-center">
                     <div className="text-white max-w-2xl">
-                      <h1 className="text-5xl md:text-7xl font-bold mb-4 animate-fade-in">{slide.title}</h1>
+                      <h1 className="text-5xl md:text-7xl font-bold mb-4 animate-fade-in">{slide.name}</h1>
                       <h2 className="text-2xl md:text-3xl mb-6 text-orange-300">{slide.subtitle}</h2>
-                      <p className="text-xl mb-8 leading-relaxed">{slide.description}</p>
+                      <p className="text-xl mb-8 leading-relaxed line-clamp-2">{slide.description}</p>
                       <div className="flex flex-wrap gap-4">
                         <Link href="/cars" className="btn-primary">
                           Book Car <FaCar className="ml-2 inline" />
@@ -165,7 +166,7 @@ export default function Home() {
       <section className="section-padding bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Why Choose Ujjain Travel?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Why Choose {brand.name}?</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               We provide comprehensive travel services to make your spiritual journey to Ujjain memorable and
               hassle-free

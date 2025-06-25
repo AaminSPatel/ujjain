@@ -95,7 +95,7 @@ export default function Cars() {
                     <img
                       src={car.image || "/placeholder.svg?height=200&width=300"}
                       alt={car.name}
-                      className="w-full h-64 md:h-96  object-cover"
+                      className="w-full h-64 md:h-96  sm:object-cove object-contain bg-gradient-to-b from-amber-200 to-teal-600"
                     />
                     <button
                       onClick={() => toggleFavorite(car.id)}
@@ -161,7 +161,7 @@ export default function Cars() {
                     </div>
 
                     {/* Driver Info */}
-                    <div className="bg-gray-50 rounded-2xl p-4 mb-4">
+                   {/*  <div className="bg-gray-50 rounded-2xl p-4 mb-4">
                       <div className="flex items-center mb-2">
                         <img
                           src={car.driver.image || "/placeholder.svg"}
@@ -180,7 +180,7 @@ export default function Cars() {
                       </div>
                       <div className="text-sm text-gray-600">Languages: {car.driver.languages.join(", ")}</div>
                     </div>
-
+ */}
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <span className="text-2xl font-bold text-gray-800">₹{car.price}</span>

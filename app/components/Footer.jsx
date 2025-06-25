@@ -1,3 +1,4 @@
+'use client'
 import Link from "next/link"
 import {
   FaPhone,
@@ -9,6 +10,7 @@ import {
   FaYoutube,
   FaStar,
 } from "react-icons/fa"
+import { useUjjain } from "./UjjainContext"
 
 export default function Footer() {
   const quickLinks = [
@@ -19,7 +21,7 @@ export default function Footer() {
     { href: "/blogs", label: "Blogs" },
     { href: "/faqs", label: "FAQs" },
   ]
-
+const {brand}=useUjjain()
   const services = [
     { href: "/cars", label: "Car Booking" },
     { href: "/hotels", label: "Hotel Booking" },
@@ -45,7 +47,7 @@ export default function Footer() {
             <div className="flex items-center space-x-3 mb-6">
               <FaStar className="text-3xl text-orange-500" />
               <div>
-                <h3 className="text-2xl font-bold">Ujjain Travel</h3>
+                <h3 className="text-2xl font-bold"> {brand.name}</h3>
                 <p className="text-gray-400">Sacred City Explorer</p>
               </div>
             </div>
@@ -54,16 +56,16 @@ export default function Footer() {
               including car rentals, hotel bookings, and guided tours to make your spiritual journey memorable.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-2xl text-gray-400 hover:text-orange-500 transition-colors duration-300">
+              <a href="#" className="text-2xl text-blue-500 hover:bg-white  p-0 rounded-sm transition-colors duration-300">
                 <FaFacebook />
               </a>
-              <a href="#" className="text-2xl text-gray-400 hover:text-orange-500 transition-colors duration-300">
-                <FaTwitter />
+              <a href="#" className="text-2xl text-[#E1306C] hover:bg-white  rounded-sm transition-colors duration-300">
+               <FaInstagram />
               </a>
-              <a href="#" className="text-2xl text-gray-400 hover:text-orange-500 transition-colors duration-300">
-                <FaInstagram />
+              <a href="#" className="text-2xl text-[#1DA1F2] hover:bg-white  rounded-sm transition-colors duration-300">
+                 <FaTwitter />
               </a>
-              <a href="#" className="text-2xl text-gray-400 hover:text-orange-500 transition-colors duration-300">
+              <a href="#" className="text-2xl text-[#FF0000] hover:bg-white  rounded-sm transition-colors duration-300">
                 <FaYoutube />
               </a>
             </div>
@@ -116,17 +118,17 @@ export default function Footer() {
               </div>
               <div className="flex items-center space-x-3">
                 <FaPhone className="text-orange-500" />
-                <p className="text-gray-300">+91-9876543210</p>
+                <p className="text-gray-300">+91-{brand.mobile}</p>
               </div>
               <div className="flex items-center space-x-3">
                 <FaEnvelope className="text-orange-500" />
-                <p className="text-gray-300">info@ujjaintravel.com</p>
+                <p className="text-gray-300"> {brand.email}</p>
               </div>
             </div>
 
             <div className="mt-6">
               <h5 className="font-bold mb-3 text-orange-500">24/7 Emergency Support</h5>
-              <p className="text-gray-300">+91-9876543211</p>
+              <p className="text-gray-300">+91-{brand.mobile}</p>
             </div>
           </div>
         </div>
@@ -135,7 +137,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <p className="text-gray-400">© 2024 Ujjain Travel. All rights reserved.</p>
+              <p className="text-gray-400">© 2024 {brand.name}. All rights reserved.</p>
             </div>
             <div className="flex flex-wrap gap-6">
               {legal.map((item) => (

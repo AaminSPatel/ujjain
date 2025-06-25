@@ -18,7 +18,15 @@ export const UjjainProvider = ({ children }) => {
   const [reviews, setReviews] = useState([])
   const [isOnline, setIsOnline] = useState(true)
   const [installPrompt, setInstallPrompt] = useState(null)
+ const brand= {
+  name:'Explore Ujjain',
+  image:'/logo.png',
+  description:'',
+  icon:'',
+  email:'exploreujjain@gmail.com',
+  mobile:'9232 398 239'
 
+ }
 
 
     const cars = [
@@ -360,6 +368,7 @@ export const UjjainProvider = ({ children }) => {
     {
       id: 1,
       name: "Mahakaleshwar Temple",
+      subtitle: "One of 12 Jyotirlingas",
       category: "temples",
       image: ["/mahakal4.jpeg","/mahakal2.jpeg","/mahakal3.jpeg","/mahakal1.jpeg","/mahakal5.jpeg",],
       rating: 4.9,
@@ -375,6 +384,7 @@ export const UjjainProvider = ({ children }) => {
     {
       id: 2,
       name: "Ram Ghat",
+      subtitle: "Witness the grand spiritual gathering",
       category: "ghats",
       image: ["/ramghat1.jpeg","/ramghat2.jpeg"],
       rating: 4.8,
@@ -389,6 +399,7 @@ export const UjjainProvider = ({ children }) => {
     {
       id: 3,
       name: "Kal Bhairav Temple",
+      subtitle: "Experience the spritual heart of India",
       category: "temples",
       image: ["/kalbhairawa.jpeg"],
       rating: 4.7,
@@ -404,6 +415,7 @@ export const UjjainProvider = ({ children }) => {
     {
       id: 4,
       name: "Vedh Shala (Observatory)",
+      subtitle: "Visit the Historical Observatory",
       category: "historical",
       image: ["/vedshala.jpeg","/vedshala2.jpg"],
       rating: 4.6,
@@ -419,6 +431,7 @@ export const UjjainProvider = ({ children }) => {
     {
       id: 5,
       name: "Harsiddhi Temple",
+      subtitle: "Witness the grand spiritual gathering",
       category: "temples",
       image: ["/harsiddhi.jpeg"],
       rating: 4.8,
@@ -674,7 +687,7 @@ export const UjjainProvider = ({ children }) => {
     addToFavorites,
     removeFromFavorites,
     bookings,
-    addBooking,places,
+    addBooking,places,brand,
     reviews,
     addReview,
     isOnline,

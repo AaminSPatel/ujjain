@@ -1,8 +1,9 @@
 import "./globals.css"
 import { UjjainProvider } from "./components/UjjainContext"
+import BottomTabBar from "./components/BottomTabBar"
 
 export const metadata = {
-  title: "Ujjain Travel - Sacred City Explorer",
+  title: "Ujjain Explore - Sacred City Explorer",
   description:
     "Your trusted companion for exploring the sacred city of Ujjain with premium car rentals, hotel bookings, and expert guidance.",
   manifest: "/manifest.json",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="antialiased">
         <UjjainProvider>{children}</UjjainProvider>
+       {0 && <BottomTabBar/>}
       </body>
     </html>
   )
