@@ -1,26 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat&family=Exo+2:ital,wght@0,100..900;1,100..900&family=Great+Vibes&family=Monoton&family=Oxanium:wght@200..800&family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&family=Playwrite+GB+S:ital,wght@0,100..400;1,100..400&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rubik+Wet+Paint&family=Syne:wght@400..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Glegoo:wght@400;700&family=Laila:wght@300;400;500;600;700&family=Pragati+Narrow:wght@400;700&family=Yatra+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+button{
+  cursor: pointer;
+}
+.ad-container {
+  overflow: hidden;
+  margin: 1rem 0;
+  text-align: center;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Responsive ads */
+@media (max-width: 768px) {
+  .ad-container {
+    width: 100%;
+  }
+}
+ 
+.comforta {
+  font-family: "Comfortaa", sans-serif;
+  font-style: normal;
+}
+.laila {
+  font-family: "Laila", serif;
+  font-style: normal;
+}
+.glegoo {
+  font-family: "Glegoo", serif;
+  font-style: normal;
+}
+.yatra {
+  font-family: "Yatra One", system-ui;
+  font-style: normal;
+}
+.pragati {
+  font-family: "Pragati Narrow", sans-serif;
+  font-style: normal;
+}
+.monoton {
+  font-family: "Monoton", serif;
+  font-style: normal;
+}
+.exo {
+  font-family: "Exo 2", serif;
+  font-style: normal;
+}
+.syne {
+  font-family: "Syne", serif;
+  font-style: normal;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.roboto {
+  font-family: "Roboto", serif;
+  font-style: normal;
+}
+
+.philosopher {
+  font-family: "Philosopher", serif;
+  font-style: normal;
+}
+
+.caveat {
+  font-family: "Caveat", serif;
+  font-style: normal;
+}
+
+.oxanium {
+  font-family: "Oxanium", serif;
+  font-style: normal;
+}
+.gvibes {
+  font-family: "Great Vibes", serif;
+  font-style: normal;
+}
+
+.popin {
+  font-family: "Poppins", serif;
+  font-style: normal;
+}
+
+.rubik {
+  font-family: "Rubik Wet Paint", serif;
+  font-style: normal;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1;
+  }
+
+  .btn-secondary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1;
+  }
+
+  .card {
+    @apply bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100;
+  }
+
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8 py-16;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.swiper-pagination-bullet {
+  background: #f97316 !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #ea580c !important;
 }
