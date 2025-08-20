@@ -1,7 +1,8 @@
 import "./globals.css"
-import { UjjainProvider } from "./components/UjjainContext"
-import BottomTabBar from "./components/BottomTabBar"
-
+import BottomTabBar from "@/components/BottomTabBar"
+import Header from "@/components/Header"
+import Footer from "@/components/Footer"
+import { UjjainProvider } from "@/components/context/UjjainContext"
 export const metadata = {
   title: "Ujjain Explore - Sacred City Explorer",
   description:
@@ -24,8 +25,15 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/placeholder.svg?height=180&width=180" />
       </head>
       <body className="antialiased">
-        <UjjainProvider>{children}</UjjainProvider>
-       {0 && <BottomTabBar/>}
+        <UjjainProvider>
+        <Header/>
+          
+          
+          {children}
+          
+       <Footer/>
+          </UjjainProvider>
+       {<BottomTabBar/>}
       </body>
     </html>
   )

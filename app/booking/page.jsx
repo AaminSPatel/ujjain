@@ -2,11 +2,8 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar } from "react-icons/fa"
-import Header from "../components/Header"
-import Footer from "../components/Footer"
-import BottomTabBar from "../components/BottomTabBar"
-import SEOHead from "../components/SEOHead"
-import { useUjjain } from "../components/UjjainContext"
+import SEOHead from "@/components/SEOHead"
+import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function Booking() {
   const { addBooking } = useUjjain()
@@ -447,7 +444,6 @@ export default function Booking() {
         keywords="ujjain car booking, ujjain hotel booking, car rental ujjain, hotel reservation ujjain"
       />
 
-      <Header />
 
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-r from-orange-600 to-blue-600 text-white">
@@ -536,8 +532,6 @@ export default function Booking() {
         </div>
       </section>
 
-      <Footer />
-      <BottomTabBar />
     </div>
   )
 }

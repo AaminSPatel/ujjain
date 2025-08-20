@@ -1,5 +1,3 @@
-import Header from "../components/Header"
-import Footer from "../components/Footer"
 import { FaUsers, FaAward, FaCar, FaHotel, FaMapMarkerAlt, FaClock, FaHeart, FaShieldAlt } from "react-icons/fa"
 import Link from "next/link"
 
@@ -61,10 +59,9 @@ export default function About() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
-      <Header />
 
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-r from-orange-600 to-orange-700 text-white">
+      <section className="relative py-20  bg-gradient-to-r from-green-600 to-blue-600  text-white">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">About Ujjain Travel</h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
@@ -214,7 +211,6 @@ export default function About() {
         </div>
       </section>
 
-      <Footer />
     </div>
   )
 }

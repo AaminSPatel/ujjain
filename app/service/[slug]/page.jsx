@@ -2,9 +2,8 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { FaStar, FaCheckCircle, FaPhone, FaWhatsapp, FaClock } from "react-icons/fa"
-import Header from "../../components/Header"
-import SEOHead from "../../components/SEOHead"
-import { useUjjain } from "../../components/UjjainContext"
+import SEOHead from "@/components/SEOHead"
+import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function ServiceDetail({ params }) {
   const [service, setService] = useState(null)
@@ -39,7 +38,7 @@ export default function ServiceDetail({ params }) {
         image={service.image}
       />
       
-      <Header />
+  
 
       {/* Hero Section */}
       <section className="relative h-96 md:h-[500px] overflow-hidden">

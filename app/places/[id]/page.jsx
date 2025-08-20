@@ -13,13 +13,10 @@ import {
   FaCalendar,
 } from "react-icons/fa"
 import { MdTempleHindu } from "react-icons/md"
-import Header from "../../components/Header"
-import Footer from "../../components/Footer"
-import BottomTabBar from "../../components/BottomTabBar"
-import RecommendedSection from "../../components/RecommendedSection"
-import ReviewModal from "../../components/ReviewModal"
-import SEOHead from "../../components/SEOHead"
-import { useUjjain } from "../../components/UjjainContext"
+import RecommendedSection from "@/components/RecommendedSection"
+import ReviewModal from "@/components/ReviewModal"
+import SEOHead from '@/components/SEOHead';
+import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function PlaceDetail({ params }) {
   const { addToFavorites, removeFromFavorites, favorites, reviews } = useUjjain()
@@ -438,8 +435,7 @@ export default function PlaceDetail({ params }) {
         itemName={place.name}
       />
 
-      <Footer />
-      <BottomTabBar />
+    
     </div>
   )
 }

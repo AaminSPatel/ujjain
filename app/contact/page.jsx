@@ -2,10 +2,7 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaWhatsapp, FaHeadset } from "react-icons/fa"
-import Header from "../components/Header"
-import Footer from "../components/Footer"
-import BottomTabBar from "../components/BottomTabBar"
-import SEOHead from "../components/SEOHead"
+import SEOHead from "@/components/SEOHead"
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -121,7 +118,7 @@ export default function Contact() {
         keywords="ujjain travel contact, 24/7 support ujjain, ujjain travel help, contact ujjain travel"
       />
 
-      <Header />
+      
 
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-green-600 text-white">
@@ -402,8 +399,8 @@ export default function Contact() {
         </div>
       </section>
 
-      <Footer />
-      <BottomTabBar />
+   
+     
     </div>
   )
 }

@@ -13,13 +13,10 @@ import {
   FaWhatsapp,
   FaCopy,
 } from "react-icons/fa"
-import Header from "../../components/Header"
-import Footer from "../../components/Footer"
-import BottomTabBar from "../../components/BottomTabBar"
-import RecommendedSection from "../../components/RecommendedSection"
-import ReviewModal from "../../components/ReviewModal"
-import SEOHead from "../../components/SEOHead"
-import { useUjjain } from "../../components/UjjainContext"
+import RecommendedSection from "@/components/RecommendedSection"
+import ReviewModal from "@/components/ReviewModal"
+import SEOHead from "@/components/SEOHead"
+import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function BlogDetail({ params }) {
   const { addToFavorites, removeFromFavorites, favorites } = useUjjain()
@@ -184,7 +181,6 @@ export default function BlogDetail({ params }) {
         image={blog.image}
       />
 
-      <Header />
 
       {/* Hero Section */}
       <section className="relative h-96 md:h-[500px] overflow-hidden">
@@ -323,8 +319,6 @@ export default function BlogDetail({ params }) {
         itemName={blog.title}
       />
 
-      <Footer />
-      <BottomTabBar />
     </div>
   )
 }

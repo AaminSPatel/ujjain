@@ -1,7 +1,5 @@
 "use client"
 import { useState } from "react"
-import Header from "../components/Header"
-import Footer from "../components/Footer"
 import { FaChevronDown, FaChevronUp, FaSearch, FaQuestionCircle } from "react-icons/fa"
 
 export default function FAQs() {
@@ -140,8 +138,7 @@ export default function FAQs() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
-      <Header />
-
+     
       {/* Hero Section */}
       <section className="relative py-20 bg-gradient-to-r from-blue-600 to-green-600 text-white">
         <div className="container mx-auto px-4 text-center">
@@ -270,7 +267,7 @@ export default function FAQs() {
         </div>
       </section>
 
-      <Footer />
+     
     </div>
   )
 }

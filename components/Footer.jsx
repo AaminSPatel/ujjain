@@ -10,7 +10,7 @@ import {
   FaYoutube,
   FaStar,
 } from "react-icons/fa"
-import { useUjjain } from "./UjjainContext"
+import { useUjjain } from "./context/UjjainContext"
 
 export default function Footer() {
   const quickLinks = [
@@ -39,7 +39,7 @@ const {brand}=useUjjain()
   ]
 
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="bg-slate-800 text-white">
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}

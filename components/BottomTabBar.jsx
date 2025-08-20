@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaHome, FaCar, FaHotel, FaMapMarkerAlt, FaPhone } from "react-icons/fa"
+import { FaHome, FaCar, FaHotel, FaMapMarkerAlt, FaPhone, FaTruck } from "react-icons/fa"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -15,7 +15,7 @@ export default function BottomTabBar() {
     { icon: FaCar, label: "Cars", href: "/cars" },
     { icon: FaHotel, label: "Hotels", href: "/hotels" },
     { icon: FaMapMarkerAlt, label: "Places", href: "/places" },
-    { icon: FaPhone, label: "Contact", href: "/contact" },
+    { icon: FaTruck, label: "Logisticks", href: "/logistics" },
   ]
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function BottomTabBar() {
                   <Link key={index} href={tab.href} className="relative">
                     <motion.div
                       whileTap={{ scale: 0.9 }}
-                      className={`flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-300 ${
+                      className={`flex flex-col w-12 items-center justify-center p-2 rounded-2xl transition-all duration-300 ${
                         isActive ? "bg-orange-100" : "hover:bg-gray-100"
                       }`}
                     >

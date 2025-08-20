@@ -1,7 +1,5 @@
 "use client"
 import { useState } from "react"
-import Header from "../components/Header"
-import Footer from "../components/Footer"
 import { FaCalendar, FaUser, FaEye, FaHeart, FaComment, FaSearch } from "react-icons/fa"
 import Link from "next/link"
 
@@ -153,7 +151,6 @@ export default function Blogs() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
-      <Header />
 
       {/* Hero Section */}
       <section className="relative py-20 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
@@ -390,7 +387,6 @@ export default function Blogs() {
         </div>
       </section>
 
-      <Footer />
     </div>
   )
 }

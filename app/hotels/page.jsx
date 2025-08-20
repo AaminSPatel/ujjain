@@ -1,16 +1,20 @@
 "use client"
-import { useState } from "react"
-import Header from "../components/Header"
-import Footer from "../components/Footer"
+import { useEffect, useState } from "react"
 import { FaStar, FaHeart, FaMapMarkerAlt, FaPhone, FaShieldAlt } from "react-icons/fa"
 import { MdRoomService } from "react-icons/md"
 import Link from "next/link"
-import { useUjjain } from "../components/UjjainContext"
+import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function Hotels() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [favorites, setFavorites] = useState([])
+  const [allHotels, setAllHotels] = useState([])
 const {hotels} = useUjjain()
+useEffect(()=>{
+  if(hotels.length >0){
+    setAllHotels(hotels)
+  }
+},[hotels])
   const categories = [
     { id: "all", name: "All Hotels" },
     { id: "budget", name: "Budget" },
@@ -22,7 +26,7 @@ const {hotels} = useUjjain()
 
  
   const filteredHotels =
-    selectedCategory === "all" ? hotels : hotels.filter((hotel) => hotel.category === selectedCategory)
+    selectedCategory === "all" ? allHotels : allHotels.filter((hotel) => allHotels.category === selectedCategory)
 
   const toggleFavorite = (hotelId) => {
     setFavorites((prev) => (prev.includes(hotelId) ? prev.filter((id) => id !== hotelId) : [...prev, hotelId]))
@@ -30,7 +34,6 @@ const {hotels} = useUjjain()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
-      <Header />
 
       {/* Hero Section */}
       <section className="relative py-20 bg-gradient-to-r from-green-600 to-blue-600 text-white">
@@ -97,7 +100,7 @@ const {hotels} = useUjjain()
                 <div className="md:flex">
                   <div className="md:w-2/5 relative">
                     <img
-                      src={hotel.image || "/placeholder.svg"}
+                      src={hotel.images[0].url || "/placeholder.svg"}
                       alt={hotel.name}
                       className="w-full h-64 md:h-full object-cover"
                     />
@@ -288,7 +291,7 @@ const {hotels} = useUjjain()
         </div>
       </section>
 
-      <Footer />
+      
     </div>
   )
 }

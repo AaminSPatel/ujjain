@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { FaStar, FaTimes } from "react-icons/fa"
-import { useUjjain } from "./UjjainContext"
+import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function ReviewModal({ isOpen, onClose, type = "general", itemId = null, itemName = "" }) {
   const { addReview } = useUjjain()

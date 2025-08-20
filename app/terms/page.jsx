@@ -1,9 +1,6 @@
 "use client"
 import { motion } from "framer-motion"
-import Header from "../components/Header"
-import Footer from "../components/Footer"
-import BottomTabBar from "../components/BottomTabBar"
-import SEOHead from "../components/SEOHead"
+import SEOHead from "@/components/SEOHead"
 
 export default function Terms() {
   const sections = [
@@ -67,7 +64,6 @@ export default function Terms() {
         keywords="ujjain travel terms, conditions, policy, car rental terms, hotel booking policy"
       />
 
-      <Header />
 
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-r from-gray-800 to-gray-900 text-white">
@@ -138,8 +134,7 @@ export default function Terms() {
         </div>
       </section>
 
-      <Footer />
-      <BottomTabBar />
+     
     </div>
   )
 }
