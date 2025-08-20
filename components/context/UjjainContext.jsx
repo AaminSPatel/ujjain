@@ -39,7 +39,7 @@ export const UjjainProvider = ({ children }) => {
   const [hotels, setHotels] = useState([]);
   const [users, setUsers] = useState([]);
   const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+    process.env.NEXT_PUBLIC_API_URL 
 
   useEffect(() => {
     // Check for stored token on mount
