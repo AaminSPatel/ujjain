@@ -14,9 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { X, Plus, Upload, ImageIcon } from "lucide-react"
+import { X, Plus, Upload } from "lucide-react"
 
 export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
@@ -31,7 +30,7 @@ export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
     description: "",
     availability: "Available",
     roomTypes: [],
-    images: [] // Added images array
+    images: [], // Added images array
   })
   const [newAmenity, setNewAmenity] = useState("")
   const [newFeature, setNewFeature] = useState("")
@@ -54,12 +53,12 @@ export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
         description: hotel.description || "",
         availability: hotel.availability || "Available",
         roomTypes: hotel.roomTypes || [],
-        images: hotel.images || []
+        images: hotel.images || [],
       })
-      
+
       // Set image previews if editing existing hotel with images
       if (hotel.images && hotel.images.length > 0) {
-        setImagePreviews(hotel.images.map(img => typeof img === 'string' ? img : img.url))
+        setImagePreviews(hotel.images.map((img) => (typeof img === "string" ? img : img.url)))
       }
     } else {
       setFormData({
@@ -74,15 +73,15 @@ export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
         description: "",
         availability: "Available",
         roomTypes: [],
-        images: []
+        images: [],
       })
       setImagePreviews([])
     }
   }, [hotel, open])
 
   const handleSubmit = (e) => {
-    console.log('add hotel clicked');
-    
+    console.log("add hotel clicked")
+
     e.preventDefault()
     onSubmit({
       ...formData,
@@ -92,81 +91,81 @@ export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
   }
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-    
-    processImageFiles(files);
-  };
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+
+    processImageFiles(files)
+  }
 
   const processImageFiles = (files) => {
-    const validFiles = files.filter(file => {
+    const validFiles = files.filter((file) => {
       // Check if file is an image
-      if (!file.type.match('image.*')) {
-        alert(`Skipping ${file.name}: Only image files are allowed`);
-        return false;
+      if (!file.type.match("image.*")) {
+        alert(`Skipping ${file.name}: Only image files are allowed`)
+        return false
       }
-      
+
       // Check file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert(`Skipping ${file.name}: Image size should be less than 5MB`);
-        return false;
+        alert(`Skipping ${file.name}: Image size should be less than 5MB`)
+        return false
       }
-      
-      return true;
-    });
-    
-    if (validFiles.length === 0) return;
-    
+
+      return true
+    })
+
+    if (validFiles.length === 0) return
+
     // Create previews
-    const newPreviews = [];
-    const newImages = [];
-    
-    validFiles.forEach(file => {
-      const reader = new FileReader();
+    const newPreviews = []
+    const newImages = []
+
+    validFiles.forEach((file) => {
+      const reader = new FileReader()
       reader.onload = (e) => {
-        newPreviews.push(e.target.result);
-        newImages.push(file);
-        
+        newPreviews.push(e.target.result)
+        newImages.push(file)
+
         // When all files are processed
         if (newPreviews.length === validFiles.length) {
-          setImagePreviews(prev => [...prev, ...newPreviews]);
-          setFormData(prev => ({ 
-            ...prev, 
-            images: [...prev.images, ...newImages] 
-          }));
+          setImagePreviews((prev) => [...prev, ...newPreviews])
+          setFormData((prev) => ({
+            ...prev,
+            images: [...prev.images, ...newImages],
+          }))
         }
-      };
-      reader.readAsDataURL(file);
-    });
-  };
+      }
+      reader.readAsDataURL(file)
+    })
+  }
 
   const removeImage = (index) => {
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
-    setFormData(prev => ({ 
-      ...prev, 
-      images: prev.images.filter((_, i) => i !== index) 
-    }));
-  };
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index))
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }))
+  }
 
   const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
+    e.preventDefault()
+    setIsDragging(true)
+  }
 
   const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
+    e.preventDefault()
+    setIsDragging(false)
+  }
 
   const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const files = Array.from(e.dataTransfer.files);
+    e.preventDefault()
+    setIsDragging(false)
+
+    const files = Array.from(e.dataTransfer.files)
     if (files.length) {
-      processImageFiles(files);
+      processImageFiles(files)
     }
-  };
+  }
 
   const addAmenity = () => {
     if (newAmenity.trim() && !formData.amenities.includes(newAmenity.trim())) {
@@ -224,15 +223,17 @@ export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{hotel ? "Edit Hotel" : "Add New Hotel"}</DialogTitle>
-          <DialogDescription>{hotel ? "Update hotel information" : "Add a new hotel to your listings"}</DialogDescription>
+          <DialogDescription>
+            {hotel ? "Update hotel information" : "Add a new hotel to your listings"}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Image Upload Section */}
           <div className="space-y-2">
             <Label htmlFor="images">Hotel Images</Label>
-            <div 
+            <div
               className={`flex items-center justify-center w-full min-h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors
-                ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
+                ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400"}`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -242,14 +243,17 @@ export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
                 <div className="grid grid-cols-3 gap-2 p-2 w-full">
                   {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative aspect-square">
-                      <img 
-                        src={preview} 
-                        alt={`Preview ${index + 1}`} 
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
                         className="object-cover w-full h-full rounded-lg"
                       />
                       <button
                         type="button"
-                        onClick={(e) => {e.stopPropagation(); removeImage(index);}}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeImage(index)
+                        }}
                         className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
                       >
                         <X className="h-3 w-3" />
@@ -280,7 +284,7 @@ export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
               />
             </div>
             <p className="text-xs text-gray-500">
-              {imagePreviews.length} image{imagePreviews.length !== 1 ? 's' : ''} selected
+              {imagePreviews.length} image{imagePreviews.length !== 1 ? "s" : ""} selected
             </p>
           </div>
 
@@ -297,8 +301,8 @@ export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select 
-                value={formData.category} 
+              <Select
+                value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value })}
               >
                 <SelectTrigger>

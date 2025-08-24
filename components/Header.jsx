@@ -27,10 +27,10 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <Star className="h-8 w-8 text-orange-500" />
+            <img src="./logo.png" alt="Safar Sathi" className="h-10 w-10"/>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Ujjain Travels</h1>
-              <p className="text-xs text-gray-600">Sacred City Explorer</p>
+              <h1 className="text-xl font-bold text-gray-900 poppin">Safar Sathi</h1>
+              <p className="text-xs text-gray-600 hidden sm:block">Sacred City Explorer</p>
             </div>
           </Link>
 

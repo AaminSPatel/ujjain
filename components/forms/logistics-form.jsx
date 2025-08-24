@@ -16,7 +16,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { X, Plus, Upload, ImageIcon } from "lucide-react"
+import { X, Plus, Upload } from "lucide-react"
 
 export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
@@ -28,14 +28,14 @@ export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoadi
     priceRange: { min: 0, max: 0 },
     features: [],
     availability: true,
-    image: null
+    image: null,
   })
   const [newCoverageArea, setNewCoverageArea] = useState("")
   const [newFeature, setNewFeature] = useState("")
   const [newVehicle, setNewVehicle] = useState({
     type: "",
     capacity: "",
-    pricePerKm: ""
+    pricePerKm: "",
   })
   const [imagePreview, setImagePreview] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -52,12 +52,12 @@ export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoadi
         priceRange: logistics.priceRange || { min: 0, max: 0 },
         features: logistics.features || [],
         availability: logistics.availability ?? true,
-        image: logistics.image.url || null
+        image: logistics?.image?.url || null,
       })
-      
+
       // Set image preview if editing existing logistics with image
       if (logistics.image) {
-        setImagePreview(logistics.image.url)
+        setImagePreview(logistics?.image?.url)
       }
     } else {
       setFormData({
@@ -69,88 +69,88 @@ export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoadi
         priceRange: { min: 0, max: 0 },
         features: [],
         availability: true,
-        image: null
+        image: null,
       })
       setImagePreview(null)
     }
   }, [logistics, open])
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     const submissionData = {
       ...formData,
       priceRange: {
         min: Number(formData.priceRange.min),
-        max: Number(formData.priceRange.max)
+        max: Number(formData.priceRange.max),
       },
-      vehicles: formData.vehicles.map(vehicle => ({
+      vehicles: formData.vehicles.map((vehicle) => ({
         type: vehicle.type,
         capacity: vehicle.capacity,
-        pricePerKm: Number(vehicle.pricePerKm)
-      }))
-    };
+        pricePerKm: Number(vehicle.pricePerKm),
+      })),
+    }
 
-    console.log("Submitting:", submissionData);
-    onSubmit(submissionData);
-  };
+    console.log("Submitting:", submissionData)
+    onSubmit(submissionData)
+  }
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    processImageFile(file);
-  };
+    const file = e.target.files[0]
+    if (!file) return
+
+    processImageFile(file)
+  }
 
   const processImageFile = (file) => {
     // Check if file is an image
-    if (!file.type.match('image.*')) {
-      alert("Please select an image file (JPEG, PNG, GIF, etc.)");
-      return;
+    if (!file.type.match("image.*")) {
+      alert("Please select an image file (JPEG, PNG, GIF, etc.)")
+      return
     }
-    
+
     // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image size should be less than 5MB");
-      return;
+      alert("Image size should be less than 5MB")
+      return
     }
-    
+
     // Create preview
-    const reader = new FileReader();
+    const reader = new FileReader()
     reader.onload = (e) => {
-      setImagePreview(e.target.result);
-      setFormData({ ...formData, image: file });
-    };
-    reader.readAsDataURL(file);
-  };
+      setImagePreview(e.target.result)
+      setFormData({ ...formData, image: file })
+    }
+    reader.readAsDataURL(file)
+  }
 
   const removeImage = () => {
-    setImagePreview(null);
-    setFormData({ ...formData, image: null });
+    setImagePreview(null)
+    setFormData({ ...formData, image: null })
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = ""
     }
-  };
+  }
 
   const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
+    e.preventDefault()
+    setIsDragging(true)
+  }
 
   const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
+    e.preventDefault()
+    setIsDragging(false)
+  }
 
   const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const files = e.dataTransfer.files;
+    e.preventDefault()
+    setIsDragging(false)
+
+    const files = e.dataTransfer.files
     if (files.length) {
-      processImageFile(files[0]);
+      processImageFile(files[0])
     }
-  };
+  }
 
   const addCoverageArea = () => {
     if (newCoverageArea.trim() && !formData.coverageArea.includes(newCoverageArea.trim())) {
@@ -195,7 +195,7 @@ export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoadi
       setNewVehicle({
         type: "",
         capacity: "",
-        pricePerKm: ""
+        pricePerKm: "",
       })
     }
   }
@@ -220,9 +220,9 @@ export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoadi
           {/* Image Upload Section */}
           <div className="space-y-2">
             <Label htmlFor="image">Service Image</Label>
-            <div 
+            <div
               className={`flex items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition-colors
-                ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
+                ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400"}`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -230,14 +230,13 @@ export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoadi
             >
               {imagePreview ? (
                 <div className="relative w-full h-full p-2">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
-                    className="object-contain w-full h-full rounded-lg"
-                  />
+                  <img src={imagePreview} alt="Preview" className="object-contain w-full h-full rounded-lg" />
                   <button
                     type="button"
-                    onClick={(e) => {e.stopPropagation(); removeImage();}}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeImage()
+                    }}
                     className="absolute top-2 right-2 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
                   >
                     <X className="h-4 w-4" />
@@ -359,12 +358,7 @@ export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoadi
                   <span className="flex-1 font-medium">{vehicle.type}</span>
                   <span className="flex-1 text-sm">{vehicle.capacity}</span>
                   <span className="flex-1 text-sm">₹{vehicle.pricePerKm}/km</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeVehicle(index)}
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => removeVehicle(index)}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -379,10 +373,12 @@ export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoadi
                 id="minPrice"
                 type="number"
                 value={formData.priceRange.min}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  priceRange: { ...formData.priceRange, min: e.target.value }
-                })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    priceRange: { ...formData.priceRange, min: e.target.value },
+                  })
+                }
                 placeholder="500"
                 required
               />
@@ -393,10 +389,12 @@ export function LogisticsForm({ open, onOpenChange, logistics, onSubmit, isLoadi
                 id="maxPrice"
                 type="number"
                 value={formData.priceRange.max}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  priceRange: { ...formData.priceRange, max: e.target.value }
-                })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    priceRange: { ...formData.priceRange, max: e.target.value },
+                  })
+                }
                 placeholder="5000"
                 required
               />

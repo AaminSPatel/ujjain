@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2 } from "lucide-react"
+import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, List, Grid3X3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,6 +20,7 @@ export default function LogisticsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingLogistics, setEditingLogistics] = useState(null)
   const [deletingLogistics, setDeletingLogistics] = useState(null)
+  const [viewMode, setViewMode] = useState("table")
   const { logistics, isLoading: contextLoading, addLogistics, updateLogistics, removeLogistics } = useUjjain()
   const { toast } = useToast()
   const [localLoading, setLocalLoading] = useState(false)
@@ -28,7 +29,7 @@ export default function LogisticsPage() {
     const filtered = logistics.filter(
       (logistic) =>
         logistic.serviceName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        logistic.serviceType?.toLowerCase().includes(searchTerm.toLowerCase())
+        logistic.serviceType?.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     setFilteredLogistics(filtered)
   }, [logistics, searchTerm])
@@ -99,21 +100,41 @@ export default function LogisticsPage() {
         <CardHeader>
           <CardTitle>Logistics Services</CardTitle>
           <CardDescription>View and manage all logistics services in your system</CardDescription>
-          <div className="flex gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search services..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                disabled={contextLoading}
-              />
+          <div className="flex flex-col sm:flex-row gap-4 justify-between">
+            <div className="flex gap-4 flex-1">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search services..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                  disabled={contextLoading}
+                />
+              </div>
+              <Button variant="outline" disabled={contextLoading}>
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
             </div>
-            <Button variant="outline" disabled={contextLoading}>
-              <Filter className="mr-2 h-4 w-4" />
-              Filter
-            </Button>
+            <div className="flex gap-1 border rounded-lg p-1">
+              <Button
+                variant={viewMode === "table" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("table")}
+                className="h-8 px-3"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="h-8 px-3"
+              >
+                <Grid3X3 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -127,104 +148,197 @@ export default function LogisticsPage() {
                 {searchTerm ? "No services match your search" : "No logistics services available"}
               </p>
             </div>
+          ) : viewMode === "table" ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Service Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Price Range</TableHead>
+                    <TableHead>Coverage</TableHead>
+                    <TableHead>Vehicles</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLogistics.map((logistic) => (
+                    <motion.tr
+                      key={logistic._id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="group"
+                    >
+                      <TableCell className="font-medium">{logistic.serviceName}</TableCell>
+                      <TableCell>
+                        <Badge variant="default">{logistic.serviceType}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        ₹{logistic.priceRange.min} - ₹{logistic.priceRange.max}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {logistic.coverageArea?.slice(0, 2).map((area, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {area}
+                            </Badge>
+                          ))}
+                          {logistic.coverageArea?.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{logistic.coverageArea.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {logistic.vehicles?.slice(0, 2).map((vehicle, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {vehicle.type}
+                            </Badge>
+                          ))}
+                          {logistic.vehicles?.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{logistic.vehicles.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setEditingLogistics(logistic)
+                                setIsFormOpen(true)
+                              }}
+                              disabled={localLoading}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setDeletingLogistics(logistic)}
+                              className="text-red-600"
+                              disabled={localLoading}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Service Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Price Range</TableHead>
-                  <TableHead>Coverage</TableHead>
-                  <TableHead>Vehicles</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogistics.map((logistic) => (
-                  <motion.tr 
-                    key={logistic._id} 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="group"
-                  >
-                    <TableCell className="font-medium">{logistic.serviceName}</TableCell>
-                    <TableCell>
-                      <Badge variant="default">{logistic.serviceType}</Badge>
-                    </TableCell>
-                    <TableCell>₹{logistic.priceRange.min} - ₹{logistic.priceRange.max}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {logistic.coverageArea?.slice(0, 2).map((area, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {area}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredLogistics.map((logistic) => (
+                <motion.div
+                  key={logistic._id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="group"
+                >
+                  <Card className="h-full hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg line-clamp-1">{logistic.serviceName}</CardTitle>
+                          <Badge variant="default" className="mt-1">
+                            {logistic.serviceType}
                           </Badge>
-                        ))}
-                        {logistic.coverageArea?.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{logistic.coverageArea.length - 2}
-                          </Badge>
-                        )}
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setEditingLogistics(logistic)
+                                setIsFormOpen(true)
+                              }}
+                              disabled={localLoading}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setDeletingLogistics(logistic)}
+                              className="text-red-600"
+                              disabled={localLoading}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {logistic.vehicles?.slice(0, 2).map((vehicle, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {vehicle.type}
-                          </Badge>
-                        ))}
-                        {logistic.vehicles?.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{logistic.vehicles.length - 2}
-                          </Badge>
-                        )}
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-3">
+                        <div className="text-lg font-bold text-primary">
+                          ₹{logistic.priceRange.min} - ₹{logistic.priceRange.max}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium mb-1">Coverage Areas:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {logistic.coverageArea?.slice(0, 3).map((area, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {area}
+                              </Badge>
+                            ))}
+                            {logistic.coverageArea?.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{logistic.coverageArea.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium mb-1">Vehicles:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {logistic.vehicles?.slice(0, 3).map((vehicle, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {vehicle.type}
+                              </Badge>
+                            ))}
+                            {logistic.vehicles?.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{logistic.vehicles.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setEditingLogistics(logistic)
-                              setIsFormOpen(true)
-                            }}
-                            disabled={localLoading}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => setDeletingLogistics(logistic)} 
-                            className="text-red-600"
-                            disabled={localLoading}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </motion.tr>
-                ))}
-              </TableBody>
-            </Table>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
 
-      <LogisticsForm 
-        open={isFormOpen} 
+      <LogisticsForm
+        open={isFormOpen}
         onOpenChange={(open) => {
           setIsFormOpen(open)
           if (!open) setEditingLogistics(null)
-        }} 
-        logistics={editingLogistics} 
+        }}
+        logistics={editingLogistics}
         onSubmit={handleFormSubmit}
         isLoading={localLoading}
       />
