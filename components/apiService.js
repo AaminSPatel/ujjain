@@ -45,6 +45,8 @@ export const UserService = {
   signUp: async (userData) => {
     const response = await api.post('/users/register', userData);
     if (response.data.token) {
+            window.location.href = '/';
+
       localStorage.setItem('token', response.data.token);
     }
     return response.data;
