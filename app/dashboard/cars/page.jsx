@@ -91,7 +91,7 @@ export default function CarsPage() {
           key={car._id}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow"
+          className="bg-white border rounded-lg p-3 hover:shadow-md transition-shadow"
         >
           <div className="flex justify-between items-start mb-3">
             <div>
@@ -136,7 +136,7 @@ export default function CarsPage() {
               </Badge>
             </div>
 
-            <div className="mt-3">
+            <div className="mt-3 overflow-hidden">
               <p className="text-sm text-gray-600 mb-2">Features:</p>
               <div className="flex flex-wrap gap-1">
                 {car.features?.slice(0, 3).map((feature, index) => (
@@ -158,13 +158,13 @@ export default function CarsPage() {
   )
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Cars Management</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Manage your vehicle fleet and availability</p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)} disabled={contextLoading} className="w-full sm:w-auto">
+        <Button onClick={() => setIsFormOpen(true)} disabled={contextLoading} className="w-32 sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Add Car
         </Button>

@@ -8,24 +8,36 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff, Star, ArrowLeft } from "lucide-react"
+import { useUjjain } from "@/components/context/UjjainContext"
+import { useRouter } from "next/navigation"
 
 export default function SignInClientPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    email: "",
+    identifier: "", // This can be email or mobile
     password: "",
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const { signIn } = useUjjain()
+  const router = useRouter()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError("")
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await signIn(formData)
+      console.log("Sign in successful")
+      // Redirect to dashboard or home page
+      router.push("/")
+    } catch (err) {
+      setError(err.message || "Sign in failed fail")
+      console.error("Sign in error:", err)
+    } finally {
       setIsLoading(false)
-      console.log("Sign in attempt:", formData)
-    }, 2000)
+    }
   }
 
   const handleChange = (e) => {
@@ -68,15 +80,21 @@ export default function SignInClientPage() {
           </CardHeader>
 
           <CardContent>
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-md">
+                {error}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="identifier">Email or Mobile Number</Label>
                 <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
+                  id="identifier"
+                  name="identifier"
+                  type="text"
+                  placeholder="Enter your email or mobile number"
+                  value={formData.identifier}
                   onChange={handleChange}
                   required
                   className="h-12"
@@ -119,9 +137,16 @@ export default function SignInClientPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+                className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold disabled:opacity-50"
               >
-                {isLoading ? "Signing In..." : "Sign In"}
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Signing In...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </Button>
             </form>
 

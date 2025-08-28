@@ -1,10 +1,8 @@
 "use client"
 
 import { Label } from "@/components/ui/label"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-//import Header from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -34,85 +32,47 @@ import {
   MessageCircle,
   Instagram,
   Crown,
+  UserIcon 
 } from "lucide-react"
 import Link from "next/link"
+import { useUjjain } from "@/components/context/UjjainContext"
+import  UserUpdateModal  from "@/components/forms/UserUpdateModal"
 
-// Mock user data based on schema
-const mockUser = {
-  _id: "1",
-  fullName: "Ujjain Travels",
-  email: "ujjaintravels@email.com",
-  mobile: "9876543210",
-  role: "driver", // user, driver, admin
-  profilePic: {
-    url: "/placeholder.svg?height=120&width=120",
-  },
-  address: {
-    street: "123 Temple Road",
-    city: "Ujjain",
-    state: "Madhya Pradesh",
-    country: "India",
-    postalCode: "456010",
-  },
-  isPro: true,
-  referralId: "UJ2024RAJ123",
-  driverRating: 4.8,
-  totalTrips: 156,
-  isVerified: true,
-  wallet: {
-    balance: 2500,
-    transactions: [
-      { amount: 500, type: "credit", description: "Trip payment", date: new Date() },
-      { amount: 200, type: "debit", description: "Fuel expense", date: new Date() },
-    ],
-  },
-  bookings: [
-    {
-      id: 1,
-      type: "Hotel",
-      name: "Hotel Mahakal Palace",
-      date: "2024-08-20",
-      status: "confirmed",
-      amount: 3500,
-    },
-    {
-      id: 2,
-      type: "Logistics",
-      name: "Express Freight Solutions",
-      date: "2024-08-15",
-      status: "completed",
-      amount: 1200,
-    },
-  ],
-  achievements: [
-    { id: 1, title: "Safe Driver", description: "100+ trips without incidents", icon: Shield, earned: true },
-    { id: 2, title: "Top Rated", description: "Maintain 4.5+ rating", icon: Star, earned: true },
-    { id: 3, title: "Frequent Traveler", description: "Complete 50+ bookings", icon: Trophy, earned: false },
-  ],
-  notifications: [
-    { id: 1, title: "New booking request", message: "You have a new trip request", isRead: false },
-    { id: 2, title: "Payment received", message: "Payment of ₹1200 received", isRead: true },
-  ],
-}
 
 export default function ProfileClient() {
-  const [user, setUser] = useState(mockUser)
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
+  const { user,logout} = useUjjain()
+
+  useEffect(() => {
+      //setLoading(true)
+    if (user) {
+      setUserData(user)
+    } else {
+      setUserData(null)
+    }
+    setLoading(false)
+  }, [user])
 
   const copyReferralLink = () => {
-    const referralLink = `${window.location.origin}/auth/signup?ref=${user.referralId}`
+    if (!userData) return
+    const referralLink = `${window.location.origin}/auth/signup?ref=${userData.referralId}`
     navigator.clipboard.writeText(referralLink)
     // You could add a toast notification here
   }
 
   const shareToWhatsApp = () => {
-    const referralLink = `${window.location.origin}/auth/signup?ref=${user.referralId}`
-    const message = `Join Ujjain Travel using my referral code ${user.referralId} and get exclusive benefits! ${referralLink}`
+    if (!userData) return
+    const referralLink = `${window.location.origin}/auth/signup?ref=${userData.referralId}`
+    const message = `Join Ujjain Travel using my referral code ${userData.referralId} and get exclusive benefits! ${referralLink}`
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank")
   }
 
   const shareToFacebook = () => {
-    const referralLink = `${window.location.origin}/auth/signup?ref=${user.referralId}`
+    if (!userData) return
+    const referralLink = `${window.location.origin}/auth/signup?ref=${userData.referralId}`
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`, "_blank")
   }
 
@@ -122,10 +82,47 @@ export default function ProfileClient() {
     alert("Referral link copied! You can paste it in your Instagram story or post.")
   }
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // No userData found - show sign in section
+  if (!userData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+          <div className="text-center">
+            <UserIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Ujjain Travel</h2>
+            <p className="text-gray-600 mb-6">Sign in to access your profile and manage your account</p>
+            <Link href="/auth/signin">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                Sign In
+              </Button>
+            </Link>
+            <p className="mt-4 text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700">
+                Sign up
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // userData is logged in - show appropriate profile based on role
   return (
     <div className="min-h-screen bg-gray-50">
-      
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header */}
         <motion.div
@@ -136,9 +133,9 @@ export default function ProfileClient() {
           <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
             <div className="relative">
               <Avatar className="h-24 w-24 border-4 border-white">
-                <AvatarImage src={user.profilePic.url || "/placeholder.svg"} alt={user.fullName} />
+                <AvatarImage src={userData?.profilePic?.url || "/placeholder.svg"} alt={userData.fullName} />
                 <AvatarFallback className="text-2xl bg-orange-500">
-                  {user.fullName
+                  {userData.fullName
                     .split(" ")
                     .map((n) => n[0])
                     .join("")}
@@ -154,14 +151,14 @@ export default function ProfileClient() {
 
             <div className="flex-1 text-center md:text-left">
               <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
-                <h1 className="text-3xl font-bold">{user.fullName}</h1>
-                {user.isVerified && (
+                <h1 className="text-3xl font-bold">{userData.fullName}</h1>
+                {userData.isVerified && (
                   <Badge className="bg-green-500 text-white">
                     <Shield className="h-3 w-3 mr-1" />
                     Verified
                   </Badge>
                 )}
-                {user.isPro && (
+                {userData.isPro && (
                   <Badge className="bg-yellow-500 text-white">
                     <Star className="h-3 w-3 mr-1" />
                     Pro
@@ -170,64 +167,71 @@ export default function ProfileClient() {
               </div>
 
               <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-white/90">
-                
+                {userData.role === "admin" && (
                   <Link href='dashboard'>
-                  <div className="flex items-center bg-red-600 py-1 px-2 rounded-2xl space-x-2">
-                   <Crown className="h-4 w-4" />
-                  <span>Admin Panel</span>
-                  </div>
+                    <div className="flex items-center bg-red-600 py-1 px-2 rounded-2xl space-x-2">
+                      <Crown className="h-4 w-4" />
+                      <span>Admin Panel</span>
+                    </div>
                   </Link>
-                
+                )}
                 <div className="flex items-center space-x-2">
                   <Mail className="h-4 w-4" />
-                  <span>{user.email}</span>
+                  <span>{userData.email}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Phone className="h-4 w-4" />
-                  <span>{user.mobile}</span>
+                  <span>{userData.mobile}</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>
-                    {user.address.city}, {user.address.state}
-                  </span>
-                </div>
+                {userData.address && (
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-4 w-4" />
+                    <span>
+                      {userData.address.city}, {userData.address.state}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {user.role === "driver" && (
+              {userData.role === "driver" && (
                 <div className="flex items-center justify-center md:justify-start space-x-6 mt-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{user.driverRating}</div>
+                    <div className="text-2xl font-bold">{userData.driverRating || 0}</div>
                     <div className="text-sm text-white/80">Rating</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{user.totalTrips}</div>
+                    <div className="text-2xl font-bold">{userData.totalTrips || 0}</div>
                     <div className="text-sm text-white/80">Trips</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">₹{user.wallet.balance}</div>
+                    <div className="text-2xl font-bold">₹{userData.wallet?.balance || 0}</div>
                     <div className="text-sm text-white/80">Wallet</div>
                   </div>
                 </div>
               )}
             </div>
 
-            <Button variant="secondary" className="bg-white text-gray-900 hover:bg-gray-100">
+            <Button variant="secondary"  onClick={() => setIsModalOpen(!isModalOpen)} className="bg-white text-gray-900 hover:bg-gray-100">
               <Edit className="h-4 w-4 mr-2" />
               Edit Profile
             </Button>
           </div>
         </motion.div>
-
+       <UserUpdateModal
+        user={userData}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        /* onUpdate={handleUpdateUser} */
+      />
         {/* Dashboard Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-6 my-2">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="achievements">Achievements</TabsTrigger>
             <TabsTrigger value="refer-earn">Refer & Earn</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
-            {user.role === "driver" && <TabsTrigger value="driver">Driver</TabsTrigger>}
+            {userData.role === "driver" && <TabsTrigger value="driver">Driver</TabsTrigger>}
           </TabsList>
 
           {/* Overview Tab */}
@@ -240,22 +244,22 @@ export default function ProfileClient() {
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{user.bookings.length}</div>
+                  <div className="text-2xl font-bold">{userData.bookings?.length || 0}</div>
                   <p className="text-xs text-muted-foreground">+2 from last month</p>
                 </CardContent>
               </Card>
 
-              <Card>
+             {/*  <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Wallet Balance</CardTitle>
                   <Wallet className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">₹{user.wallet.balance}</div>
+                  <div className="text-2xl font-bold">₹{userData.wallet?.balance || 0}</div>
                   <p className="text-xs text-muted-foreground">Available balance</p>
                 </CardContent>
               </Card>
-
+ */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Achievements</CardTitle>
@@ -263,7 +267,7 @@ export default function ProfileClient() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {user.achievements.filter((a) => a.earned).length}/{user.achievements.length}
+                    {(userData.achievements?.filter((a) => a.earned).length || 0)}/{(userData.achievements?.length || 0)}
                   </div>
                   <p className="text-xs text-muted-foreground">Badges earned</p>
                 </CardContent>
@@ -277,7 +281,7 @@ export default function ProfileClient() {
                   <CardTitle>Recent Bookings</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {user.bookings.slice(0, 3).map((booking) => (
+                  {userData.bookings?.slice(0, 3).map((booking) => (
                     <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="p-2 bg-blue-100 rounded-lg">
@@ -299,7 +303,7 @@ export default function ProfileClient() {
                         </Badge>
                       </div>
                     </div>
-                  ))}
+                  )) || <p className="text-gray-500">No bookings found</p>}
                 </CardContent>
               </Card>
 
@@ -308,7 +312,7 @@ export default function ProfileClient() {
                   <CardTitle>Notifications</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {user.notifications.slice(0, 3).map((notification) => (
+                  {userData.notifications?.slice(0, 3).map((notification) => (
                     <div key={notification.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                       <Bell className="h-5 w-5 text-blue-600 mt-0.5" />
                       <div className="flex-1">
@@ -317,7 +321,7 @@ export default function ProfileClient() {
                       </div>
                       {!notification.isRead && <div className="h-2 w-2 bg-blue-600 rounded-full"></div>}
                     </div>
-                  ))}
+                  )) || <p className="text-gray-500">No notifications</p>}
                 </CardContent>
               </Card>
             </div>
@@ -331,7 +335,7 @@ export default function ProfileClient() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {user.bookings.map((booking) => (
+                  {userData.bookings?.map((booking) => (
                     <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-blue-100 rounded-lg">
@@ -363,7 +367,7 @@ export default function ProfileClient() {
                         </Badge>
                       </div>
                     </div>
-                  ))}
+                  )) || <p className="text-gray-500">No bookings found</p>}
                 </div>
               </CardContent>
             </Card>
@@ -372,7 +376,7 @@ export default function ProfileClient() {
           {/* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {user.achievements.map((achievement) => {
+              {userData.achievements?.map((achievement) => {
                 const IconComponent = achievement.icon
                 return (
                   <Card
@@ -397,7 +401,7 @@ export default function ProfileClient() {
                     </CardContent>
                   </Card>
                 )
-              })}
+              }) || <p className="text-gray-500">No achievements found</p>}
             </div>
           </TabsContent>
 
@@ -422,7 +426,7 @@ export default function ProfileClient() {
                     <Label className="text-sm font-medium">Your Referral Code</Label>
                     <div className="flex items-center space-x-2 mt-1">
                       <div className="flex-1 p-3 bg-gray-100 rounded-lg font-mono text-lg text-center">
-                        {user.referralId}
+                        {userData.referralId || "N/A"}
                       </div>
                       <Button onClick={copyReferralLink} variant="outline">
                         <Copy className="h-4 w-4" />
@@ -549,30 +553,33 @@ export default function ProfileClient() {
                 </CardContent>
               </Card>
             </div>
+            <div>
+              <Button onClick={() => logout()}>Logout</Button>
+            </div>
           </TabsContent>
 
           {/* Driver Tab (only for drivers) */}
-          {user.role === "driver" && (
+          {userData.role === "driver" && (
             <TabsContent value="driver" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                    <div className="text-2xl font-bold">{user.driverRating}</div>
+                    <div className="text-2xl font-bold">{userData.driverRating || 0}</div>
                     <div className="text-sm text-gray-500">Average Rating</div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Car className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                    <div className="text-2xl font-bold">{user.totalTrips}</div>
+                    <div className="text-2xl font-bold">{userData.totalTrips || 0}</div>
                     <div className="text-sm text-gray-500">Total Trips</div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Wallet className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                    <div className="text-2xl font-bold">₹{user.wallet.balance}</div>
+                    <div className="text-2xl font-bold">₹{userData.wallet?.balance || 0}</div>
                     <div className="text-sm text-gray-500">Wallet Balance</div>
                   </CardContent>
                 </Card>
@@ -591,7 +598,7 @@ export default function ProfileClient() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {user.wallet.transactions.map((transaction, index) => (
+                    {userData.wallet?.transactions?.map((transaction, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div
@@ -612,7 +619,7 @@ export default function ProfileClient() {
                           {transaction.type === "credit" ? "+" : "-"}₹{transaction.amount}
                         </div>
                       </div>
-                    ))}
+                    )) || <p className="text-gray-500">No transactions found</p>}
                   </div>
                 </CardContent>
               </Card>

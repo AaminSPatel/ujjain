@@ -33,122 +33,168 @@ export const UjjainProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [blogs, setBlogs] = useState([]);
-  const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [logistics, setLogistics] = useState([]);
   const [hotels, setHotels] = useState([]);
   const [users, setUsers] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL 
 
   useEffect(() => {
     // Check for stored token on mount
-    const storedToken = localStorage.getItem("ujjain_token");
-    const storedUser = localStorage.getItem("ujjain_user");
-
-    if (storedToken && storedUser) {
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    //console.log('storedToken , storedUser',storedToken , JSON.parse(storedUser))
+    
+  if (storedToken && storedUser) {
+      console.log('login succesfull with token and user from local');
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
-    }
+    } 
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      // Mock login for demo - replace with actual API call
-      if (email === "admin@ujjain.com" && password === "admin123") {
-        const mockUser = {
-          id: "1",
-          name: "Admin User",
-          fullName: "Admin User",
-          email: "admin@ujjain.com",
-          mobile: "9876543210",
-          address: "Ujjain, Madhya Pradesh, India",
-          role: "admin",
-          profilePic: null,
-        };
-        const mockToken = "mock-jwt-token";
-
-        setUser(mockUser);
-        setToken(mockToken);
-        localStorage.setItem("ujjain_token", mockToken);
-        localStorage.setItem("ujjain_user", JSON.stringify(mockUser));
-      } else {
-        throw new Error("Invalid credentials");
+ // Check if user is authenticated on app load
+  useEffect(() => {
+   // console.log('token',localStorage.getItem('token'));
+    
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const userData = await UserService.getProfile();
+          setUser(userData.data.user);
+          console.log('login succesfull with token');
+          
+        } catch (err) {
+          console.error('Authentication check failed:', err);
+          //localStorage.removeItem('token');
+        }
       }
-    } catch (error) {
-      throw error;
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  // Sign up function
+  const signUp = async (userData) => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await UserService.signUp(userData);
+      setUser(response.data.user);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Sign up failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const signup = async (userData) => {
+// context/UjjainContext.js
+const signIn = async (credentials) => {
+  try {
+    setLoading(true);
+    setError('');
+    const response = await UserService.signIn(credentials);
+    
+    // Assuming the response contains user data
+    if (response.user) {
+      setUser(response.user);
+    }
+    
+    return response;
+  } catch (err) {
+    const errorMsg = err.response?.data?.message || err.message || 'Sign in failed';
+    setError(errorMsg);
+    throw new Error(errorMsg);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // Logout function
+  const logout = async () => {
     try {
-      // Mock signup for demo - replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate network delay
-
-      // Check if email already exists (mock check)
-      if (userData.email === "admin@ujjain.com") {
-        throw new Error("Email already exists");
-      }
-
-      const newUser = {
-        id: Date.now().toString(),
-        name: userData.fullName,
-        fullName: userData.fullName,
-        email: userData.email,
-        mobile: userData.mobile,
-        address: userData.address,
-        role: "admin",
-        profilePic: null,
-        createdAt: new Date().toISOString(),
-      };
-      const mockToken = "mock-jwt-token-" + Date.now();
-
-      setUser(newUser);
-      setToken(mockToken);
-      localStorage.setItem("ujjain_token", mockToken);
-      localStorage.setItem("ujjain_user", JSON.stringify(newUser));
-    } catch (error) {
-      throw error;
+      //let token = localStorage.getItem('token');
+      
+      setLoading(true);
+ /*   if(token){
+    //console.log();
+    
+     await UserService.logout();
+   } */
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setUser(null);
+      console.log('logout final');
+      
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setLoading(false);
     }
   };
 
-  const updateProfile = async (profileData) => {
+  // Update profile function
+  const updateProfile = async (updates) => {
     try {
-      // Mock profile update - replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
-
-      let profilePicUrl = user.profilePic;
-
-      // If there's a new profile picture, simulate upload
-      if (profileData.profilePic) {
-        // In real implementation, you would upload to a service like AWS S3, Cloudinary, etc.
-        profilePicUrl = URL.createObjectURL(profileData.profilePic);
-      }
-
-      const updatedUser = {
-        ...user,
-        fullName: profileData.fullName,
-        name: profileData.fullName,
-        email: profileData.email,
-        mobile: profileData.mobile,
-        address: profileData.address,
-        profilePic: profilePicUrl,
-        updatedAt: new Date().toISOString(),
-      };
-
-      setUser(updatedUser);
-      localStorage.setItem("ujjain_user", JSON.stringify(updatedUser));
-    } catch (error) {
-      throw error;
+      setLoading(true);
+      console.log('sign in function');
+      
+      setError('');
+      const response = await UserService.updateProfile(updates);
+      setUser(response.data.user);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Profile update failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("ujjain_token");
-    localStorage.removeItem("ujjain_user");
+  // Delete account function
+  const deleteAccount = async () => {
+    try {
+      setLoading(true);
+      await UserService.deleteAccount();
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Account deletion failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('token');
+      setLoading(false);
+    }
   };
+
+  // Change password function
+  const changePassword = async (passwordData) => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await UserService.changePassword(passwordData);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Password change failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Clear error
+  const clearError = () => setError('');
+
 
   const brand = {
     name: "Explore Ujjain",
@@ -665,10 +711,13 @@ export const UjjainProvider = ({ children }) => {
     const savedFavorites = localStorage.getItem("ujjain-favorites");
     const savedBookings = localStorage.getItem("ujjain-bookings");
     const savedReviews = localStorage.getItem("ujjain-reviews");
+    const userLocal = localStorage.getItem("user");
 
     if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
     if (savedBookings) setBookings(JSON.parse(savedBookings));
     if (savedReviews) setReviews(JSON.parse(savedReviews));
+        setUser(JSON.parse(userLocal));
+
   }, []);
 
   // Save to localStorage
@@ -882,7 +931,6 @@ export const UjjainProvider = ({ children }) => {
     fetchContacts,
     addContact,
     removeContact,
-    login,
     logout,
     apiCall,
     favorites,
@@ -918,6 +966,17 @@ export const UjjainProvider = ({ children }) => {
     addUser,
     updateUser,
     removeUser,
+     
+    loading,
+    error,
+    isAuthenticated: !!user,
+    signUp,
+    signIn,
+    
+    updateProfile,
+    deleteAccount,
+    changePassword,
+    clearError,
   };
 
   return (
