@@ -57,11 +57,11 @@ export const UserService = {
       const password = credentials.password;
       
       // Check if identifier is email or mobile
-      const isEmail = identifier.includes('@');
+     // const isEmail = identifier.includes('@');
       
       const requestData = {
         password,
-         identifier
+        identifier
       };
 
       const response = await api.post('/users/login', requestData);
