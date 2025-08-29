@@ -96,7 +96,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-7">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-7 hidden">
         <Card className="lg:col-span-7">
           <CardHeader>
             <CardTitle className="text-lg sm:text-xl">Overview</CardTitle>

@@ -5,9 +5,21 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Menu, X, Star, Phone, User } from "lucide-react"
+import { useUjjain } from "./context/UjjainContext"
+import { useEffect } from "react"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const {user} = useUjjain()
+  useEffect(()=>{
+    if(user){
+
+      setIsLoggedIn(true)
+     // console.log('islogged in ' , isLoggedIn);
+      
+    }
+  },[user])
 
   const navItems = [
     { name: "Home", href: "/" },
@@ -29,7 +41,7 @@ export default function Header() {
           <Link href="/" className="flex items-center space-x-2">
             <img src="/logo.png" alt="Safar Sathi" className="h-10 w-10 rounded-full"/>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 poppin">Safar Sathi</h1>
+              <h1 className="text-xl font-bold text-gray-900 poppin uppercase">Safar Sathi</h1>
               <p className="text-xs text-gray-600 hidden sm:block">Sacred City Explorer</p>
             </div>
           </Link>
@@ -48,18 +60,18 @@ export default function Header() {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <div className="hidden md:flex items-center space-x-2 text-orange-500">
               <Phone className="h-4 w-4" />
               <span className="font-semibold">+91-9876543210</span>
             </div>
-            <Link href="/auth/signin">
+          {isLoggedIn &&  <Link href="/auth/signin">
               <Button variant="ghost" className="hidden sm:inline-flex">
                 Sign In
               </Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button className="bg-orange-500 hover:bg-orange-600">Book Now</Button>
+            </Link>}
+            <Link href={isLoggedIn ? '/booking' : "/auth/signup"}>
+              <Button className="bg-gradient-to-r from-orange-700 via-orange-700 to-amber-600 hover:bg-orange-600  px-2 py-1">Book Now</Button>
             </Link>
 
             {/* Mobile menu button */}

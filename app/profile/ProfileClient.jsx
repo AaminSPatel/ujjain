@@ -32,11 +32,13 @@ import {
   MessageCircle,
   Instagram,
   Crown,
-  UserIcon 
+  UserIcon, 
+  CarTaxiFront
 } from "lucide-react"
 import Link from "next/link"
 import { useUjjain } from "@/components/context/UjjainContext"
 import  UserUpdateModal  from "@/components/forms/UserUpdateModal"
+import { FaWhatsapp } from "react-icons/fa"
 
 
 export default function ProfileClient() {
@@ -128,7 +130,7 @@ export default function ProfileClient() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-blue-600 to-green-600 rounded-xl p-8 mb-8 text-white"
+          className="bg-gradient-to-r from-amber-700 via-amber-600 to-yellow-950 rounded-xl p-8 mb-8 text-white"
         >
           <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
             <div className="relative">
@@ -169,7 +171,7 @@ export default function ProfileClient() {
               <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-white/90">
                 {userData.role === "admin" && (
                   <Link href='dashboard'>
-                    <div className="flex items-center bg-red-600 py-1 px-2 rounded-2xl space-x-2">
+                    <div className="flex items-center bg-orange-600 py-1 px-2 rounded-2xl space-x-2">
                       <Crown className="h-4 w-4" />
                       <span>Admin Panel</span>
                     </div>
@@ -210,11 +212,18 @@ export default function ProfileClient() {
                 </div>
               )}
             </div>
-
+              <div className="flex gap-4">
             <Button variant="secondary"  onClick={() => setIsModalOpen(!isModalOpen)} className="bg-white text-gray-900 hover:bg-gray-100">
               <Edit className="h-4 w-4 mr-2" />
               Edit Profile
             </Button>
+            {userData.role === "driver" && <Link href='/driver'>
+            <Button variant="secondary"  className="bg-orange-400 text-gray-900 hover:bg-amber-500">
+              <CarTaxiFront className="h-4 w-4 mr-2" />
+              Driver Panel
+            </Button>
+            </Link>}
+              </div>
           </div>
         </motion.div>
        <UserUpdateModal
@@ -225,13 +234,12 @@ export default function ProfileClient() {
       />
         {/* Dashboard Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-6 my-2">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-6 my-2 py-4 sm:auto h-32 ">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
             <TabsTrigger value="refer-earn">Refer & Earn</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
-            {userData.role === "driver" && <TabsTrigger value="driver">Driver</TabsTrigger>}
+            {/* {userData.role === "driver" && <TabsTrigger value="driver">Driver</TabsTrigger>} */}
           </TabsList>
 
           {/* Overview Tab */}
@@ -438,7 +446,7 @@ export default function ProfileClient() {
                     <Label className="text-sm font-medium mb-3 block">Share on Social Media</Label>
                     <div className="flex space-x-3">
                       <Button onClick={shareToWhatsApp} className="flex-1 bg-green-500 hover:bg-green-600">
-                        <MessageCircle className="h-4 w-4 mr-2" />
+                        <FaWhatsapp className="h-4 w-4 mr-2" />
                         WhatsApp
                       </Button>
                       <Button onClick={shareToFacebook} className="flex-1 bg-blue-600 hover:bg-blue-700">
@@ -558,73 +566,7 @@ export default function ProfileClient() {
             </div>
           </TabsContent>
 
-          {/* Driver Tab (only for drivers) */}
-          {userData.role === "driver" && (
-            <TabsContent value="driver" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                    <div className="text-2xl font-bold">{userData.driverRating || 0}</div>
-                    <div className="text-sm text-gray-500">Average Rating</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <Car className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                    <div className="text-2xl font-bold">{userData.totalTrips || 0}</div>
-                    <div className="text-sm text-gray-500">Total Trips</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <Wallet className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                    <div className="text-2xl font-bold">₹{userData.wallet?.balance || 0}</div>
-                    <div className="text-sm text-gray-500">Wallet Balance</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <Clock className="h-8 w-8 text-orange-500 mx-auto mb-2" />
-                    <div className="text-2xl font-bold">24h</div>
-                    <div className="text-sm text-gray-500">Online Time</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Transactions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {userData.wallet?.transactions?.map((transaction, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div
-                            className={`p-2 rounded-lg ${transaction.type === "credit" ? "bg-green-100" : "bg-red-100"}`}
-                          >
-                            <TrendingUp
-                              className={`h-4 w-4 ${transaction.type === "credit" ? "text-green-600" : "text-red-600"}`}
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{transaction.description}</p>
-                            <p className="text-sm text-gray-500">{transaction.date.toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                        <div
-                          className={`font-bold ${transaction.type === "credit" ? "text-green-600" : "text-red-600"}`}
-                        >
-                          {transaction.type === "credit" ? "+" : "-"}₹{transaction.amount}
-                        </div>
-                      </div>
-                    )) || <p className="text-gray-500">No transactions found</p>}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
+       
         </Tabs>
       </div>
     </div>

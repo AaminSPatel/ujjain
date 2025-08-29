@@ -22,7 +22,9 @@ export function TopNavbar() {
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
       <SidebarTrigger className="-ml-1" />
-
+<div className="flex">
+  <h2 className="font-bold uppercase">Safar Sathi</h2>
+</div>
       <div className="ml-auto flex items-center gap-2 hidden">
         {/* Notifications */}
         <DropdownMenu>

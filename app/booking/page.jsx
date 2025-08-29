@@ -496,7 +496,7 @@ export default function Booking() {
       <div>
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Booking Confirmed!</h2>
         <p className="text-xl text-gray-600 mb-6">
-          Thank you for choosing Ujjain Travel. Your booking has been confirmed.
+          Thank you for choosing Safar Sathi. Your booking has been confirmed.
         </p>
       </div>
 

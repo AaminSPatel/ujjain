@@ -1,6 +1,8 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { FiUser, FiMail, FiPhone, FiMapPin, FiCamera, FiSave, FiX } from 'react-icons/fi';
-import { FaCar, FaIdCard, FaMoneyBill, FaCreditCard } from 'react-icons/fa';
+import { FaCar, FaIdCard, FaCreditCard } from 'react-icons/fa';
 import { useUjjain } from '../context/UjjainContext';
 
 const UserUpdateModal = ({ user, isOpen, onClose }) => {
@@ -15,7 +17,6 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
       country: '',
       postalCode: ''
     },
-    // Driver-specific fields
     driverLicense: {
       number: '',
       expiryDate: ''
@@ -27,14 +28,14 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
       color: '',
       licensePlate: ''
     },
-    // Payment preferences
     preferredPaymentMethod: 'credit_card'
   });
   
   const [profileImage, setProfileImage] = useState(null);
+  const [profilePreview, setProfilePreview] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-   const {updateProfile} = useUjjain()
+const {updateProfile}  = useUjjain()
   useEffect(() => {
     if (user) {
       setFormData({
@@ -61,6 +62,10 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
         },
         preferredPaymentMethod: user.preferredPaymentMethod || 'credit_card'
       });
+      
+      if (user.profilePic?.url) {
+        setProfilePreview(user.profilePic.url);
+      }
     }
   }, [user]);
 
@@ -92,43 +97,59 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
         setErrors(prev => ({ ...prev, profilePic: 'Image must be less than 5MB' }));
         return;
       }
+      
+      if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, profilePic: 'Please select an image file' }));
+        return;
+      }
+      
       setProfileImage(file);
       setErrors(prev => ({ ...prev, profilePic: '' }));
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfilePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
-/* 
+
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
-    if (!formData.mobile.trim()) newErrors.mobile = 'Mobile number is required';
+    // Email validation (only if provided)
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
     
-    // Driver-specific validations
-    if (user?.role === 'driver') {
-      if (!formData.driverLicense.number.trim()) newErrors.driverLicenseNumber = 'License number is required';
-      if (!formData.vehicleInfo.make.trim()) newErrors.vehicleMake = 'Vehicle make is required';
-      if (!formData.vehicleInfo.model.trim()) newErrors.vehicleModel = 'Vehicle model is required';
+    // Mobile validation (only if provided)
+    if (formData.mobile && !/^[0-9+\-\s()]{10,}$/.test(formData.mobile)) {
+      newErrors.mobile = 'Please enter a valid mobile number';
+    }
+    
+    // Driver license validation (only if provided and user is driver)
+    if (user?.role === 'driver' && formData.driverLicense.number && !/^[A-Z0-9]{5,20}$/i.test(formData.driverLicense.number)) {
+      newErrors.driverLicenseNumber = 'Please enter a valid license number';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
- */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-   // if (!validateForm()) return;
+    if (!validateForm()) return;
+    
     setIsSubmitting(true);
     
     try {
       // Prepare data for submission
       const submitData = { ...formData };
       
-      // If there's a new profile image, handle it
+      // If there's a new profile image, add it to the form data
       if (profileImage) {
-        // In a real app, you would upload the image first
         submitData.profilePic = profileImage;
       }
       
@@ -145,42 +166,36 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-800">Update Profile</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl my-8">
+        {/* Header - Sticky on mobile */}
+        <div className="flex justify-between items-center p-4 md:p-6 border-b sticky top-0 bg-white z-10">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800">Update Profile</h2>
           <button 
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 p-1 rounded-full"
           >
             <FiX size={24} />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6">
-          {/* Profile Image Upload */}
+        <form onSubmit={handleSubmit} className="p-4 md:p-6 overflow-y-auto max-h-[calc(100vh-8rem)]">
+          {/* Profile Image Upload - Mobile responsive */}
           <div className="flex flex-col items-center mb-6">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                {profileImage ? (
+            <div className="relative mb-4">
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-2 border-orange-500">
+                {profilePreview ? (
                   <img 
-                    src={URL.createObjectURL(profileImage)} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : user?.profilePic?.url ? (
-                  <img 
-                    src={user.profilePic.url} 
+                    src={profilePreview} 
                     alt="Profile" 
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <FiUser size={40} className="text-gray-400" />
+                  <FiUser size={32} className="text-gray-400" />
                 )}
               </div>
-              <label htmlFor="profileImage" className="absolute bottom-0 right-0 bg-orange-500 text-white p-2 rounded-full cursor-pointer">
-                <FiCamera size={16} />
+              <label htmlFor="profileImage" className="absolute bottom-0 right-0 bg-orange-500 text-white p-2 rounded-full cursor-pointer hover:bg-orange-600 transition-colors">
+                <FiCamera size={14} className="md:size-4" />
                 <input
                   type="file"
                   id="profileImage"
@@ -190,7 +205,11 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                 />
               </label>
             </div>
-            {errors.profilePic && <p className="text-red-500 text-sm mt-2">{errors.profilePic}</p>}
+            {errors.profilePic && (
+              <p className="text-red-500 text-sm text-center mt-2 bg-red-50 p-2 rounded-md">
+                {errors.profilePic}
+              </p>
+            )}
           </div>
           
           {/* Basic Information Section */}
@@ -208,9 +227,9 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Enter your full name"
                 />
-                {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
               </div>
               
               <div>
@@ -222,6 +241,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="Enter your email"
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
@@ -235,6 +255,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                   value={formData.mobile}
                   onChange={handleInputChange}
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.mobile ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="Enter your mobile number"
                 />
                 {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
               </div>
@@ -257,6 +278,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                   value={formData.address.street}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Street address"
                 />
               </div>
               
@@ -269,6 +291,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                   value={formData.address.city}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="City"
                 />
               </div>
               
@@ -281,6 +304,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                   value={formData.address.state}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="State"
                 />
               </div>
               
@@ -293,6 +317,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                   value={formData.address.postalCode}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Postal code"
                 />
               </div>
               
@@ -305,6 +330,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                   value={formData.address.country}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Country"
                 />
               </div>
             </div>
@@ -329,8 +355,9 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                       value={formData.driverLicense.number}
                       onChange={handleInputChange}
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.driverLicenseNumber ? 'border-red-500' : 'border-gray-300'}`}
+                      placeholder="Driver license number"
                     />
-                    {/* {errors.driverLicenseNumber && <p className="text-red-500 text-sm mt-1">{errors.driverLicenseNumber}</p>} */}
+                    {errors.driverLicenseNumber && <p className="text-red-500 text-sm mt-1">{errors.driverLicenseNumber}</p>}
                   </div>
                   
                   <div>
@@ -362,9 +389,9 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                       name="vehicleInfo.make"
                       value={formData.vehicleInfo.make}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.vehicleMake ? 'border-red-500' : 'border-gray-300'}`}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Vehicle make"
                     />
-                   {/*  {errors.vehicleMake && <p className="text-red-500 text-sm mt-1">{errors.vehicleMake}</p>} */}
                   </div>
                   
                   <div>
@@ -375,9 +402,9 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                       name="vehicleInfo.model"
                       value={formData.vehicleInfo.model}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.vehicleModel ? 'border-red-500' : 'border-gray-300'}`}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Vehicle model"
                     />
-                    {/* {errors.vehicleModel && <p className="text-red-500 text-sm mt-1">{errors.vehicleModel}</p>} */}
                   </div>
                   
                   <div>
@@ -389,6 +416,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                       value={formData.vehicleInfo.year}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Manufacturing year"
                     />
                   </div>
                   
@@ -401,6 +429,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                       value={formData.vehicleInfo.color}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Vehicle color"
                     />
                   </div>
                   
@@ -413,6 +442,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
                       value={formData.vehicleInfo.licensePlate}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="License plate number"
                     />
                   </div>
                 </div>
@@ -445,10 +475,14 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
             </div>
           </div>
           
-          {errors.submit && <p className="text-red-500 text-sm mb-4">{errors.submit}</p>}
+          {errors.submit && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-500 text-sm">{errors.submit}</p>
+            </div>
+          )}
           
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-4 border-t">
+          {/* Form Actions - Sticky on mobile */}
+          <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-4 border-t sticky bottom-0 bg-white py-3">
             <button
               type="button"
               onClick={onClose}
@@ -459,7 +493,7 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center disabled:opacity-75"
+              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center disabled:opacity-75 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
@@ -482,121 +516,4 @@ const UserUpdateModal = ({ user, isOpen, onClose }) => {
   );
 };
 
-/* // Example usage in a profile page component
-const ProfilePage = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState({
-    fullName: 'John Doe',
-    email: 'john.doe@example.com',
-    mobile: '+1234567890',
-    role: 'driver', // Change to 'user' to see different fields
-    profilePic: {
-      url: ''
-    },
-    address: {
-      street: '123 Main St',
-      city: 'New York',
-      state: 'NY',
-      country: 'USA',
-      postalCode: '10001'
-    },
-    driverLicense: {
-      number: 'DL123456789',
-      expiryDate: '2025-12-31'
-    },
-    vehicleInfo: {
-      make: 'Toyota',
-      model: 'Camry',
-      year: '2020',
-      color: 'Blue',
-      licensePlate: 'ABC123'
-    },
-    preferredPaymentMethod: 'credit_card'
-  });
-
-  const handleUpdateUser = async (userData) => {
-    // This would be your actual update function from context
-    console.log('Updating user with:', userData);
-    // Simulate API call
-    return new Promise(resolve => setTimeout(() => {
-      setCurrentUser(prev => ({ ...prev, ...userData }));
-      resolve();
-    }, 1500));
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-8">
-            <div className="flex flex-col items-center mb-6">
-              <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mb-4">
-                {currentUser.profilePic?.url ? (
-                  <img 
-                    src={currentUser.profilePic.url} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <FiUser size={48} className="text-gray-400" />
-                )}
-              </div>
-              <h1 className="text-3xl font-bold text-gray-800">{currentUser.fullName}</h1>
-              <div className="mt-2 flex items-center">
-                <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                  {currentUser.role}
-                </span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="flex items-start">
-                <FiMail className="text-orange-500 mt-1 mr-3" size={20} />
-                <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="text-gray-800">{currentUser.email}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start">
-                <FiPhone className="text-orange-500 mt-1 mr-3" size={20} />
-                <div>
-                  <p className="text-sm text-gray-500">Mobile</p>
-                  <p className="text-gray-800">{currentUser.mobile}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start md:col-span-2">
-                <FiMapPin className="text-orange-500 mt-1 mr-3" size={20} />
-                <div>
-                  <p className="text-sm text-gray-500">Address</p>
-                  <p className="text-gray-800">
-                    {currentUser.address.street}, {currentUser.address.city}, {currentUser.address.state} {currentUser.address.postalCode}, {currentUser.address.country}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-center">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center"
-              >
-                <FiUser className="mr-2" /> Edit Profile
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <UserUpdateModal 
-        user={currentUser}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onUpdate={handleUpdateUser}
-      />
-    </div>
-  );
-};
- */
 export default UserUpdateModal;

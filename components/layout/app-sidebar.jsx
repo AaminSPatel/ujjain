@@ -1,6 +1,6 @@
 "use client"
 
-import { Car, Calendar, MapPin, MessageSquare, FileText, Users, Settings, BarChart3, Home, Hotel, Truck, User } from "lucide-react"
+import { Car, Calendar, MapPin, MessageSquare, FileText, Users, Settings, BarChart3, Home, Hotel, Truck, User, PersonStandingIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -26,6 +26,10 @@ const menuItems = [
     title: "Cabs",
     url: "/dashboard/cars",
     icon: Car,
+  },{
+    title: "Drivers",
+    url: "/dashboard/drivers",
+    icon: PersonStandingIcon,
   },
   {
     title: "Logistics",
@@ -89,7 +93,7 @@ export function AppSidebar() {
             <Car className="size-4" />
           </div>
           <div className="flex flex-col gap-0.5 leading-none">
-            <span className="font-semibold">Ujjain Travel</span>
+            <span className="font-semibold">Safar Sathi</span>
             <span className="text-xs text-sidebar-foreground/70">Admin Panel</span>
           </div>
         </div>

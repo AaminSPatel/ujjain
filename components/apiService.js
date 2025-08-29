@@ -11,19 +11,77 @@ const api = axios.create({
   },
 });
 
-// Add token to requests
+// Add request interceptor to include auth token in every request
 api.interceptors.request.use(
   (config) => {
+    // Get token from localStorage
     const token = localStorage.getItem('token');
+    
+    // If token exists, add it to the request headers
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
     return config;
   },
   (error) => {
     return Promise.reject(error);
   }
 );
+
+// Add response interceptor to handle token expiration
+/* api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // Check if this is an authentication error and we haven't already tried to refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      // Check if we have a token to refresh with
+      const token = localStorage.getItem('token');
+      if (!token) {
+        // No token available, redirect to login
+        window.location.href = '/auth/signin';
+        return Promise.reject(error);
+      }
+      
+      // Prevent infinite loop by checking if this is already a refresh request
+      if (originalRequest.url.includes('/refresh-token')) {
+        // This is already a refresh request that failed, don't try again
+      //  localStorage.removeItem('token');
+        //localStorage.removeItem('user');
+        window.location.href = '/auth/signin';
+        return Promise.reject(error);
+      }
+      
+      try {
+        // Try to refresh the token
+        const refreshResponse = await api.post('/users/refresh-token');
+        const newToken = refreshResponse.data.token;
+        
+        // Update stored token
+        localStorage.setItem('token', newToken);
+        
+        // Retry the original request with new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        console.log('Token refresh failed:', refreshError);
+        
+        // Refresh failed, clear storage and redirect to login
+       // localStorage.removeItem('token');
+       // localStorage.removeItem('user');
+        window.location.href = '/auth/signin';
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    // For other errors or if we've already retried, just reject
+    return Promise.reject(error);
+  }
+); */
 
 // Handle token expiration
 /* api.interceptors.response.use(
@@ -92,91 +150,95 @@ export const UserService = {
    // localStorage.removeItem('token');
     return response.data;
   },
+ // Update user profile - COMPLETE VERSION
+  updateProfile: async (userData) => {
+    console.log('User data service',userData.profilePic);
+    
+    try {
+      const formData = new FormData();
+      
+      // Helper function to append data
+      const appendIfExists = (key, value) => {
+        if (value !== undefined && value !== null && value !== '') {
+          formData.append(key, value);
+        }
+      };
+      
+      // Append basic user info
+      appendIfExists('fullName', userData.fullName);
+      appendIfExists('email', userData.email);
+      appendIfExists('mobile', userData.mobile);
+      
+      // Handle address if present
+      if (userData.address) {
+        appendIfExists('address[street]', userData.address.street);
+        appendIfExists('address[city]', userData.address.city);
+        appendIfExists('address[state]', userData.address.state);
+        appendIfExists('address[country]', userData.address.country);
+        appendIfExists('address[postalCode]', userData.address.postalCode);
+      }
+      
+      // Handle profile picture
+      if (userData.profilePic && userData.profilePic instanceof File) {
+        console.log('userData.profilePic',userData.profilePic);
+        
+        formData.append('image', userData.profilePic);
+      }
+      
+      // Handle driver license if present
+      if (userData.driverLicense) {
+        appendIfExists('driverLicense[number]', userData.driverLicense.number);
+        appendIfExists('driverLicense[expiryDate]', userData.driverLicense.expiryDate);
+        
+        if (userData.driverLicense.frontImage instanceof File) {
+          formData.append('driverLicenseFront', userData.driverLicense.frontImage);
+        }
+        if (userData.driverLicense.backImage instanceof File) {
+          formData.append('driverLicenseBack', userData.driverLicense.backImage);
+        }
+      }
+      
+      // Handle vehicle info if present
+      if (userData.vehicleInfo) {
+        appendIfExists('vehicleInfo[make]', userData.vehicleInfo.make);
+        appendIfExists('vehicleInfo[model]', userData.vehicleInfo.model);
+        appendIfExists('vehicleInfo[year]', userData.vehicleInfo.year);
+        appendIfExists('vehicleInfo[color]', userData.vehicleInfo.color);
+        appendIfExists('vehicleInfo[licensePlate]', userData.vehicleInfo.licensePlate);
+      }
+      
+      // Handle payment method if present
+      appendIfExists('preferredPaymentMethod', userData.preferredPaymentMethod);
+      
+      // Log formData contents for debugging
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+      
+      //const response = await api.put('/users/update-profile', formData);
+           // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
 
+     return (await axios.put(`${backendUrl}/users/update-profile`, formData, {
+  headers: {
+    'Content-Type': 'multipart/form-data', // ← This is crucial!
+                'Authorization': `Bearer ${token}`, // Include the token
+  },
+})).data;
+    } catch (error) {
+      console.error('Update profile error:', error);
+      throw new Error(error.response?.data?.message || 'Failed to update profile');
+    }
+  },
   // User profile
   getProfile: async () => (await api.get('/users/me')).data,
 
- updateProfile: async (userData) => {
-  try {
-    const formData = new FormData();
-    
-    // Append basic user info
-    if (userData.fullName) formData.append('fullName', userData.fullName);
-    if (userData.email) formData.append('email', userData.email);
-    if (userData.mobile) formData.append('mobile', userData.mobile);
-    
-    // Handle address if present
-    if (userData.address) {
-      Object.keys(userData.address).forEach(key => {
-        if (userData.address[key]) {
-          formData.append(`address[${key}]`, userData.address[key]);
-        }
-      });
-    }
-    
-    // Handle profile picture
-    if (userData.profilePic && userData.profilePic instanceof File) {
-      formData.append('profilePic', userData.profilePic);
-    }
-    
-    // Handle driver license if present
-    if (userData.driverLicense) {
-      if (userData.driverLicense.number) {
-        formData.append('driverLicense[number]', userData.driverLicense.number);
-      }
-      if (userData.driverLicense.expiryDate) {
-        formData.append('driverLicense[expiryDate]', userData.driverLicense.expiryDate);
-      }
-      if (userData.driverLicense.frontImage instanceof File) {
-        formData.append('driverLicenseFront', userData.driverLicense.frontImage);
-      }
-      if (userData.driverLicense.backImage instanceof File) {
-        formData.append('driverLicenseBack', userData.driverLicense.backImage);
-      }
-    }
-    
-    // Handle vehicle info if present
-    if (userData.vehicleInfo) {
-      Object.keys(userData.vehicleInfo).forEach(key => {
-        if (userData.vehicleInfo[key]) {
-          formData.append(`vehicleInfo[${key}]`, userData.vehicleInfo[key]);
-        }
-      });
-    }
-    
-    // Handle documents if present
-    if (userData.documents && Array.isArray(userData.documents)) {
-      userData.documents.forEach((doc, index) => {
-        if (doc.file instanceof File) {
-          formData.append(`documents[${index}][file]`, doc.file);
-        }
-        if (doc.type) {
-          formData.append(`documents[${index}][type]`, doc.type);
-        }
-        if (doc.expiryDate) {
-          formData.append(`documents[${index}][expiryDate]`, doc.expiryDate);
-        }
-      });
-    }
-    
-    // Handle payment method if present
-    if (userData.preferredPaymentMethod) {
-      formData.append('preferredPaymentMethod', userData.preferredPaymentMethod);
-    }
-    
-    const response = await api.put('/users/update-profile', formData, {
-      headers: { 
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    
-    return response.data;
-  } catch (error) {
-    console.error('Update profile error:', error);
-    throw new Error(error.response?.data?.message || 'Failed to update profile');
-  }
-},
-  changePassword: async (passwordData) => 
+// Update user profile
+changePassword: async (passwordData) => 
     (await api.patch('/users/change-password', passwordData)).data,
 
   deleteAccount: async () => {
@@ -195,7 +257,7 @@ export const UserService = {
   deleteUser: async (id) => (await api.delete(`/users/${id}`)).data,
 
   // Refresh token
-  refreshToken: async () => (await api.post('/users/refresh-token')).data,
+  //refreshToken: async () => (await api.post('/users/refresh-token')).data,
 };
 
 

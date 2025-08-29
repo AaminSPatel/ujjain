@@ -47,7 +47,7 @@ export const UjjainProvider = ({ children }) => {
     // Check for stored token on mount
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-    //console.log('storedToken , storedUser',storedToken , JSON.parse(storedUser))
+  console.log('storedToken , storedUser',storedToken , JSON.parse(storedUser))
     
   if (storedToken && storedUser) {
       console.log('login succesfull with token and user from local');
@@ -145,7 +145,7 @@ const signIn = async (credentials) => {
   const updateProfile = async (updates) => {
     try {
       setLoading(true);
-      console.log('sign in function');
+      //console.log('sign in function',updates);
       
       setError('');
       const response = await UserService.updateProfile(updates);
@@ -472,6 +472,7 @@ const signIn = async (credentials) => {
     await PlaceService.create(placeData);
     fetchPlaces();
   };
+
   const updatePlace = async (id, placeData) => {
     await PlaceService.update(id, placeData);
     fetchPlaces();
@@ -761,16 +762,16 @@ const signIn = async (credentials) => {
     }
   };
 
-  useEffect(() => {
+/*   useEffect(() => {
     // Check for stored token on mount
-    const storedToken = localStorage.getItem("ujjain_token");
-    const storedUser = localStorage.getItem("ujjain_user");
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
 
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
-  }, []);
+  }, []); */
 
   const apiCall = async (endpoint, method, data) => {
     try {
