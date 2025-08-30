@@ -192,6 +192,36 @@ const signIn = async (credentials) => {
     }
   };
 
+ //USERS ADMIN
+  const fetchUsers = async () => {
+    try {
+      const data = await UserService.getAllUsers();
+      console.log(data.data.users, "users");
+      setUsers(data.data.users);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    }
+  };
+
+  const addUser = async (userData) => {
+    await UserService.create(userData);
+    fetchUsers();
+  };
+
+  const updateUser = async (id, userData) => {
+    console.log('data at context', userData);
+    
+    await UserService.updateUser(id, userData);
+    fetchUsers();
+  };
+
+  const removeUser = async (id) => {
+    console.log('remove user context',id);
+    
+    await UserService.deleteUser(id);
+    fetchUsers();
+  };
+
   // Clear error
   const clearError = () => setError('');
 
@@ -644,31 +674,7 @@ const signIn = async (credentials) => {
     fetchContacts();
   };
 
-  //USERS
-  const fetchUsers = async () => {
-    try {
-      const data = await UserService.getAll();
-      console.log(data, "users");
-      setUsers(data);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-    }
-  };
-
-  const addUser = async (userData) => {
-    await UserService.create(userData);
-    fetchUsers();
-  };
-
-  const updateUser = async (id, userData) => {
-    await UserService.update(id, userData);
-    fetchUsers();
-  };
-
-  const removeUser = async (id) => {
-    await UserService.delete(id);
-    fetchUsers();
-  };
+ 
 
   // USE EFFECTS - Fetch initial data
   useEffect(() => {
@@ -679,6 +685,7 @@ const signIn = async (credentials) => {
     fetchContacts();
     fetchHotels();
     fetchLogistics();
+    fetchUsers()
   }, []);
 
   // PWA Install Prompt

@@ -227,14 +227,7 @@ export function UserForm({ open, onOpenChange, user, onSubmit, isLoading }) {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="isVerified"
-                  checked={formData.isVerified}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isVerified: checked })}
-                />
-                <Label htmlFor="isVerified">Verified Driver</Label>
-              </div>
+            
 
               <div className="flex items-center space-x-2">
                 <Switch
@@ -246,7 +239,14 @@ export function UserForm({ open, onOpenChange, user, onSubmit, isLoading }) {
               </div>
             </>
           )}
-
+ <div className="flex items-center space-x-2">
+                <Switch
+                  id="isVerified"
+                  checked={formData.isVerified}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isVerified: checked })}
+                />
+                <Label htmlFor="isVerified">Verified Driver</Label>
+              </div>
           <div className="flex items-center space-x-2">
             <Switch
               id="isPro"

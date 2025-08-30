@@ -252,10 +252,14 @@ changePassword: async (passwordData) =>
 
   getUserById: async (id) => (await api.get(`/users/${id}`)).data,
 
-  updateUser: async (id, userData) => (await api.patch(`/users/${id}`, userData)).data,
+  updateUser: async (id, userData) => {
+        //console.log('data at apiService', userData);
+  return (await api.patch(`/users/${id}`, userData)).data},
 
-  deleteUser: async (id) => (await api.delete(`/users/${id}`)).data,
+  deleteUser: async (id) => {
+    console.log('remove user api',id);
 
+    return (await api.delete(`/users/${id}`)).data},
   // Refresh token
   //refreshToken: async () => (await api.post('/users/refresh-token')).data,
 };

@@ -46,12 +46,12 @@ const menuItems = [
     url: "/dashboard/hotels",
     icon: Hotel,
   },
-  /* {
+  {
     title: "Users",
     url: "/dashboard/users",
     icon: User,
   },
-  {
+ /*  {
     title: "Bookings",
     url: "/dashboard/bookings",
     icon: Calendar,

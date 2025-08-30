@@ -14,20 +14,18 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts"
 import { List, Grid2x2, Star, Wallet2, Car, Send, Bell, CalendarDays } from "lucide-react"
 import { useUjjain } from "@/components/context/UjjainContext"
-import {
-  UserService 
-} from "@/components/apiService.js";
+
 export default function AdminDriversPage() {
   const [view, setView] = useState("grid")
   const [query, setQuery] = useState("")
    const [allUsers, setAllUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-
 const [bookingId, setBookingId] = useState("")
 const [bookingDetails, setBookingDetails] = useState(null)
 const [selectedDriverId, setSelectedDriverId] = useState("")
+
+const {users} = useUjjain()
 // Mock function to fetch booking details - replace with your actual API call
 const fetchBookingDetails = async () => {
   if (!bookingId) return
@@ -89,8 +87,8 @@ const clearSelection = () => {
     const fetchUsers = async () => {
       try {
         setLoading(true)
-        const userData = await UserService.getAllUsers()
-        setAllUsers(userData.data.users)
+       // const userData = await UserService.getAllUsers()
+        setAllUsers(users)
         //console.log('userData',userData.data.users);
         
       } catch (err) {
@@ -99,9 +97,11 @@ const clearSelection = () => {
         setLoading(false)
       }
     }
+if(users.length){
 
-    fetchUsers()
-  }, [])
+  fetchUsers()
+}
+  }, [users])
   // Filter drivers from all users
   const drivers = useMemo(() => {
     if (!allUsers) return []
