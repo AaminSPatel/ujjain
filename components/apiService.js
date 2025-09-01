@@ -697,7 +697,7 @@ export const ReviewService = {
   },
 
   // Get all reviews (admin only)
-  getAll: async (queryParams = {}) => {
+  getAll: async () => {
     try {
       //const params = new URLSearchParams(queryParams);
       const response = await axios.get(`${backendUrl}/reviews`, {
