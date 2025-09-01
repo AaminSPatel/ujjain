@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Car, MapPin, MessageSquare, Truck, TruckElectricIcon, UserCheck2 } from "lucide-react"
+import { Car, Hotel, MapPin, MessageCircle, MessageSquare, Truck, TruckElectricIcon, UserCheck2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Overview } from "@/components/dashboard/overview"
 import { PopularPlaces } from "@/components/dashboard/popular-places"
@@ -17,9 +17,10 @@ export default function DashboardPage() {
   const [allDrivers, setAllDrivers] = useState([])
   const [allPlaces, setAllPlaces] = useState([])
   const [allBookings, setAllBookings] = useState([])
+  const [allReviews, setAllReviews] = useState([])
   const [allLogistics, setAllLogistics] = useState([])
 
-  const {users, cars, hotels, places, bookings, logistics } = useUjjain()
+  const {users, cars, hotels, places, bookings, logistics, reviews } = useUjjain()
 
   useEffect(() => {
     setAllCars(cars)
@@ -27,12 +28,13 @@ export default function DashboardPage() {
     setAllPlaces(places)
     setAllBookings(bookings)
     setAllUsers(users)
+    setAllReviews(reviews)
     setAllLogistics(logistics)
     if(users.length){
       let drivers= users.filter((item)=> item.role === 'driver')
       setAllDrivers(drivers)
     }
-  }, [cars, hotels, logistics, users])
+  }, [cars, hotels, logistics, users ,reviews])
 
   const stats = [
     {
@@ -63,7 +65,7 @@ export default function DashboardPage() {
       title: "Hotels",
       value: allHotels.length,
       change: "+8.3%",
-      icon: MessageSquare,
+      icon: Hotel,
       color: "text-orange-600",
       link: "/dashboard/hotels",
     },
@@ -82,6 +84,14 @@ export default function DashboardPage() {
       icon: TruckElectricIcon,
       color: "text-pink-500",
       link: "/dashboard/drivers",
+    },
+    {
+      title: "Reviews",
+      value: allReviews.length,
+      change: "+8.3%",
+      icon: MessageCircle,
+      color: "text-indigo-500",
+      link: "/dashboard/reviews",
     },
   ]
   return (
