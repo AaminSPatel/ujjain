@@ -9,7 +9,7 @@ export default function Hotels() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [favorites, setFavorites] = useState([])
   const [allHotels, setAllHotels] = useState([])
-const {hotels} = useUjjain()
+const {hotels,getAverageRating} = useUjjain()
 useEffect(()=>{
   if(hotels.length >0){
     setAllHotels(hotels)
@@ -76,7 +76,7 @@ useEffect(()=>{
           <div className="flex flex-wrap justify-center gap-4">
             {categories.map((category) => (
               <button
-                key={category.id}
+                key={category.name}
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ${
                   selectedCategory === category.id
@@ -96,7 +96,7 @@ useEffect(()=>{
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-8">
             {filteredHotels.map((hotel) => (
-              <div key={hotel.id} className="card overflow-hidden">
+              <div key={hotel._id} className="card overflow-hidden">
                 <div className="md:flex">
                   <div className="md:w-2/5 relative">
                     <img
@@ -143,8 +143,8 @@ useEffect(()=>{
                       <div className="text-right">
                         <div className="flex items-center">
                           <FaStar className="text-yellow-500 mr-1" />
-                          <span className="font-semibold">{hotel.rating}</span>
-                          <span className="text-gray-500 text-sm ml-1">({hotel.reviews})</span>
+                          <span className="font-semibold">{getAverageRating(hotel.reviews)}</span>
+                          {hotel.reviews?.length &&<span className="text-gray-500 text-sm ml-1">({hotel.reviews?.length})</span>}
                         </div>
                       </div>
                     </div>
@@ -203,13 +203,13 @@ useEffect(()=>{
 
                     <div className="flex space-x-3">
                       <Link
-                        href={`/hotels/${hotel.id}`}
+                        href={`/hotels/${hotel._id}`}
                         className="flex-1 bg-green-500 text-white text-center py-3 rounded-xl font-semibold hover:bg-green-600 transition-colors duration-300"
                       >
                         View Details
                       </Link>
                       <Link
-                        href={`/booking?hotel=${hotel.id}`}
+                        href={`/booking?hotel=${hotel._id}`}
                         className="flex-1 bg-orange-500 text-white text-center py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors duration-300"
                       >
                         Book Now

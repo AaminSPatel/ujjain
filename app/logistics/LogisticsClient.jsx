@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"
 import { Search, Filter, MapPin, Truck, Package, Star, Phone, SlidersHorizontal } from "lucide-react"
 import { useUjjain } from "../../components/context/UjjainContext"
+import Link from "next/link"
 
 // Mock data based on your logistics schema
 /* const mockLogisticsData = [
@@ -123,7 +124,7 @@ export default function LogisticsClient() {
     availability: "all",
   })
   const [showFilters, setShowFilters] = useState(false)
-  const {logistics} = useUjjain();
+  const {logistics,getAverageRating} = useUjjain();
   // Apply filters
   useEffect(()=>{
     setFilteredData(logistics)
@@ -355,17 +356,17 @@ export default function LogisticsClient() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredData.map((service, index) => (
                 <motion.div
-                  key={service.id}
+                  key={service._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="h-full hover:shadow-lg transition-shadow duration-300">
+                  <Card className="h-full py-0  hover:shadow-lg transition-shadow duration-300">
                     <div className="relative">
                       <img
                         src={service?.image?.url || "/placeholder.svg"}
                         alt={service.serviceName}
-                        className="w-full h-48 object-cover rounded-t-lg"
+                        className="w-full h-56 object-cover rounded-t-lg"
                       />
                       <div className="absolute top-4 left-4">
                         <Badge className="bg-blue-500 text-white">{service.serviceType}</Badge>
@@ -384,8 +385,8 @@ export default function LogisticsClient() {
                         <h3 className="text-xl font-bold text-gray-900 line-clamp-1">{service.serviceName}</h3>
                         <div className="flex items-center space-x-1">
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="font-semibold">{service.rating}</span>
-                          <span className="text-gray-500">({service.reviews})</span>
+                          <span className="font-semibold">{getAverageRating(service?.reviews)}</span>
+                          {service.reviews?.length &&<span className="text-gray-500">({service.reviews?.length})</span>}
                         </div>
                       </div>
 
@@ -452,11 +453,13 @@ export default function LogisticsClient() {
                           <p className="text-sm text-gray-500">Starting price</p>
                         </div>
                         <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">
-                            <Phone className="h-4 w-4 mr-1" />
-                            Call
+                          
+                          <Link className="" href={`/logistics/${service._id}`}>
+<Button size="sm" className="bg-cyan-500 hover:bg-cyan-600">
+                            View Details
                           </Button>
-                          <Button className="bg-orange-500 hover:bg-orange-600" size="sm">
+                          </Link>
+                          <Button className="bg-amber-500 hover:bg-orange-600" size="sm">
                             Book Now
                           </Button>
                         </div>

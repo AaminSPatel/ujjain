@@ -113,13 +113,14 @@ if(users.length){
     if (drivers.length) {
       const activeDrivers = drivers.filter(driver => 
         driver.isActive && driver.isVerified
-      ).length || drivers.length
-      
+      ).length 
+      const allDrivers=drivers.length;
       const pendingApprovals = drivers.filter(driver => 
         !driver.isVerified || !driver.driverLicense?.number
       ).length
       
       setDriverStats({
+        allDrivers,
         activeDrivers,
         pendingApprovals
       })
@@ -181,7 +182,21 @@ if(users.length){
               <CardTitle className="text-base">Total Drivers</CardTitle>
               <CardDescription>Live today</CardDescription>
             </CardHeader>
+            <CardContent className="text-3xl font-bold">{driverStats.allDrivers}</CardContent>
+          </Card>
+          <Card className='w-80 sm:w-auto'>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Active Drivers</CardTitle>
+              <CardDescription>Live today</CardDescription>
+            </CardHeader>
             <CardContent className="text-3xl font-bold">{driverStats.activeDrivers}</CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Pending Approvals</CardTitle>
+              <CardDescription>Docs & onboarding</CardDescription>
+            </CardHeader>
+            <CardContent className="text-3xl font-bold text-amber-500">{driverStats.pendingApprovals}</CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
@@ -205,13 +220,7 @@ if(users.length){
               </ChartContainer>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Pending Approvals</CardTitle>
-              <CardDescription>Docs & onboarding</CardDescription>
-            </CardHeader>
-            <CardContent className="text-3xl font-bold">{driverStats.pendingApprovals}</CardContent>
-          </Card>
+          
         </div>
 
         {/* Drivers list */}

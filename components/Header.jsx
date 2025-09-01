@@ -7,30 +7,25 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, Star, Phone, User } from "lucide-react"
 import { useUjjain } from "./context/UjjainContext"
 import { useEffect } from "react"
+import NotificationBell from "./NotificationBell" // Import the notification component
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const {user} = useUjjain()
-  useEffect(()=>{
-    if(user){
-
+  const { user } = useUjjain()
+  
+  useEffect(() => {
+    if (user) {
       setIsLoggedIn(true)
-     // console.log('islogged in ' , isLoggedIn);
-      
     }
-  },[user])
+  }, [user])
 
   const navItems = [
     { name: "Home", href: "/" },
     { name: "About", href: "/about" },
-   /*  { name: "Places", href: "/places" }, */
     { name: "Cars", href: "/cars" },
     { name: "Hotels", href: "/hotels" },
-    { name: "Logistics", href: "/logistics" }, // added logistics link
-   /*  { name: "Blogs", href: "/blogs" }, */
-    { name: "FAQs", href: "/faqs" },
-    { name: "Contact", href: "/contact" },
+    { name: "Logistics", href: "/logistics" },
   ]
 
   return (
@@ -52,7 +47,7 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-gray-700 hover:text-orange-500 transition-colors duration-200 font-medium"
+                className="text-gray-700 hover:text-amber-500 transition-colors duration-200 font-medium"
               >
                 {item.name}
               </Link>
@@ -65,21 +60,29 @@ export default function Header() {
               <Phone className="h-4 w-4" />
               <span className="font-semibold">+91-9876543210</span>
             </div>
-          {isLoggedIn &&  <Link href="/auth/signin">
-              <Button variant="ghost" className="hidden sm:inline-flex">
-                Sign In
-              </Button>
-            </Link>}
-            <Link href={isLoggedIn ? '/booking' : "/auth/signup"}>
-              <Button className="bg-gradient-to-r from-orange-700 via-orange-700 to-amber-600 hover:bg-orange-600  px-2 py-1">Book Now</Button>
-            </Link>
+            
+            {/* Notification Bell - Only show when logged in */}
+            <div className="w-7">
 
+            {isLoggedIn && <NotificationBell />}
+            </div>
+            
+            {!isLoggedIn && (
+              <Link href="/auth/signin">
+                <Button variant="ghost" className="hidden sm:inline-flex">
+                  Sign In
+                </Button>
+              </Link>
+            )}
+            
             {/* Mobile menu button */}
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="lg:hidden pl-2">
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
+            {/* Profile link */}
+            
             <Link href="/profile">
-            <User size={19}/>
+              <User size={19}/>
             </Link>
           </div>
         </div>
@@ -97,7 +100,7 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-gray-700 hover:text-orange-500 transition-colors duration-200 font-medium px-2 py-1"
+                  className="text-gray-700 hover:text-amber-500 transition-colors duration-200 font-medium px-2 py-1"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}

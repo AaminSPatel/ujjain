@@ -238,13 +238,83 @@ export const UserService = {
   getProfile: async () => (await api.get('/users/me')).data,
 
 // Update user profile
-changePassword: async (passwordData) => 
+  changePassword: async (passwordData) => 
     (await api.patch('/users/change-password', passwordData)).data,
-
+ // Admin function to create a new user
+  createUser: async (userData) => {
+    try {
+      const response = await api.post('/users/admin/create', userData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   deleteAccount: async () => {
     const response = await api.delete('/users/delete-account');
     localStorage.removeItem('token');
     return response.data;
+  },
+ // Add notification to user
+  addNotification: async (userId, notificationData) => {
+    console.log('userId, notificationData',userId, notificationData);
+    
+    try {
+      const response = await api.post(`/users/${userId}/notifications`, notificationData);
+      return response.data;
+
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get user notifications
+  getNotifications: async (userId) => {
+    try {
+      const response = await api.get(`/users/${userId}/notifications`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Mark notification as read
+  markNotificationAsRead: async (userId, notificationId) => {
+    try {
+      const response = await api.patch(`/users/${userId}/notifications/${notificationId}/read`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Mark all notifications as read
+  markAllNotificationsAsRead: async (userId) => {
+    try {
+      const response = await api.patch(`/users/${userId}/notifications/read-all`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Delete notification
+  deleteNotification: async (userId, notificationId) => {
+    try {
+      const response = await api.delete(`/users/${userId}/notifications/${notificationId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Clear all notifications
+  clearAllNotifications: async (userId) => {
+    try {
+      const response = await api.delete(`/users/${userId}/notifications`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
   // Admin functions
@@ -553,10 +623,96 @@ export const LogisticsService = {
  */
 // ====================== REVIEWS ======================
 export const ReviewService = {
-  getAll: async () => (await axios.get(`${backendUrl}/reviews`)).data,
-  delete: async (id) => (await axios.delete(`${backendUrl}/reviews/${id}`)).data,
-};
+  // Create a new review
+  create: async (reviewData) => {
+    let token = localStorage.getItem('token')
+    try {
+              console.log('reviewData api service', reviewData);
 
+      const response = await axios.post(`${backendUrl}/reviews`, reviewData, {
+       headers: {
+                'Authorization': `Bearer ${token}`, // Include the token
+  }
+      });
+      console.log('response.data',response);
+      
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Get reviews for an item
+  getByItem: async (itemId, model, queryParams = {}) => {
+    try {
+      const params = new URLSearchParams({ model, ...queryParams });
+      const response = await axios.get(`${backendUrl}/reviews/${itemId}?${params}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Get user's reviews
+  getByUser: async (queryParams = {}) => {
+    try {
+      const params = new URLSearchParams(queryParams);
+      const response = await axios.get(`${backendUrl}/reviews/user?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Update a review
+  update: async (id, reviewData) => {
+    try {
+      const response = await axios.put(`${backendUrl}/reviews/${id}`, reviewData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Delete a review
+  delete: async (id) => {
+    try {
+      const response = await axios.delete(`${backendUrl}/reviews/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Get all reviews (admin only)
+  getAll: async (queryParams = {}) => {
+    try {
+      //const params = new URLSearchParams(queryParams);
+      const response = await axios.get(`${backendUrl}/reviews`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      console.log('response.data',response.data);
+      
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  }
+};
 
 // ====================== CONTACT ======================
 export const ContactService = {

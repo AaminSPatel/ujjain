@@ -51,16 +51,17 @@ const menuItems = [
     url: "/dashboard/users",
     icon: User,
   },
+   {
+    title: "Reviews",
+    url: "/dashboard/reviews",
+    icon: MessageSquare,
+  },
  /*  {
     title: "Bookings",
     url: "/dashboard/bookings",
     icon: Calendar,
   },
-  {
-    title: "Reviews",
-    url: "/dashboard/reviews",
-    icon: MessageSquare,
-  },
+ 
   
   {
     title: "Contacts",

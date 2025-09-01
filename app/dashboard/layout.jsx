@@ -31,7 +31,7 @@ export default function DashboardLayout({ children }) {
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <TopNavbar />
-          <main className="flex-1 p-6 bg-muted/50">{children}</main>
+          <main className="flex-1 p-5 bg-muted/50 max-w-screen">{children}</main>
         </div>
       </div>
     </SidebarProvider>

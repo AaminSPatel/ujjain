@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CarForm } from "@/components/forms/car-form"
+import { ReviewForm } from "@/components/forms/review-form"
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog"
 import { useUjjain } from "@/components/context/UjjainContext"
 import { useToast } from "@/hooks/use-toast"
@@ -175,7 +176,7 @@ export default function CarsPage() {
           <CardTitle className="text-lg sm:text-xl">Cars List</CardTitle>
           <CardDescription className="text-sm">View and manage all vehicles in your fleet</CardDescription>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div className="relative flex-1 max-w-full sm:max-w-sm">
+            <div className="relative flex gap-2 max-w-full sm:max-w-sm">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search cars..."
@@ -184,12 +185,14 @@ export default function CarsPage() {
                 className="pl-10"
                 disabled={contextLoading}
               />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" disabled={contextLoading} className="flex-1 sm:flex-none bg-transparent">
+              <Button variant="outline" disabled={contextLoading} className="flex-1 sm:flex-none bg-transparent w-40">
                 <Filter className="mr-2 h-4 w-4" />
                 Filter
               </Button>
+            </div>
+             
+            <div className="flex gap-2">
+             
               <div className="flex border rounded-md">
                 <Button
                   variant={viewMode === "table" ? "default" : "ghost"}

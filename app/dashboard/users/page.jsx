@@ -38,7 +38,7 @@ export default function UsersPage() {
   const [allUsers, setAllUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [viewMode, setViewMode] = useState("table") // 'table' | 'grid'
+  const [viewMode, setViewMode] = useState("grid") // 'table' | 'grid'
   const [notifyOpen, setNotifyOpen] = useState(false)
   const [notifyDefaults, setNotifyDefaults] = useState(null)
 
@@ -88,6 +88,7 @@ export default function UsersPage() {
           description: "User updated successfully",
         })
       } else {
+                console.log("data in handle submit", userData)
         await addUser(userData)
         toast({
           title: "Success",
@@ -145,7 +146,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-screen ">
       {/* Header: responsive layout with actions */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -162,7 +163,7 @@ export default function UsersPage() {
               onClick={() => setViewMode("table")}
               aria-pressed={viewMode === "table"}
             >
-              <List className="h-4 w-4 mr-2" />
+              <List className="h-4 w-4 mr-1" />
               Columns
             </Button>
             <Button
@@ -172,7 +173,7 @@ export default function UsersPage() {
               onClick={() => setViewMode("grid")}
               aria-pressed={viewMode === "grid"}
             >
-              <LayoutGrid className="h-4 w-4 mr-2" />
+              <LayoutGrid className="h-4 w-4 mr-1" />
               Grid
             </Button>
           </div>

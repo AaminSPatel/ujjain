@@ -42,6 +42,23 @@ export const UjjainProvider = ({ children }) => {
   const [error, setError] = useState('');
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL 
+  const getAverageRating = (reviews, ratingKey = 'rating') => {
+  if (!reviews || !Array.isArray(reviews) || reviews.length === 0) {
+    return 0;
+  }
+
+  const validReviews = reviews.filter(review => {
+    const rating = review[ratingKey];
+    return typeof rating === 'number' && rating >= 1 && rating <= 5;
+  });
+
+  if (validReviews.length === 0) {
+    return 0;
+  }
+
+  const totalRating = validReviews.reduce((sum, review) => sum + review[ratingKey], 0);
+  return Math.round((totalRating / validReviews.length) * 10) / 10;
+};
 
   useEffect(() => {
     // Check for stored token on mount
@@ -204,7 +221,9 @@ const signIn = async (credentials) => {
   };
 
   const addUser = async (userData) => {
-    await UserService.create(userData);
+    console.log('context userdata',  userData);
+    
+    await UserService.createUser(userData);
     fetchUsers();
   };
 
@@ -221,6 +240,54 @@ const signIn = async (credentials) => {
     await UserService.deleteUser(id);
     fetchUsers();
   };
+
+// notificaitons
+// Add a notification to a user (admin only)
+const addUserNotification = async ( userId,notification) => {
+  try {
+    console.log('notificaiton context',notification);
+    
+    const result = await UserService.addNotification(userId, notification);
+    console.log("Notification added:", result);
+    setUser(result.data.user)
+    
+  } catch (error) {
+    console.error("Error adding notification:", error);
+  }
+};
+
+// Get user notifications
+const getUserNotifications = async (userId) => {
+  try {
+    const result = await UserService.getNotifications(userId);
+    console.log("User notifications:", result);
+    return result;
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+  }
+};
+
+// Mark notification as read
+const markAsRead = async (userId, notificationId) => {
+  try {
+    const result = await UserService.markNotificationAsRead(userId, notificationId);
+    console.log("Notification marked as read:", result);
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+  }
+};
+
+// Mark all notifications as read
+const markAllAsRead = async (userId) => {
+  try {
+    const result = await UserService.markAllNotificationsAsRead(userId);
+    console.log("All notifications marked as read:", result);
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error);
+  }
+};
+
+
 
   // Clear error
   const clearError = () => setError('');
@@ -645,6 +712,8 @@ const signIn = async (credentials) => {
     try {
       const data = await ReviewService.getAll();
       setReviews(data);
+      console.log('data of reviews', data);
+      
     } catch (err) {
       console.error("Error fetching reviews:", err);
     }
@@ -655,6 +724,68 @@ const signIn = async (credentials) => {
     fetchReviews();
   };
 
+// Create a review for a car
+const createCarReview = async () => {
+  try {
+    const reviewData = {
+      rating: 5,
+      comment: "Excellent car! Very comfortable and clean.",
+      reviewedItem: "car_id_here",
+      reviewedModel: "Car"
+    };
+    
+    const result = await ReviewService.create(reviewData);
+    console.log("Review created:", result);
+  } catch (error) {
+    console.error("Error creating review:", error);
+  }
+};
+
+// Create a review for a driver
+const createDriverReview = async () => {
+  try {
+    const reviewData = {
+      rating: 4,
+      comment: "Great driver, very professional.",
+      reviewedItem: "booking_id_here", // or driver_id depending on your schema
+      reviewedModel: "Driver",
+      driver: "driver_user_id_here"
+    };
+    
+    const result = await ReviewService.create(reviewData);
+    console.log("Driver review created:", result);
+  } catch (error) {
+    console.error("Error creating driver review:", error);
+  }
+};
+
+// Get reviews for a hotel
+const getHotelReviews = async () => {
+  try {
+    const result = await ReviewService.getByItem("hotel_id_here", "Hotel", {
+      page: 1,
+      limit: 10,
+      sortBy: "rating",
+      sortOrder: "desc"
+    });
+    console.log("Hotel reviews:", result);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+  }
+};
+
+// Update a review
+const updateReview = async () => {
+  try {
+    const result = await ReviewService.update("review_id_here", {
+      rating: 4,
+      comment: "Updated review comment"
+    });
+    console.log("Review updated:", result);
+  } catch (error) {
+    console.error("Error updating review:", error);
+  }
+};
   // CONTACTS
   const fetchContacts = async () => {
     try {
@@ -682,7 +813,7 @@ const signIn = async (credentials) => {
     fetchCars();
     fetchBlogs();
     fetchBookings();
-    fetchContacts();
+    fetchReviews();
     fetchHotels();
     fetchLogistics();
     fetchUsers()
@@ -914,8 +1045,23 @@ const signIn = async (credentials) => {
       throw error;
     }
   };
+  const getUserById = (userId) => {
+  if (!userId || !users || !Array.isArray(users)) {
+    return null;
+  }
+
+  const cleanUserId = userId.trim();
+  
+  return users.find(u => {
+    return u._id === cleanUserId || 
+           u.id === cleanUserId || 
+           (u._id && u._id.toString() === cleanUserId);
+  }) || null;
+};
   const value = {
-    user,
+    // notificaitons functions
+addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
+    user,getUserById,
     places,
     fetchPlaces,
     addPlace,
@@ -928,7 +1074,7 @@ const signIn = async (credentials) => {
     removeCar,
     blogs,
     fetchBlogs,
-    addBlog,
+    addBlog,getAverageRating,
     removeBlog,
     bookings,
     fetchBookings,

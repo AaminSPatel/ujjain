@@ -27,7 +27,7 @@ export default function Cars() {
   const [favorites, setFavorites] = useState([])
   const [showFilters, setShowFilters] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const { cars } = useUjjain()
+  const { cars ,getAverageRating} = useUjjain()
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -94,6 +94,7 @@ export default function Cars() {
     setSearchQuery("")
     setSelectedCategory("all")
   }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -156,14 +157,14 @@ export default function Cars() {
                 placeholder="Search cars by name or features..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-300"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all duration-300"
               />
             </div>
 
             {/* Filter Toggle Button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+              className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
             >
               <FaFilter />
               <span>Filters</span>
@@ -198,7 +199,7 @@ export default function Cars() {
                         step="500"
                         value={filters.priceRange[1]}
                         onChange={(e) => updateFilter("priceRange", [0, Number.parseInt(e.target.value)])}
-                        className="w-full accent-orange-500"
+                        className="w-full accent-amber-500"
                       />
                       <div className="text-sm text-gray-600">₹0 - ₹{filters.priceRange[1]}</div>
                     </div>
@@ -210,7 +211,7 @@ export default function Cars() {
                     <select
                       value={filters.carType}
                       onChange={(e) => updateFilter("carType", e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
                     >
                       <option value="all">All Types</option>
                       <option value="Sedan">Sedan</option>
@@ -225,7 +226,7 @@ export default function Cars() {
                     <select
                       value={filters.gearType}
                       onChange={(e) => updateFilter("gearType", e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
                     >
                       <option value="all">All Types</option>
                       <option value="Manual">Manual</option>
@@ -239,7 +240,7 @@ export default function Cars() {
                     <select
                       value={filters.seats}
                       onChange={(e) => updateFilter("seats", e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
                     >
                       <option value="all">All Seats</option>
                       <option value="4">4 Seats</option>
@@ -255,7 +256,7 @@ export default function Cars() {
                     <select
                       value={filters.availability}
                       onChange={(e) => updateFilter("availability", e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
                     >
                       <option value="all">All Status</option>
                       <option value="Available">Available</option>
@@ -290,7 +291,7 @@ export default function Cars() {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 ${
                   selectedCategory === category.id
-                    ? "bg-orange-500 text-white shadow-lg"
+                    ? "bg-amber-500 text-white shadow-lg"
                     : "bg-gray-100 text-gray-700 hover:bg-orange-100"
                 }`}
                 whileHover={{ scale: 1.05 }}
@@ -314,7 +315,7 @@ export default function Cars() {
               <p className="text-gray-500 mb-6">Try adjusting your filters or search criteria</p>
               <button
                 onClick={clearFilters}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+                className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
               >
                 Clear Filters
               </button>
@@ -331,7 +332,7 @@ export default function Cars() {
                   className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
                 >
                   {/* Car Image with Gradient */}
-                  <div className="relative h-64 overflow-hidden bg-gradient-to-br from-sky-100 via-orange-500 to-orange-600">
+                  <div className="relative h-64 overflow-hidden bg-gradient-to-br from-amber-50 to-sky-50">
                     <img
                       src={car.images[0].url || "/placeholder.svg?height=300&width=400"}
                       alt={car.model}
@@ -385,9 +386,9 @@ export default function Cars() {
                       <div className="text-right">
                         <div className="flex items-center">
                           <FaStar className="text-orange-500 mr-1" />
-                          <span className="font-semibold">{car?.rating || "4.4"}</span>
+                          <span className="font-semibold">{getAverageRating(car?.reviews)}</span>
+                        {car.reviews?.length &&<span className="text-gray-500 text-sm">({car?.reviews.length})</span>}
                         </div>
-                        <span className="text-gray-500 text-sm">({car?.reviews} reviews)</span>
                       </div>
                     </div>
 

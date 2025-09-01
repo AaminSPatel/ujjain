@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Car, MapPin, MessageSquare, Truck } from "lucide-react"
+import { Car, MapPin, MessageSquare, Truck, TruckElectricIcon, UserCheck2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Overview } from "@/components/dashboard/overview"
 import { PopularPlaces } from "@/components/dashboard/popular-places"
@@ -13,19 +13,26 @@ import Link from "next/link"
 export default function DashboardPage() {
   const [allCars, setAllCars] = useState([])
   const [allHotels, setAllHotels] = useState([])
+  const [allUsers, setAllUsers] = useState([])
+  const [allDrivers, setAllDrivers] = useState([])
   const [allPlaces, setAllPlaces] = useState([])
   const [allBookings, setAllBookings] = useState([])
   const [allLogistics, setAllLogistics] = useState([])
 
-  const { cars, hotels, places, bookings, logistics } = useUjjain()
+  const {users, cars, hotels, places, bookings, logistics } = useUjjain()
 
   useEffect(() => {
     setAllCars(cars)
     setAllHotels(hotels)
     setAllPlaces(places)
     setAllBookings(bookings)
+    setAllUsers(users)
     setAllLogistics(logistics)
-  }, [cars, hotels, logistics])
+    if(users.length){
+      let drivers= users.filter((item)=> item.role === 'driver')
+      setAllDrivers(drivers)
+    }
+  }, [cars, hotels, logistics, users])
 
   const stats = [
     {
@@ -59,6 +66,22 @@ export default function DashboardPage() {
       icon: MessageSquare,
       color: "text-orange-600",
       link: "/dashboard/hotels",
+    },
+    {
+      title: "Users",
+      value: allUsers.length,
+      change: "+8.3%",
+      icon: UserCheck2,
+      color: "text-sla-600",
+      link: "/dashboard/users",
+    },
+    {
+      title: "Drivers",
+      value: allDrivers.length,
+      change: "+8.3%",
+      icon: TruckElectricIcon,
+      color: "text-pink-500",
+      link: "/dashboard/drivers",
     },
   ]
   return (
