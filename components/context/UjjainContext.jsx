@@ -42,6 +42,8 @@ export const UjjainProvider = ({ children }) => {
   const [error, setError] = useState('');
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL 
+
+    
   const getAverageRating = (reviews, ratingKey = 'rating') => {
   if (!reviews || !Array.isArray(reviews) || reviews.length === 0) {
     return 0;

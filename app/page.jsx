@@ -37,7 +37,7 @@ import { useUjjain } from "../components/context/UjjainContext"
 export default function ModernHome() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [currentReview, setCurrentReview] = useState(0)
-   const {places, cars, logistics, hotels} = useUjjain()
+   const {places, cars, logistics, hotels,getAverageRating,reviews} = useUjjain()
   const brand = {
     name: "Sacred Ujjain Tours",
   }
@@ -544,19 +544,19 @@ export default function ModernHome() {
                     <div className="grid grid-cols-2 gap-4 mb-4 text-sm text-gray-600">
                       <div className="flex items-center">
                         <FaUsers className="mr-2 text-orange-500" />
-                        <span>{car.seating} Seater</span>
+                        <span>{car.seats} Seater</span>
                       </div>
                       <div className="flex items-center">
                         <FaGasPump className="mr-2 text-orange-500" />
-                        <span>{car.fuel}</span>
+                        <span>{car.fueltype}</span>
                       </div>
                       <div className="flex items-center">
                         <FaCogs className="mr-2 text-orange-500" />
-                        <span>{car.transmission}</span>
+                        <span>{car.geartype}</span>
                       </div>
                       <div className="flex items-center">
                         <FaStar className="mr-1 text-orange-500" />
-                        <span>{car.rating}</span>
+                        <span>{getAverageRating(car.reviews)} reviews</span>
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-4">
@@ -647,10 +647,10 @@ export default function ModernHome() {
                       alt={hotel.name}
                       className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold capitalize">
                       {hotel.category}
                     </div>
-                    <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
+                    <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center capitalize">
                       <FaMapMarkerAlt className="mr-1" />
                       {hotel.distance}
                     </div>
@@ -666,8 +666,8 @@ export default function ModernHome() {
                     <div className="flex items-center mb-4">
                       <div className="flex items-center mr-4">
                         <FaStar className="text-orange-500 mr-1" />
-                        <span className="font-semibold">{hotel.rating}</span>
-                        <span className="text-gray-500 ml-1">({hotel.reviews})</span>
+                        <span className="font-semibold">{getAverageRating(hotel.reviews)}</span>
+                        <span className="text-gray-500 ml-1">({hotel.reviews?.length || '0'} reviews) </span>
                       </div>
                     </div>
 
@@ -910,15 +910,15 @@ export default function ModernHome() {
                 >
                   <div className="flex items-center mb-6">
                     <img
-                      src={testimonials[currentReview].image || "/placeholder.svg"}
-                      alt={testimonials[currentReview].name}
+                      src={reviews[currentReview]?.user?.profilePic.url || "/placeholder.svg"}
+                      alt={reviews[currentReview]?.user?.fullName}
                       className="w-20 h-20 rounded-full mr-6 border-4 border-orange-500"
                     />
                     <div>
-                      <h4 className="font-bold text-xl text-black">{testimonials[currentReview].name}</h4>
-                      <p className="text-gray-600 text-lg">{testimonials[currentReview].location}</p>
+                      <h4 className="font-bold text-xl text-black capitalize">{reviews[currentReview]?.user?.fullName}</h4>
+                      <p className="text-gray-600 text-lg">{reviews[currentReview]?.user?.address?.city}</p>
                       <div className="flex mt-2">
-                        {[...Array(testimonials[currentReview].rating)].map((_, i) => (
+                        {[...Array(reviews[currentReview]?.rating)].map((_, i) => (
                           <FaStar key={i} className="text-orange-500 text-lg" />
                         ))}
                       </div>
@@ -927,7 +927,7 @@ export default function ModernHome() {
                   <div className="relative">
                     <FaQuoteLeft className="text-orange-500 text-3xl mb-4" />
                     <p className="text-gray-700 text-lg italic leading-relaxed">
-                      {testimonials[currentReview].comment}
+                      {reviews[currentReview]?.comment}
                     </p>
                   </div>
                 </motion.div>
@@ -950,7 +950,7 @@ export default function ModernHome() {
 
             {/* Dots Indicator */}
             <div className="flex justify-center mt-8 space-x-2">
-              {testimonials.map((_, index) => (
+              {reviews.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentReview(index)}
@@ -963,7 +963,7 @@ export default function ModernHome() {
 
             {/* Thumbnail Reviews */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
-              {testimonials.map((testimonial, index) => (
+              {reviews.map((review, index) => (
                 <motion.button
                   key={index}
                   onClick={() => setCurrentReview(index)}
@@ -976,13 +976,13 @@ export default function ModernHome() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <img
-                    src={testimonial.image || "/placeholder.svg"}
-                    alt={testimonial.name}
+                    src={review.user.profilePic.url || "/placeholder.svg"}
+                    alt={review.user.fullName}
                     className="w-12 h-12 rounded-full mx-auto mb-2"
                   />
-                  <p className="text-sm font-semibold text-black truncate">{testimonial.name}</p>
+                  <p className="text-sm font-semibold text-black truncate capitalize">{review.user.fullName}</p>
                   <div className="flex justify-center mt-1">
-                    {[...Array(testimonial.rating)].map((_, i) => (
+                    {[...Array(review.rating)].map((_, i) => (
                       <FaStar key={i} className="text-orange-500 text-xs" />
                     ))}
                   </div>
