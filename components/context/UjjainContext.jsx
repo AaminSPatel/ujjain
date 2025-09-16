@@ -633,28 +633,108 @@ const markAllAsRead = async (userId) => {
 
   // BOOKINGS
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (params = {}) => {
     try {
-      const data = await BookingService.getAll();
-      setBookings(data);
+      const data = await BookingService.getAll(params);
+      setBookings(data.bookings || data);
     } catch (err) {
       console.error("Error fetching bookings:", err);
     }
   };
 
-  const addBooking = async (bookingData) => {
-    await BookingService.create(bookingData);
-    fetchBookings();
+  const fetchMyBookings = async (params = {}) => {
+    try {
+      const data = await BookingService.getMyBookings(params);
+      setBookings(data.bookings || data);
+    } catch (err) {
+      console.error("Error fetching my bookings:", err);
+    }
   };
 
-  const changeBookingStatus = async (id, status) => {
-    await BookingService.updateStatus(id, status);
-    fetchBookings();
+  const addBooking = async (bookingData) => {
+    try {
+      // Ensure user field is set correctly
+          console.log('data at context booking addBooking',bookingData );
+
+      if (!bookingData.user && user && user._id) {
+        bookingData.user = user._id;
+      }
+      const result = await BookingService.create(bookingData);
+      console.log('Booking created:', result);
+      fetchBookings(); // Refresh bookings list
+      return result;
+    } catch (err) {
+      console.error("Error creating booking:", err);
+      throw err;
+    }
+  };
+
+  const changeBookingStatus = async (id, status, cancellationReason = null) => {
+    try {
+      const result = await BookingService.updateStatus(id, status, cancellationReason);
+      console.log('Booking status updated:', result);
+      fetchBookings(); // Refresh bookings list
+      return result;
+    } catch (err) {
+      console.error("Error updating booking status:", err);
+      throw err;
+    }
+  };
+
+  const cancelBooking = async (id, cancellationReason = null) => {
+    try {
+      const result = await BookingService.cancelBooking(id, cancellationReason);
+      console.log('Booking cancelled:', result);
+      fetchBookings(); // Refresh bookings list
+      return result;
+    } catch (err) {
+      console.error("Error cancelling booking:", err);
+      throw err;
+    }
+  };
+
+  const updatePaymentStatus = async (id, paymentStatus, transactionId = null, paymentDate = null) => {
+    try {
+      const result = await BookingService.updatePaymentStatus(id, paymentStatus, transactionId, paymentDate);
+      console.log('Payment status updated:', result);
+      fetchBookings(); // Refresh bookings list
+      return result;
+    } catch (err) {
+      console.error("Error updating payment status:", err);
+      throw err;
+    }
   };
 
   const removeBooking = async (id) => {
-    await BookingService.delete(id);
-    fetchBookings();
+    try {
+      const result = await BookingService.delete(id);
+      console.log('Booking deleted:', result);
+      fetchBookings(); // Refresh bookings list
+      return result;
+    } catch (err) {
+      console.error("Error deleting booking:", err);
+      throw err;
+    }
+  };
+
+  const getBookingById = async (id) => {
+    try {
+      const result = await BookingService.getById(id);
+      return result;
+    } catch (err) {
+      console.error("Error fetching booking by ID:", err);
+      throw err;
+    }
+  };
+
+  const getBookingsByUser = async (userId, params = {}) => {
+    try {
+      const result = await BookingService.getByUser(userId, params);
+      return result;
+    } catch (err) {
+      console.error("Error fetching bookings by user:", err);
+      throw err;
+    }
   };
 
   // HOTELS
@@ -1080,9 +1160,14 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     removeBlog,
     bookings,
     fetchBookings,
+    fetchMyBookings,
     addBooking,
     changeBookingStatus,
+    cancelBooking,
+    updatePaymentStatus,
     removeBooking,
+    getBookingById,
+    getBookingsByUser,
     contacts,
     fetchContacts,
     addContact,

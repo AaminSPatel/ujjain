@@ -1,16 +1,18 @@
 "use client"
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTruck } from "react-icons/fa"
 import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function Booking() {
-  const { addBooking, cars, hotels, logistics } = useUjjain()
-  const [bookingType, setBookingType] = useState("cab")
+  const { addBooking, cars, hotels, logistics, user } = useUjjain()
+  const searchParams = useSearchParams()
+  const [bookingType, setBookingType] = useState("Car")
   const [step, setStep] = useState(1)
   const [bookingData, setBookingData] = useState({
-    serviceType: "cab",
+    serviceType: "Car",
     service: "",
     startDate: "",
     endDate: "",
@@ -39,12 +41,34 @@ export default function Booking() {
 
   const [availableServices, setAvailableServices] = useState([])
 
+  // Handle URL parameters for pre-selecting service
   useEffect(() => {
-    if (bookingType === "cab" && cars) {
+    const serviceType = searchParams.get('serviceType')
+    const serviceId = searchParams.get('service')
+
+    if (serviceType) {
+      setBookingType(serviceType)
+      setBookingData(prev => ({
+        ...prev,
+        serviceType: serviceType,
+        service: serviceId || ""
+      }))
+    }
+
+    if (serviceId) {
+      setBookingData(prev => ({
+        ...prev,
+        service: serviceId
+      }))
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    if (bookingType === "Car" && cars) {
       setAvailableServices(cars)
-    } else if (bookingType === "hotel" && hotels) {
+    } else if (bookingType === "Hotel" && hotels) {
       setAvailableServices(hotels)
-    } else if (bookingType === "logistics" && logistics) {
+    } else if (bookingType === "Logistics" && logistics) {
       setAvailableServices(logistics)
     }
   }, [bookingType, cars, hotels, logistics])
@@ -87,12 +111,38 @@ export default function Booking() {
     e.preventDefault()
     const booking = {
       ...bookingData,
-      user: "current_user_id", // This should come from auth context
+      user: user ? user._id : null, // Use actual user ID from context
       status: "pending",
       isPaid: false,
       isCancelled: false,
     }
-    addBooking(booking)
+    // Transform booking data to match backend schema
+    const transformedBooking = {
+      serviceType: booking.serviceType,
+      service: booking.service,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      pickupLocation: booking.pickupLocation,
+      dropoffLocation: booking.dropoffLocation,
+      guests: booking.guests,
+      rooms: booking.rooms,
+      // Add required fields at root level for backend
+      email: booking.personalInfo.email,
+      mobile: booking.personalInfo.mobile,
+      fullname: booking.personalInfo.fullname,
+      address: booking.personalInfo.address,
+      // Map service to car_id for backward compatibility
+      car_id: booking.service,
+      // Create dates array from startDate and endDate
+      dates: booking.endDate ? [new Date(booking.startDate), new Date(booking.endDate)] : [new Date(booking.startDate)],
+      specialRequests: booking.specialRequests,
+      payment: booking.payment,
+      status: booking.status,
+      isPaid: booking.isPaid,
+      isCancelled: booking.isCancelled,
+      user: booking.user,
+    }
+    addBooking(transformedBooking)
     setStep(4)
   }
 
@@ -102,16 +152,16 @@ export default function Booking() {
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Choose Your Service</h2>
         <div className="flex justify-center space-x-4 flex-wrap gap-2">
           <button
-            onClick={() => setBookingType("cab")}
+            onClick={() => setBookingType("Car")}
             className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ${
-              bookingType === "cab" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-blue-100"
+              bookingType === "Car" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-blue-100"
             }`}
           >
             <FaCar />
             <span>Book Car</span>
           </button>
           <button
-            onClick={() => setBookingType("hotel")}
+            onClick={() => setBookingType("Hotel")}
             className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ${
               bookingType === "hotel" ? "bg-green-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-green-100"
             }`}
@@ -120,9 +170,9 @@ export default function Booking() {
             <span>Book Hotel</span>
           </button>
           <button
-            onClick={() => setBookingType("logistics")}
+            onClick={() => setBookingType("Logistics")}
             className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ${
-              bookingType === "logistics" ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-purple-100"
+              bookingType === "Logistics" ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-purple-100"
             }`}
           >
             <FaTruck />
@@ -143,15 +193,15 @@ export default function Booking() {
             <div className="relative">
               {service.images && service.images.length > 0 ? (
                 <img
-                  src={service.images[0] || "/placeholder.svg"}
-                  alt={service.name || service.title}
+                  src={service.images[0].url || service.image.url || "/placeholder.svg"}
+                  alt={service.name || service.model || service.serviceName}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
                 <div className="w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                  {bookingType === "cab" && <FaCar className="text-4xl text-gray-500" />}
-                  {bookingType === "hotel" && <FaHotel className="text-4xl text-gray-500" />}
-                  {bookingType === "logistics" && <FaTruck className="text-4xl text-gray-500" />}
+                  {bookingType === "Car" && <FaCar className="text-4xl text-gray-500" />}
+                  {bookingType === "Hotel" && <FaHotel className="text-4xl text-gray-500" />}
+                  {bookingType === "Logistics" && <FaTruck className="text-4xl text-gray-500" />}
                 </div>
               )}
               <div className="absolute top-4 right-4">
@@ -163,19 +213,19 @@ export default function Booking() {
 
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold text-gray-800 text-lg">{service.name || service.title}</h3>
+                <h3 className="font-bold text-gray-800 text-lg">{service.name || service.serviceName || service.model}</h3>
               </div>
 
-              {service.description && <p className="text-sm text-gray-600 mb-3 line-clamp-2">{service.description}</p>}
+              {(service.description || service.detail) && <p className="text-sm text-gray-600 mb-3 line-clamp-2">{service.description || service.detail}</p>}
 
-              {bookingType === "cab" && service.capacity && (
+              {bookingType === "Car" && service.seats && (
                 <div className="flex items-center text-sm text-gray-600 mb-3">
                   <FaUsers className="mr-2" />
-                  <span>{service.capacity} Seats</span>
+                  <span>{service.seats} Seats</span>
                 </div>
               )}
 
-              {bookingType === "hotel" && service.rating && (
+              {bookingType === "Hotel" && service.rating && (
                 <div className="flex items-center text-sm text-gray-600 mb-3">
                   <FaStar className="text-yellow-500 mr-1" />
                   <span>{service.rating} Rating</span>
@@ -184,9 +234,9 @@ export default function Booking() {
 
               <div className="flex items-center justify-between">
                 <div className="text-2xl font-bold text-orange-500">
-                  ₹{service.price || service.pricePerDay || service.pricePerNight || 0}
+                  ₹{service.price || service.pricePerDay || service.priceRange.max || 0}
                   <span className="text-sm text-gray-500">
-                    /{bookingType === "hotel" ? "night" : bookingType === "logistics" ? "trip" : "day"}
+                    /{bookingType === "Hotel" ? "night" : bookingType === "Logistics" ? "trip" : "day"}
                   </span>
                 </div>
                 <button className="bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600 transition-colors duration-300">
@@ -194,35 +244,33 @@ export default function Booking() {
                 </button>
               </div>
             </div>
-          </motion.div>
-        ))}
-      </div>
+          
+        </motion.div>
+      ))}
+    </div>
 
-      {availableServices.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            {bookingType === "cab" && <FaCar className="text-6xl mx-auto" />}
-            {bookingType === "hotel" && <FaHotel className="text-6xl mx-auto" />}
-            {bookingType === "logistics" && <FaTruck className="text-6xl mx-auto" />}
-          </div>
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">No services available</h3>
-          <p className="text-gray-500">Please check back later or contact support.</p>
-        </div>
-      )}
-    </motion.div>
-  )
+    <div className="flex justify-center mt-8">
+      <button
+        onClick={() => setStep(2)}
+        className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300"
+      >
+        Continue to Details
+      </button>
+    </div>
+  </motion.div>
+)
 
   const renderStep2 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4">Select Dates & Details</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-4">Booking Details</h2>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {bookingType === "cab" ? "Pickup Date" : bookingType === "hotel" ? "Check-in Date" : "Service Date"} *
+              {bookingType === "Car" ? "Pickup Date" : bookingType === "Hotel" ? "Check-in Date" : "Service Date"} *
             </label>
             <input
               type="date"
@@ -236,7 +284,7 @@ export default function Booking() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {bookingType === "cab" ? "Return Date" : bookingType === "hotel" ? "Check-out Date" : "End Date"}
+              {bookingType === "Car" ? "Return Date" : bookingType === "Hotel" ? "Check-out Date" : "End Date"}
             </label>
             <input
               type="date"
@@ -247,7 +295,7 @@ export default function Booking() {
             />
           </div>
 
-          {bookingType === "cab" && (
+          {bookingType === "Car" && (
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Pickup Location *</label>
@@ -280,9 +328,9 @@ export default function Booking() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {bookingType === "cab"
+              {bookingType === "Car"
                 ? "Number of Passengers"
-                : bookingType === "hotel"
+                : bookingType === "Hotel"
                   ? "Number of Guests"
                   : "Number of People"}{" "}
               *
@@ -295,14 +343,14 @@ export default function Booking() {
             >
               {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                 <option key={num} value={num}>
-                  {num} {bookingType === "cab" ? "Passenger" : bookingType === "hotel" ? "Guest" : "Person"}
+                  {num} {bookingType === "Car" ? "Passenger" : bookingType === "Hotel" ? "Guest" : "Person"}
                   {num > 1 ? "s" : ""}
                 </option>
               ))}
             </select>
           </div>
 
-          {bookingType === "hotel" && (
+          {bookingType === "Hotel" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Number of Rooms *</label>
               <select
@@ -443,11 +491,11 @@ export default function Booking() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">
-                {bookingType === "cab" ? "Passengers:" : bookingType === "hotel" ? "Guests:" : "People:"}
+                {bookingType === "Car" ? "Passengers:" : bookingType === "Hotel" ? "Guests:" : "People:"}
               </span>
               <span className="font-semibold">{bookingData.guests}</span>
             </div>
-            {bookingType === "hotel" && (
+            {bookingType === "Hotel" && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Rooms:</span>
                 <span className="font-semibold">{bookingData.rooms}</span>
@@ -523,7 +571,7 @@ export default function Booking() {
           onClick={() => {
             setStep(1)
             setBookingData({
-              serviceType: "cab",
+              serviceType: "Car",
               service: "",
               startDate: "",
               endDate: "",

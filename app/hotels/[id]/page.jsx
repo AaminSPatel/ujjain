@@ -165,7 +165,7 @@ export default function HotelDetailsPage() {
 
             <div className="mt-6 flex flex-wrap gap-2">
               <Link
-                href={`/booking?hotel=${hotel?._id || hotel?.id}`}
+                href={`/booking?serviceType=hotel&service=${hotel?._id || hotel?.id}`}
                 className="inline-flex items-center rounded-md bg-orange-500 px-4 py-2 text-white font-semibold hover:bg-orange-600 transition"
               >
                 Book Room
@@ -195,9 +195,9 @@ export default function HotelDetailsPage() {
             ))}
           </div>
         <div className="rounded-md border border-gray-200 p-4">
-       <ReviewForm 
-  entityType="Hotel" 
-  entityId={id} 
+       <ReviewForm
+  entityType="Hotel"
+  entityId={id}
   onSuccess={addReview}
 />          </div>
         </div>

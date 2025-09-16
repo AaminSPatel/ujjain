@@ -170,7 +170,7 @@ export default function CarDetailsPage() {
               </div>
               <div className="flex gap-2">
                 <Link
-                  href={`/booking?car=${car?._id || car?.id}`}
+                  href={`/booking?serviceType=cab&service=${car?._id || car?.id}`}
                   className={`inline-flex items-center rounded-md px-4 py-2 text-white font-semibold transition ${
                     car?.availability === "Available"
                       ? "bg-orange-500 hover:bg-orange-600"

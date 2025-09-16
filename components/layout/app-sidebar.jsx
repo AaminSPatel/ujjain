@@ -22,6 +22,12 @@ const menuItems = [
     url: "/dashboard",
     icon: Home,
   },
+   {
+    title: "Bookings",
+    url: "/dashboard/bookings",
+    icon: Calendar,
+  },
+  
   {
     title: "Cabs",
     url: "/dashboard/cars",
@@ -56,11 +62,8 @@ const menuItems = [
     url: "/dashboard/reviews",
     icon: MessageSquare,
   },
- /*  {
-    title: "Bookings",
-    url: "/dashboard/bookings",
-    icon: Calendar,
-  },
+ 
+  /* 
  
   
   {

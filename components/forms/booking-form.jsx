@@ -14,86 +14,226 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { X, Plus } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { useUjjain } from "@/components/context/UjjainContext"
 
-export function BookingForm({ open, onOpenChange, booking, onSubmit, cars }) {
+export function BookingForm({ open, onOpenChange, booking, onSubmit, cars, hotels, logistics }) {
+  const { addBooking } = useUjjain()
   const [formData, setFormData] = useState({
-    email: "",
-    mobile: "",
-    fullname: "",
-    address: "",
-    placeToPick: "",
-    placeToDrop: "",
-    car_id: "",
-    dates: [],
-    payment_type: "Cash",
-    dateofpick: new Date(),
-    total_price: "",
-    status: "Pending"
+    serviceType: "cab",
+    service: "",
+    startDate: new Date(),
+    endDate: new Date(),
+    pickupLocation: "",
+    dropoffLocation: "",
+    pickupTime: "",
+    arrivalTime: "",
+    passengers: {
+      adults: 1,
+      children: 0,
+      infants: 0
+    },
+    rooms: 1,
+    pricing: {
+      basePrice: 0,
+      discount: 0,
+      tax: 0,
+      totalPrice: 0
+    },
+    coupon: {
+      code: "",
+      discountAmount: 0,
+      discountType: "fixed"
+    },
+    specialRequests: "",
+    payment: {
+      method: "cash",
+      amount: 0,
+      transactionId: "",
+      paidAt: null
+    },
+    status: "pending",
+    isPaid: false,
+    isCancelled: false
   })
 
   useEffect(() => {
     if (booking) {
+      console.log('Loading booking for edit:', booking)
       setFormData({
-        email: booking.email || "",
-        mobile: booking.mobile || "",
-        fullname: booking.fullname || "",
-        address: booking.address || "",
-        placeToPick: booking.placeToPick || "",
-        placeToDrop: booking.placeToDrop || "",
-        car_id: booking.car_id?.toString() || "",
-        dates: booking.dates || [],
-        payment_type: booking.payment_type || "Cash",
-        dateofpick: booking.dateofpick ? new Date(booking.dateofpick) : new Date(),
-        total_price: booking.total_price?.toString() || "",
-        status: booking.status || "Pending"
+        serviceType: booking.serviceType || "cab",
+        service: booking.service || "",
+        startDate: booking.startDate ? new Date(booking.startDate) : new Date(),
+        endDate: booking.endDate ? new Date(booking.endDate) : new Date(),
+        pickupLocation: booking.pickupLocation?.address || "",
+        dropoffLocation: booking.dropoffLocation?.address || "",
+        pickupTime: booking.pickupTime || "",
+        arrivalTime: booking.arrivalTime || "",
+        passengers: {
+          adults: booking.passengers?.adults || 1,
+          children: booking.passengers?.children || 0,
+          infants: booking.passengers?.infants || 0
+        },
+        rooms: booking.rooms || 1,
+        pricing: {
+          basePrice: booking.pricing?.basePrice || 0,
+          discount: booking.pricing?.discount || 0,
+          tax: booking.pricing?.tax || 0,
+          totalPrice: booking.pricing?.totalPrice || 0
+        },
+        coupon: {
+          code: booking.coupon?.code || "",
+          discountAmount: booking.coupon?.discountAmount || 0,
+          discountType: booking.coupon?.discountType || "fixed"
+        },
+        specialRequests: booking.specialRequests || "",
+        payment: {
+          method: booking.payment?.method || "cash",
+          amount: booking.payment?.amount || 0,
+          transactionId: booking.payment?.transactionId || "",
+          paidAt: booking.payment?.paidAt ? new Date(booking.payment.paidAt) : null
+        },
+        status: booking.status || "pending",
+        isPaid: booking.isPaid || false,
+        isCancelled: booking.isCancelled || false
       })
     } else {
+      console.log('Creating new booking form')
       setFormData({
-        email: "",
-        mobile: "",
-        fullname: "",
-        address: "",
-        placeToPick: "",
-        placeToDrop: "",
-        car_id: "",
-        dates: [],
-        payment_type: "Cash",
-        dateofpick: new Date(),
-        total_price: "",
-        status: "Pending"
+        serviceType: "cab",
+        service: "",
+        startDate: new Date(),
+        endDate: new Date(),
+        pickupLocation: "",
+        dropoffLocation: "",
+        pickupTime: "",
+        arrivalTime: "",
+        passengers: {
+          adults: 1,
+          children: 0,
+          infants: 0
+        },
+        rooms: 1,
+        pricing: {
+          basePrice: 0,
+          discount: 0,
+          tax: 0,
+          totalPrice: 0
+        },
+        coupon: {
+          code: "",
+          discountAmount: 0,
+          discountType: "fixed"
+        },
+        specialRequests: "",
+        payment: {
+          method: "cash",
+          amount: 0,
+          transactionId: "",
+          paidAt: null
+        },
+        status: "pending",
+        isPaid: false,
+        isCancelled: false
       })
     }
   }, [booking, open])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit({
-      ...formData,
-      dates: formData.dates,
-      dateofpick: formData.dateofpick,
-      total_price: Number(formData.total_price)
-    })
-  }
+    try {
+      console.log('Submitting booking form:', formData)
 
-  const addDate = (date) => {
-    if (!formData.dates.some(d => d.getTime() === date.getTime())) {
-      setFormData({
-        ...formData,
-        dates: [...formData.dates, date]
-      })
+      // Get current user from localStorage or context
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+      const userId = currentUser._id
+
+      if (!userId) {
+        throw new Error('User not authenticated')
+      }
+
+      // Ensure pricing fields are defined and valid numbers
+      const pricing = {
+        basePrice: Number(formData.pricing.basePrice) || 0,
+        discount: Number(formData.pricing.discount) || 0,
+        tax: Number(formData.pricing.tax) || 0,
+        totalPrice: Number(formData.pricing.totalPrice) || 0,
+      };
+
+      // Map form data to backend schema
+      const bookingData = {
+        dates: [formData.startDate],
+        user: userId,
+        serviceType: formData.serviceType === 'cab' ? 'Car' : formData.serviceType === 'hotel' ? 'Hotel' : formData.serviceType === 'logistics' ? 'Logistics' : formData.serviceType,
+        service: formData.service,
+        startDate: formData.startDate.toISOString(),
+        endDate: formData.endDate?.toISOString() || formData.startDate.toISOString(),
+        passengers: formData.passengers,
+        rooms: formData.rooms,
+        pickupLocation: formData.serviceType !== 'hotel' ? { address: formData.pickupLocation } : undefined,
+        dropoffLocation: formData.serviceType !== 'hotel' ? { address: formData.dropoffLocation } : undefined,
+        pickupTime: formData.serviceType !== 'hotel' ? formData.pickupTime : undefined,
+        arrivalTime: formData.serviceType === 'hotel' ? formData.arrivalTime : undefined,
+        pricing: pricing,
+        coupon: formData.coupon.code ? formData.coupon : undefined,
+        specialRequests: formData.specialRequests,
+        payment: {
+          method: formData.payment.method,
+          amount: pricing.totalPrice || formData.payment.amount,
+          status: formData.isPaid ? 'completed' : 'pending',
+          transactionId: formData.payment.transactionId,
+          paymentDate: formData.payment.paidAt
+        },
+        status: formData.status,
+        isPaid: formData.isPaid,
+        isCancelled: formData.isCancelled
+      }
+
+      console.log('Mapped booking data:', bookingData)
+
+      if (booking) {
+        // Update existing booking
+        console.log('Updating existing booking:', booking._id)
+        // For now, we'll create a new booking. In a real app, you'd have an update endpoint
+        await addBooking(bookingData)
+      } else {
+        // Create new booking
+        await addBooking(bookingData)
+      }
+
+      onSubmit(bookingData)
+    } catch (error) {
+      console.error('Error submitting booking form:', error)
+      throw error
     }
   }
 
-  const removeDate = (date) => {
-    setFormData({
-      ...formData,
-      dates: formData.dates.filter(d => d.getTime() !== date.getTime())
-    })
+  const getServiceOptions = () => {
+    switch (formData.serviceType) {
+      case "cab":
+        return cars || []
+      case "hotel":
+        return hotels || []
+      case "logistics":
+        return logistics || []
+      default:
+        return []
+    }
+  }
+
+  const getServiceDisplayName = (service) => {
+    switch (formData.serviceType) {
+      case "cab":
+        return service.model || "Unknown Car"
+      case "hotel":
+        return service.name || "Unknown Hotel"
+      case "logistics":
+        return service.title || "Unknown Service"
+      default:
+        return "Unknown Service"
+    }
   }
 
   return (
@@ -106,154 +246,145 @@ export function BookingForm({ open, onOpenChange, booking, onSubmit, cars }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="fullname">Full Name</Label>
-              <Input
-                id="fullname"
-                value={formData.fullname}
-                onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
-                placeholder="John Doe"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="customer@example.com"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="mobile">Mobile Number</Label>
-              <Input
-                id="mobile"
-                value={formData.mobile}
-                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                placeholder="+91 9876543210"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="Complete postal address"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="placeToPick">Pickup Location</Label>
-              <Input
-                id="placeToPick"
-                value={formData.placeToPick}
-                onChange={(e) => setFormData({ ...formData, placeToPick: e.target.value })}
-                placeholder="Ujjain Railway Station"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="placeToDrop">Drop Location</Label>
-              <Input
-                id="placeToDrop"
-                value={formData.placeToDrop}
-                onChange={(e) => setFormData({ ...formData, placeToDrop: e.target.value })}
-                placeholder="Mahakaleshwar Temple"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Car</Label>
+              <Label>Service Type</Label>
               <Select
-                value={formData.car_id}
-                onValueChange={(value) => setFormData({ ...formData, car_id: value })}
-                
+                value={formData.serviceType}
+                onValueChange={(value) => setFormData({ ...formData, serviceType: value, service: "" })}
+                required
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a car" />
+                  <SelectValue placeholder="Select service type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cars?.map((car) => (
-                    <SelectItem key={car._id} value={car._id.toString()}>
-                      {car.model} ({car.type})
+                  <SelectItem value="cab">Cab</SelectItem>
+                  <SelectItem value="hotel">Hotel</SelectItem>
+                  <SelectItem value="logistics">Logistics</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Service</Label>
+              <Select
+                value={formData.service}
+                onValueChange={(value) => setFormData({ ...formData, service: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select service" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getServiceOptions().map((service) => (
+                    <SelectItem key={service._id} value={service._id}>
+                      {getServiceDisplayName(service)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Passenger Details */}
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>Payment Method</Label>
-              <Select
-                value={formData.payment_type}
-                onValueChange={(value) => setFormData({ ...formData, payment_type: value })}
+              <Label htmlFor="adults">Adults</Label>
+              <Input
+                id="adults"
+                type="number"
+                min="1"
+                value={formData.passengers.adults}
+                onChange={(e) => setFormData({ ...formData, passengers: { ...formData.passengers, adults: Number(e.target.value) } })}
+                placeholder="1"
                 required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Cash">Cash</SelectItem>
-                  <SelectItem value="Card">Card</SelectItem>
-                  <SelectItem value="UPI">UPI</SelectItem>
-                </SelectContent>
-              </Select>
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="children">Children</Label>
+              <Input
+                id="children"
+                type="number"
+                min="0"
+                value={formData.passengers.children}
+                onChange={(e) => setFormData({ ...formData, passengers: { ...formData.passengers, children: Number(e.target.value) } })}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="infants">Infants</Label>
+              <Input
+                id="infants"
+                type="number"
+                min="0"
+                value={formData.passengers.infants}
+                onChange={(e) => setFormData({ ...formData, passengers: { ...formData.passengers, infants: Number(e.target.value) } })}
+                placeholder="0"
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 font-semibold">
-            <div className="space-y-2 group">
-              <Label >Pickup Date</Label>
-              <Calendar
-                mode="single"
-                selected={formData.dateofpick}
-                onSelect={(date) => date && setFormData({ ...formData, dateofpick: date })}
-                className="rounded-md border group-hover:flex hidden"
+          {formData.serviceType === 'Hotel' && (
+            <div className="space-y-2">
+              <Label htmlFor="rooms">Number of Rooms</Label>
+              <Input
+                id="rooms"
+                type="number"
+                min="1"
+                value={formData.rooms}
+                onChange={(e) => setFormData({ ...formData, rooms: Number(e.target.value) })}
+                placeholder="1"
+                required
               />
             </div>
-            <div className="space-y-2 group">
-              <Label >Booking Dates</Label>
-              <Calendar
-                mode="multiple"
-                selected={formData.dates}
-                onSelect={(dates) => dates && setFormData({ ...formData, dates })}
-                className="rounded-md border  group-hover:flex hidden"
-              />
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.dates.map((date) => (
-                  <Badge key={date.toString()} variant="secondary" className="flex items-center gap-1">
-                    {format(date, 'PPP')}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeDate(date)} />
-                  </Badge>
-                ))}
+          )}
+
+          {/* Location Details - conditional */}
+          {formData.serviceType !== 'Hotel' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Pickup Location</Label>
+                <Input
+                  value={formData.pickupLocation}
+                  onChange={(e) => setFormData({ ...formData, pickupLocation: e.target.value })}
+                  placeholder="Pickup address"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Dropoff Location</Label>
+                <Input
+                  value={formData.dropoffLocation}
+                  onChange={(e) => setFormData({ ...formData, dropoffLocation: e.target.value })}
+                  placeholder="Dropoff address"
+                  required
+                />
               </div>
             </div>
-          </div>
+          )}
 
+          {/* Time Details */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="total_price">Total Price (₹)</Label>
-              <Input
-                id="total_price"
-                type="number"
-                value={formData.total_price}
-                onChange={(e) => setFormData({ ...formData, total_price: e.target.value })}
-                placeholder="2500"
-                required
-              />
-            </div>
+            {formData.serviceType === 'Hotel' ? (
+              <div className="space-y-2">
+                <Label htmlFor="arrivalTime">Arrival Time</Label>
+                <Input
+                  id="arrivalTime"
+                  type="time"
+                  value={formData.arrivalTime}
+                  onChange={(e) => setFormData({ ...formData, arrivalTime: e.target.value })}
+                  required
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="pickupTime">Pickup Time</Label>
+                <Input
+                  id="pickupTime"
+                  type="time"
+                  value={formData.pickupTime}
+                  onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
+                  required
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Status</Label>
               <Select
@@ -265,12 +396,156 @@ export function BookingForm({ open, onOpenChange, booking, onSubmit, cars }) {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Confirmed">Confirmed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Date Selection */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Start Date</Label>
+              <Calendar
+                mode="single"
+                selected={formData.startDate}
+                onSelect={(date) => date && setFormData({ ...formData, startDate: date })}
+                className="rounded-md border"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>End Date</Label>
+              <Calendar
+                mode="single"
+                selected={formData.endDate}
+                onSelect={(date) => date && setFormData({ ...formData, endDate: date })}
+                className="rounded-md border"
+              />
+            </div>
+          </div>
+
+          {/* Pricing Details */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="basePrice">Base Price (₹)</Label>
+              <Input
+                id="basePrice"
+                type="number"
+                min="0"
+                value={formData.pricing.basePrice}
+                onChange={(e) => setFormData({ ...formData, pricing: { ...formData.pricing, basePrice: Number(e.target.value) } })}
+                placeholder="0"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="discount">Discount (₹)</Label>
+              <Input
+                id="discount"
+                type="number"
+                min="0"
+                value={formData.pricing.discount}
+                onChange={(e) => setFormData({ ...formData, pricing: { ...formData.pricing, discount: Number(e.target.value) } })}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tax">Tax (₹)</Label>
+              <Input
+                id="tax"
+                type="number"
+                min="0"
+                value={formData.pricing.tax}
+                onChange={(e) => setFormData({ ...formData, pricing: { ...formData.pricing, tax: Number(e.target.value) } })}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="totalPrice">Total Price (₹)</Label>
+            <Input
+              id="totalPrice"
+              type="number"
+              min="0"
+              value={formData.pricing.totalPrice}
+              onChange={(e) => setFormData({ ...formData, pricing: { ...formData.pricing, totalPrice: Number(e.target.value) } })}
+              placeholder="0"
+              required
+            />
+          </div>
+
+          {/* Coupon Details */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="couponCode">Coupon Code</Label>
+              <Input
+                id="couponCode"
+                value={formData.coupon.code}
+                onChange={(e) => setFormData({ ...formData, coupon: { ...formData.coupon, code: e.target.value } })}
+                placeholder="COUPON123"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="discountAmount">Discount Amount</Label>
+              <Input
+                id="discountAmount"
+                type="number"
+                min="0"
+                value={formData.coupon.discountAmount}
+                onChange={(e) => setFormData({ ...formData, coupon: { ...formData.coupon, discountAmount: Number(e.target.value) } })}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Discount Type</Label>
+              <Select
+                value={formData.coupon.discountType}
+                onValueChange={(value) => setFormData({ ...formData, coupon: { ...formData.coupon, discountType: value } })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Fixed Amount</SelectItem>
+                  <SelectItem value="percentage">Percentage</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Payment Method */}
+          <div className="space-y-2">
+            <Label>Payment Method</Label>
+            <Select
+              value={formData.payment.method}
+              onValueChange={(value) => setFormData({ ...formData, payment: { ...formData.payment, method: value } })}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="credit_card">Credit Card</SelectItem>
+                <SelectItem value="wallet">Wallet</SelectItem>
+                <SelectItem value="paypal">Paypal</SelectItem>
+                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Special Requests</Label>
+            <Textarea
+              value={formData.specialRequests}
+              onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
+              placeholder="Any special requests"
+            />
           </div>
 
           <DialogFooter>
