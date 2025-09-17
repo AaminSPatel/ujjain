@@ -60,7 +60,7 @@ export const BookingService = {
 
   // Create new booking
   create: async (bookingData) => {
-    console.log('Creating booking with data:', bookingData);
+    //console.log('Creating booking with data:', bookingData);
 
     // Transform frontend data to match backend schema
     const transformedData = {
@@ -338,6 +338,8 @@ export const HotelService = {
               arrayValue = JSON.parse(arrayValue);
             } catch (error) {
               arrayValue = [];
+              console.log(error)
+              
             }
           }
           formData.append(key, JSON.stringify(Array.isArray(arrayValue) ? arrayValue : []));
