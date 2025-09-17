@@ -164,13 +164,58 @@ export default function HotelDetailsPage() {
             )}
 
             <div className="mt-6 flex flex-wrap gap-2">
-              <Link
-                href={`/booking?serviceType=hotel&service=${hotel?._id || hotel?.id}`}
-                className="inline-flex items-center rounded-md bg-orange-500 px-4 py-2 text-white font-semibold hover:bg-orange-600 transition"
-              >
-                Book Room
-              </Link>
-            </div>
+  {Array.isArray(hotel.rooms) && hotel.rooms.length > 0 ? (
+    hotel.rooms.map((room, index) => (
+      <div key={index} className="border rounded p-3 w-full mb-3">
+        <div className="font-semibold text-lg">{room.name}</div>
+        <div className="text-sm text-gray-600 mb-2">{room.description}</div>
+        <div className="text-sm text-gray-800 mb-2">₹{room.price} / night</div>
+        <div className="text-sm text-gray-600 mb-2">Capacity: {room.capacity} guests</div>
+
+        {/* ✅ Room Features */}
+        <div className="flex flex-wrap gap-1 mb-2">
+          {room.features && room.features.map((feature, i) => (
+            <span
+              key={i}
+              className="rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700"
+            >
+              {feature}
+            </span>
+          ))}
+        </div>
+
+        {/* ✅ Room Images */}
+        {room.images && room.images.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {room.images.map((img, i) => (
+              <img
+                key={i}
+                src={img.url}
+                alt={`Room ${index + 1} - Image ${i + 1}`}
+                className="w-28 h-20 object-cover rounded-md border"
+              />
+            ))}
+          </div>
+        )}
+
+        <Link
+          href={`/booking?serviceType=Hotel&service=${hotel?._id || hotel?.id}&room=${room._id || index}`}
+          className="inline-flex items-center rounded-md bg-orange-500 px-4 py-2 text-white font-semibold hover:bg-orange-600 transition"
+        >
+          Book Now
+        </Link>
+      </div>
+    ))
+  ) : (
+    <Link
+      href={`/booking?serviceType=Hotel&service=${hotel?._id || hotel?.id}`}
+      className="inline-flex items-center rounded-md bg-orange-500 px-4 py-2 text-white font-semibold hover:bg-orange-600 transition"
+    >
+      Book Room
+    </Link>
+  )}
+</div>
+
           </div>
         </div>
       </section>

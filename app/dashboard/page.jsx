@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Car, Hotel, MapPin, MessageCircle, MessageSquare, Truck, TruckElectricIcon, UserCheck2 } from "lucide-react"
+import { Car, Hotel, MapPin, MessageCircle, MessageSquare, TimerIcon, Truck, TruckElectricIcon, UserCheck2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Overview } from "@/components/dashboard/overview"
 import { PopularPlaces } from "@/components/dashboard/popular-places"
@@ -52,6 +52,14 @@ export default function DashboardPage() {
       icon: Car,
       color: "text-green-600",
       link: "/dashboard/cars",
+    },
+    {
+      title: "All Bookings",
+      value: allBookings.length,
+      change: "+5.2%",
+      icon: TimerIcon,
+      color: "text-green-600",
+      link: "/dashboard/bookings",
     },
     {
       title: "Places Listed",

@@ -6,7 +6,7 @@ import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTru
 import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
 
-function BookingContent() {
+ function BookingContent() {
   const { addBooking, cars, hotels, logistics, user } = useUjjain()
   const searchParams = useSearchParams()
   const [bookingType, setBookingType] = useState("Car")
@@ -24,11 +24,7 @@ function BookingContent() {
       address: "",
       coordinates: { lat: 0, lng: 0 },
     },
-    passengers: {
-      adults: 1,
-      children: 0,
-      infants: 0,
-    },
+    guests: 2,
     rooms: 1,
     personalInfo: {
       fullname: "",
@@ -44,95 +40,38 @@ function BookingContent() {
   })
 
   const [availableServices, setAvailableServices] = useState([])
-  const [selectedService, setSelectedService] = useState(null)
 
   // Handle URL parameters for pre-selecting service
   useEffect(() => {
-    const serviceType = searchParams.get('serviceType') || searchParams.get('type')
-    const serviceId = searchParams.get('service') || searchParams.get('hotel') || searchParams.get('car') || searchParams.get('logistics')
-    const roomId = searchParams.get('room')
+    const serviceType = searchParams.get('serviceType')
+    const serviceId = searchParams.get('service')
 
-    // Determine service type from parameter if not explicitly provided
-    let detectedType = serviceType;
-    if (!detectedType) {
-      if (searchParams.get('hotel')) detectedType = "Hotel";
-      else if (searchParams.get('car')) detectedType = "Car";
-      else if (searchParams.get('logistics')) detectedType = "Logistics";
-    }
-
-    if (detectedType) {
-      setBookingType(detectedType)
+    if (serviceType) {
+      setBookingType(serviceType)
       setBookingData(prev => ({
         ...prev,
-        serviceType: detectedType,
-        service: serviceId || "",
-        room: roomId || ""
+        serviceType: serviceType,
+        service: serviceId || ""
       }))
     }
 
     if (serviceId) {
       setBookingData(prev => ({
         ...prev,
-        service: serviceId,
-        room: roomId || ""
+        service: serviceId
       }))
-
-      // Automatically skip to step 2 if service ID is provided
-      setStep(2)
     }
   }, [searchParams])
 
   useEffect(() => {
     if (bookingType === "Car" && cars) {
       setAvailableServices(cars)
-      // Find and set the selected service if ID is provided
-      if (bookingData.service) {
-        const service = cars.find(car => car._id === bookingData.service)
-        if (service) {
-          setSelectedService(service)
-          setBookingData(prev => ({
-            ...prev,
-            payment: {
-              ...prev.payment,
-              amount: service.price || service.pricePerDay || service.pricePerNight || 0,
-            },
-          }))
-        }
-      }
     } else if (bookingType === "Hotel" && hotels) {
       setAvailableServices(hotels)
-      // Find and set the selected service if ID is provided
-      if (bookingData.service) {
-        const service = hotels.find(hotel => hotel._id === bookingData.service)
-        if (service) {
-          setSelectedService(service)
-          setBookingData(prev => ({
-            ...prev,
-            payment: {
-              ...prev.payment,
-              amount: service.price || service.pricePerDay || service.pricePerNight || 0,
-            },
-          }))
-        }
-      }
     } else if (bookingType === "Logistics" && logistics) {
       setAvailableServices(logistics)
-      // Find and set the selected service if ID is provided
-      if (bookingData.service) {
-        const service = logistics.find(logistic => logistic._id === bookingData.service)
-        if (service) {
-          setSelectedService(service)
-          setBookingData(prev => ({
-            ...prev,
-            payment: {
-              ...prev.payment,
-              amount: service.price || service.pricePerDay || service.pricePerNight || service.priceRange.max || 0,
-            },
-          }))
-        }
-      }
     }
-  }, [bookingType, cars, hotels, logistics, bookingData.service])
+  }, [bookingType, cars, hotels, logistics])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -156,14 +95,13 @@ function BookingContent() {
   }
 
   const handleServiceSelect = (service) => {
-    setSelectedService(service)
     setBookingData((prev) => ({
       ...prev,
       service: service._id,
       serviceType: bookingType,
       payment: {
         ...prev.payment,
-        amount: service.price || service.pricePerDay || service.pricePerNight || service.priceRange.max || 0,
+        amount: service.price || service.pricePerDay || service.pricePerNight || 0,
       },
     }))
     setStep(2)
@@ -173,7 +111,7 @@ function BookingContent() {
     e.preventDefault()
     const booking = {
       ...bookingData,
-      user: user ? user._id : null,
+      user: user ? user._id : null, // Use actual user ID from context
       status: "pending",
       isPaid: false,
       isCancelled: false,
@@ -186,14 +124,16 @@ function BookingContent() {
       endDate: booking.endDate,
       pickupLocation: booking.pickupLocation,
       dropoffLocation: booking.dropoffLocation,
-      passengers: booking.passengers,
+      guests: booking.guests,
       rooms: booking.rooms,
+      // Add required fields at root level for backend
       email: booking.personalInfo.email,
       mobile: booking.personalInfo.mobile,
       fullname: booking.personalInfo.fullname,
       address: booking.personalInfo.address,
+      // Map service to car_id for backward compatibility
       car_id: booking.service,
-      room: booking.room, // Add room id to booking data sent to backend
+      // Create dates array from startDate and endDate
       dates: booking.endDate ? [new Date(booking.startDate), new Date(booking.endDate)] : [new Date(booking.startDate)],
       specialRequests: booking.specialRequests,
       payment: booking.payment,
@@ -223,7 +163,7 @@ function BookingContent() {
           <button
             onClick={() => setBookingType("Hotel")}
             className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ${
-              bookingType === "Hotel" ? "bg-green-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-green-100"
+              bookingType === "hotel" ? "bg-green-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-green-100"
             }`}
           >
             <FaHotel />
@@ -253,7 +193,7 @@ function BookingContent() {
             <div className="relative">
               {service.images && service.images.length > 0 ? (
                 <img
-                  src={service.images[0].url || service.image?.url || "/placeholder.svg"}
+                  src={service.images[0].url || service.image.url || "/placeholder.svg"}
                   alt={service.name || service.model || service.serviceName}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -294,7 +234,7 @@ function BookingContent() {
 
               <div className="flex items-center justify-between">
                 <div className="text-2xl font-bold text-orange-500">
-                  ₹{service.price || service.pricePerDay || service.pricePerNight || service.priceRange?.max || 0}
+                  ₹{service.price || service.pricePerDay || service.priceRange.max || 0}
                   <span className="text-sm text-gray-500">
                     /{bookingType === "Hotel" ? "night" : bookingType === "Logistics" ? "trip" : "day"}
                   </span>
@@ -304,39 +244,26 @@ function BookingContent() {
                 </button>
               </div>
             </div>
-          </motion.div>
-        ))}
-      </div>
+          
+        </motion.div>
+      ))}
+    </div>
 
-      <div className="flex justify-center mt-8">
-        <button
-          onClick={() => setStep(2)}
-          className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300"
-        >
-          Continue to Details
-        </button>
-      </div>
-    </motion.div>
-  )
+    <div className="flex justify-center mt-8">
+      <button
+        onClick={() => setStep(2)}
+        className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300"
+      >
+        Continue to Details
+      </button>
+    </div>
+  </motion.div>
+)
 
   const renderStep2 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Booking Details</h2>
-        {selectedService && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-md mx-auto">
-            <p className="text-blue-800 font-medium">
-             <span  className="text-amber-500 font-semibold">{bookingType}</span> 
-            </p>
-            <p className="text-blue-800 font-medium">
-              Booking: {selectedService.name || selectedService.serviceName || selectedService.model}
-            </p>
-            <p className="text-blue-600">
-              ₹{selectedService.price || selectedService.pricePerDay || selectedService.pricePerNight || selectedService.priceRange.max || 0}
-              /{bookingType === "Hotel" ? "night" : bookingType === "Logistics" ? "trip" : "day"}
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -368,7 +295,7 @@ function BookingContent() {
             />
           </div>
 
-          {(bookingType === "Car"|| bookingType === "Logistics" )&& (
+          {bookingType === "Car" && (
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Pickup Location *</label>
@@ -399,59 +326,30 @@ function BookingContent() {
         </div>
 
         <div className="space-y-4">
-         {(bookingType === "Car"|| bookingType === "Hotel" )&&   <div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Passengers *
+              {bookingType === "Car"
+                ? "Number of Passengers"
+                : bookingType === "Hotel"
+                  ? "Number of Guests"
+                  : "Number of People"}{" "}
+              *
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Adults</label>
-                <select
-                  name="passengers.adults"
-                  value={bookingData.passengers.adults}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                >
-                  {[0,1,2,3,4,5,6,7,8].map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Children</label>
-                <select
-                  name="passengers.children"
-                  value={bookingData.passengers.children}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                >
-                  {[0,1,2,3,4,5,6,7,8].map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Infants</label>
-                <select
-                  name="passengers.infants"
-                  value={bookingData.passengers.infants}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                >
-                  {[0,1,2,3,4,5,6,7,8].map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            <select
+              name="guests"
+              value={bookingData.guests}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                <option key={num} value={num}>
+                  {num} {bookingType === "Car" ? "Passenger" : bookingType === "Hotel" ? "Guest" : "Person"}
+                  {num > 1 ? "s" : ""}
+                </option>
+              ))}
+            </select>
           </div>
-}
+
           {bookingType === "Hotel" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Number of Rooms *</label>
@@ -516,7 +414,7 @@ function BookingContent() {
     </motion.div>
   )
 
-    const renderStep3 = () => (
+  const renderStep3 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Personal Information</h2>
@@ -592,10 +490,10 @@ function BookingContent() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Passengers:</span>
-              <span className="font-semibold">
-                {bookingData.passengers.adults} Adult{bookingData.passengers.adults !== 1 ? 's' : ''}, {bookingData.passengers.children} Child{bookingData.passengers.children !== 1 ? 'ren' : ''}, {bookingData.passengers.infants} Infant{bookingData.passengers.infants !== 1 ? 's' : ''}
+              <span className="text-gray-600">
+                {bookingType === "Car" ? "Passengers:" : bookingType === "Hotel" ? "Guests:" : "People:"}
               </span>
+              <span className="font-semibold">{bookingData.guests}</span>
             </div>
             {bookingType === "Hotel" && (
               <div className="flex justify-between">
@@ -679,7 +577,7 @@ function BookingContent() {
               endDate: "",
               pickupLocation: { address: "", coordinates: { lat: 0, lng: 0 } },
               dropoffLocation: { address: "", coordinates: { lat: 0, lng: 0 } },
-              passengers: { adults: 1, children: 0, infants: 0 },
+              guests: 2,
               rooms: 1,
               personalInfo: { fullname: "", email: "", mobile: "", address: "" },
               specialRequests: "",
@@ -699,7 +597,6 @@ function BookingContent() {
       </div>
     </motion.div>
   )
-  // ... rest of the code remains the same (renderStep3, renderStep4, etc.)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
@@ -783,6 +680,7 @@ function BookingContent() {
               href="tel:+919876543210"
               className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-colors duration-300"
             >
+              <FaPhone className="inline mr-2" />
               Call: +91-9876543210
             </a>
             <a

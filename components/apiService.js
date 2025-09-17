@@ -66,10 +66,17 @@ export const BookingService = {
     const transformedData = {
       serviceType: bookingData.serviceType,
       service: bookingData.service,
+      room: bookingData.room, // Add room field for hotel bookings
       startDate: bookingData.startDate,
       endDate: bookingData.endDate,
-      passengers: bookingData.passengers,
-      rooms: bookingData.rooms || 1,
+      passengers: bookingData.passengers || bookingData.guests,
+      rooms: bookingData.serviceType==='Hotel'? bookingData.rooms || 1 : null,
+      email: bookingData.email,
+      mobile: bookingData.mobile,
+      fullname: bookingData.fullname,
+      address: bookingData.address,
+      car_id: bookingData.car_id,
+      dates: bookingData.dates,
       pickupLocation: bookingData.pickupLocation,
       dropoffLocation: bookingData.dropoffLocation,
       specialRequests: bookingData.specialRequests,
@@ -299,72 +306,118 @@ export const CarService = {
 export const HotelService = {
   getAll: async () => (await api.get('/hotels')).data,
 
-  create: async (hotelData) => {
-    const formData = new FormData();
-    Object.keys(hotelData).forEach((key) => {
-      if (key === 'images') {
-        hotelData.images.forEach(img => {
-          if (img instanceof File) {
-            formData.append('images', img);
-          }
-        });
-      } else if (['amenities', 'features', 'roomTypes'].includes(key)) {
+create: async (hotelData) => {
+  console.log('hotelData at apiServices', hotelData);
+  
+  const formData = new FormData();
+  
+  // Add all simple fields first
+  Object.keys(hotelData).forEach((key) => {
+    if (key !== 'images' && key !== 'rooms') {
+      if (['amenities', 'features', 'roomTypes'].includes(key)) {
         formData.append(key, JSON.stringify(hotelData[key]));
       } else {
         formData.append(key, hotelData[key]);
       }
-    });
-    return (await axios.post(`${backendUrl}/hotels`, formData, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
-    })).data;
-  },
-
-  update: async (id, hotelData) => {
-    const formData = new FormData();
-
-    // Separate existing images from new files
-    const existingImages = hotelData?.images?.filter(img => img && typeof img === 'object' && img.url);
-    const newImages = hotelData?.images?.filter(img => img instanceof File);
-
-    // Add all regular fields first
-    Object.keys(hotelData).forEach((key) => {
-      if (key !== 'images') {
-        if (['amenities', 'features', 'roomTypes'].includes(key)) {
-          let arrayValue = hotelData[key];
-          if (typeof arrayValue === 'string') {
-            try {
-              arrayValue = JSON.parse(arrayValue);
-            } catch (error) {
-              arrayValue = [];
-              console.log(error)
-              
-            }
-          }
-          formData.append(key, JSON.stringify(Array.isArray(arrayValue) ? arrayValue : []));
-        } else {
-          formData.append(key, hotelData[key]);
-        }
+    }
+  });
+  
+  // Add hotel images
+  if (hotelData.images) {
+    hotelData.images.forEach(img => {
+      if (img instanceof File) {
+        formData.append('images', img);
       }
     });
-
-    // Add new image files
-    newImages.forEach(img => {
-      formData.append('images', img);
+  }
+  
+  // Add rooms and their images with correct field names
+  if (hotelData.rooms && hotelData.rooms.length > 0) {
+    // Add rooms data without images
+    const roomsWithoutImages = hotelData.rooms.map(room => {
+      const { images, ...roomWithoutImages } = room;
+      return roomWithoutImages;
     });
+    formData.append('rooms', JSON.stringify(roomsWithoutImages));
+    
+    // Add room images with correct field names
+    hotelData.rooms.forEach((room, roomIndex) => {
+      if (room.images && room.images.length > 0) {
+        room.images.forEach((img, imgIndex) => {
+          if (img instanceof File) {
+            formData.append(`roomImage_${roomIndex}_${imgIndex}`, img);
+          }
+        });
+      }
+    });
+  }
+  
+  return (await axios.post(`${backendUrl}/hotels`, formData, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'multipart/form-data',
+    },
+  })).data;
+},
+update: async (id, hotelData) => {
+  const formData = new FormData();
 
-    // Add existing images as a separate field
-    formData.append('existingImages', JSON.stringify(existingImages));
+  // Separate existing images from new files
+  const existingImages = hotelData?.images?.filter(img => img && typeof img === 'object' && img.url);
+  const newImages = hotelData?.images?.filter(img => img instanceof File);
 
-    const token = localStorage.getItem('token');
-    return (await axios.put(`${backendUrl}/hotels/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${token}`,
-      },
-    })).data;
-  },
+  // Add all regular fields first
+  Object.keys(hotelData).forEach((key) => {
+    if (key !== 'images' && key !== 'rooms') {
+      if (['amenities', 'features', 'roomTypes'].includes(key)) {
+        let arrayValue = hotelData[key];
+        if (typeof arrayValue === 'string') {
+          try {
+            arrayValue = JSON.parse(arrayValue);
+          } catch (error) {
+            console.log('Error parsing array field:', error);
+            arrayValue = [];
+          }
+        }
+        formData.append(key, JSON.stringify(Array.isArray(arrayValue) ? arrayValue : []));
+      } else {
+        formData.append(key, hotelData[key]);
+      }
+    }
+  });
+
+  // Handle rooms data - ensure it's properly stringified and validated
+  if (hotelData.rooms) {
+    // Convert room data and filter out invalid images
+    const roomsData = hotelData.rooms.map(room => ({
+      ...room,
+      // Ensure numeric fields are numbers
+      price: Number(room.price) || 0,
+      capacity: Number(room.capacity) || 1,
+      // Filter out invalid images
+      images: (room.images || []).filter(img => 
+        img && typeof img === 'object' && img.public_id && img.url
+      )
+    }));
+    formData.append('rooms', JSON.stringify(roomsData));
+  }
+
+  // Add new image files
+  newImages.forEach(img => {
+    formData.append('images', img);
+  });
+
+  // Add existing images as a separate field
+  formData.append('existingImages', JSON.stringify(existingImages));
+
+  const token = localStorage.getItem('token');
+  return (await axios.put(`${backendUrl}/hotels/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      'Authorization': `Bearer ${token}`,
+    },
+  })).data;
+},
 
   delete: async (id) => (await api.delete(`/hotels/${id}`)).data,
 };

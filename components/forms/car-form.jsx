@@ -25,7 +25,7 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
     pricePerDay: "",
     description: "",
     features: [],
-    available: true,
+    availability: true,
     images: [],
   })
   const [newFeature, setNewFeature] = useState("")
@@ -41,7 +41,7 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
         pricePerDay: car.pricePerDay?.toString() || "",
         description: car.description || "",
         features: car.features || [],
-        available: car.available ?? true,
+        availability: car.availability ?? true,
         images: car.images || [],
       })
 
@@ -57,7 +57,7 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
         pricePerDay: "",
         description: "",
         features: [],
-        available: true,
+        availability: true,
         images: [],
       })
       setImagePreviews([])
@@ -307,11 +307,11 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
 
           <div className="flex items-center space-x-2">
             <Switch
-              id="available"
-              checked={formData.available}
-              onCheckedChange={(checked) => setFormData({ ...formData, available: checked })}
+              id="availability"
+              checked={formData.availability}
+              onCheckedChange={(checked) => setFormData({ ...formData, availability: checked })}
             />
-            <Label htmlFor="available">Available for booking</Label>
+            <Label htmlFor="availability">Available for booking</Label>
           </div>
 
           <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">

@@ -132,8 +132,8 @@ export default function CarsPage() {
 
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Status:</span>
-              <Badge variant={car.available ? "default" : "secondary"}>
-                {car.available ? "Available" : "Unavailable"}
+              <Badge variant={car.availability ? "default" : "secondary"}>
+                {car.availability ? "Available" : "Unavailable"}
               </Badge>
             </div>
 
@@ -252,8 +252,8 @@ export default function CarsPage() {
                       <TableCell>{car.type}</TableCell>
                       <TableCell>₹{car.pricePerDay}</TableCell>
                       <TableCell>
-                        <Badge variant={car.available ? "default" : "secondary"}>
-                          {car.available ? "Available" : "Unavailable"}
+                        <Badge variant={car.availability ? "default" : "secondary"}>
+                          {car.availability ? "Available" : "Unavailable"}
                         </Badge>
                       </TableCell>
                       <TableCell>

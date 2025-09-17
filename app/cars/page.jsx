@@ -61,7 +61,7 @@ export default function Cars() {
       const matchesGearType = filters.gearType === "all" || car.geartype === filters.gearType
       const matchesSeats = filters.seats === "all" || car.seats.toString() === filters.seats
       const matchesAvailability = filters.availability === "all" || 
-        (filters.availability === "Available" ? car.availability : !car.availability)
+        (filters.availability ? car.availability : !car.availability)
 
       return (
         matchesCategory &&
@@ -355,7 +355,7 @@ export default function Cars() {
                     <div className="absolute bottom-4 left-4 z-20">
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1 ${
-                          car.availability === "Available" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                          car.availability ? "bg-green-500 text-white" : "bg-red-500 text-white"
                         }`}
                       >
                         <FaCheckCircle className="text-xs" />
@@ -458,14 +458,14 @@ export default function Cars() {
                         View Details
                       </Link>
                       <Link
-                        href={`/booking?car=${car._id}`}
+                        href={`/booking?car=${car._id}&serviceType=Car`}
                         className={`flex-1 text-center py-3 rounded-xl font-semibold transition-all duration-300 ${
-                          car.availability === "Available"
+                          car.availability
                             ? "bg-orange-500 hover:bg-orange-600 text-white"
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
                       >
-                        {car.availability === "Available" ? "Book Now" : "Not Available"}
+                        {car.availability  ? "Book Now" : "Not Available"}
                       </Link>
                     </div>
                   </div>

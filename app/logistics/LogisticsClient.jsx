@@ -1,17 +1,32 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Search, Filter, MapPin, Truck, Package, Star, Phone, SlidersHorizontal } from "lucide-react"
-import { useUjjain } from "../../components/context/UjjainContext"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import {
+  Search,
+  Filter,
+  MapPin,
+  Truck,
+  Package,
+  Star,
+  Phone,
+  SlidersHorizontal,
+} from "lucide-react";
+import { useUjjain } from "../../components/context/UjjainContext";
+import Link from "next/link";
 
 // Mock data based on your logistics schema
 /* const mockLogisticsData = [
@@ -114,64 +129,78 @@ import Link from "next/link"
 ] */
 
 export default function LogisticsClient() {
-  const [logisticsData, setLogisticsData] = useState([])
-  const [filteredData, setFilteredData] = useState([])
+  const [logisticsData, setLogisticsData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [filters, setFilters] = useState({
     search: "",
     serviceType: "all",
     priceRange: [0, 100000],
     coverageArea: "",
     availability: "all",
-  })
-  const [showFilters, setShowFilters] = useState(false)
-  const {logistics,getAverageRating} = useUjjain();
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const { logistics, getAverageRating } = useUjjain();
   // Apply filters
-  useEffect(()=>{
-    setFilteredData(logistics)
-  },[logistics])
   useEffect(() => {
-    let filtered = logistics
+    setFilteredData(logistics);
+  }, [logistics]);
+  useEffect(() => {
+    let filtered = logistics;
 
     // Search filter
     if (filters.search) {
       filtered = filtered.filter(
         (item) =>
-          item.serviceName.toLowerCase().includes(filters.search.toLowerCase()) ||
-          item.description.toLowerCase().includes(filters.search.toLowerCase()) ||
-          item.features.some((feature) => feature.toLowerCase().includes(filters.search.toLowerCase())),
-      )
+          item.serviceName
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          item.description
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          item.features.some((feature) =>
+            feature.toLowerCase().includes(filters.search.toLowerCase())
+          )
+      );
     }
 
     // Service type filter
     if (filters.serviceType !== "all") {
-      filtered = filtered.filter((item) => item.serviceType === filters.serviceType)
+      filtered = filtered.filter(
+        (item) => item.serviceType === filters.serviceType
+      );
     }
 
     // Price range filter
     filtered = filtered.filter(
-      (item) => item.priceRange.min >= filters.priceRange[0] && item.priceRange.max <= filters.priceRange[1],
-    )
+      (item) =>
+        item.priceRange.min >= filters.priceRange[0] &&
+        item.priceRange.max <= filters.priceRange[1]
+    );
 
     // Coverage area filter
     if (filters.coverageArea) {
       filtered = filtered.filter((item) =>
-        item.coverageArea.some((area) => area.toLowerCase().includes(filters.coverageArea.toLowerCase())),
-      )
+        item.coverageArea.some((area) =>
+          area.toLowerCase().includes(filters.coverageArea.toLowerCase())
+        )
+      );
     }
 
     // Availability filter
     if (filters.availability !== "all") {
       filtered = filtered.filter((item) =>
-        filters.availability === "available" ? item.availability : !item.availability,
-      )
+        filters.availability === "available"
+          ? item.availability
+          : !item.availability
+      );
     }
 
-    setFilteredData(filtered)
-  }, [filters, logistics])
+    setFilteredData(filtered);
+  }, [filters, logistics]);
 
   const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }))
-  }
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
   const clearFilters = () => {
     setFilters({
@@ -180,14 +209,19 @@ export default function LogisticsClient() {
       priceRange: [0, 100000],
       coverageArea: "",
       availability: "all",
-    })
-  }
+    });
+  };
 
-  const serviceTypes = ["Freight", "Parcel", "Moving", "Heavy Load", "International"]
+  const serviceTypes = [
+    "Freight",
+    "Parcel",
+    "Moving",
+    "Heavy Load",
+    "International",
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-green-600 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -204,7 +238,8 @@ export default function LogisticsClient() {
             transition={{ delay: 0.2 }}
             className="text-xl text-white/90 max-w-3xl mx-auto"
           >
-            Find reliable transportation and logistics solutions for all your needs
+            Find reliable transportation and logistics solutions for all your
+            needs
           </motion.p>
         </div>
       </section>
@@ -214,14 +249,18 @@ export default function LogisticsClient() {
           {/* Filters Sidebar */}
           <div className="lg:w-80">
             <div className="lg:hidden mb-4">
-              <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className="w-full">
+              <Button
+                onClick={() => setShowFilters(!showFilters)}
+                variant="outline"
+                className="w-full"
+              >
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
                 {showFilters ? "Hide Filters" : "Show Filters"}
               </Button>
             </div>
 
             <AnimatePresence>
-              {(showFilters /* || window.innerWidth >= 1024 */) && (
+              {showFilters /* || window.innerWidth >= 1024 */ && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
@@ -252,7 +291,9 @@ export default function LogisticsClient() {
                           <Input
                             placeholder="Search logistics services..."
                             value={filters.search}
-                            onChange={(e) => handleFilterChange("search", e.target.value)}
+                            onChange={(e) =>
+                              handleFilterChange("search", e.target.value)
+                            }
                             className="pl-10"
                           />
                         </div>
@@ -263,7 +304,9 @@ export default function LogisticsClient() {
                         <Label>Service Type</Label>
                         <Select
                           value={filters.serviceType}
-                          onValueChange={(value) => handleFilterChange("serviceType", value)}
+                          onValueChange={(value) =>
+                            handleFilterChange("serviceType", value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -285,7 +328,9 @@ export default function LogisticsClient() {
                         <div className="px-2">
                           <Slider
                             value={filters.priceRange}
-                            onValueChange={(value) => handleFilterChange("priceRange", value)}
+                            onValueChange={(value) =>
+                              handleFilterChange("priceRange", value)
+                            }
                             max={100000}
                             min={0}
                             step={500}
@@ -306,7 +351,9 @@ export default function LogisticsClient() {
                           <Input
                             placeholder="Enter city name..."
                             value={filters.coverageArea}
-                            onChange={(e) => handleFilterChange("coverageArea", e.target.value)}
+                            onChange={(e) =>
+                              handleFilterChange("coverageArea", e.target.value)
+                            }
                             className="pl-10"
                           />
                         </div>
@@ -317,15 +364,21 @@ export default function LogisticsClient() {
                         <Label>Availability</Label>
                         <Select
                           value={filters.availability}
-                          onValueChange={(value) => handleFilterChange("availability", value)}
+                          onValueChange={(value) =>
+                            handleFilterChange("availability", value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Services</SelectItem>
-                            <SelectItem value="available">Available Now</SelectItem>
-                            <SelectItem value="unavailable">Currently Unavailable</SelectItem>
+                            <SelectItem value="available">
+                              Available Now
+                            </SelectItem>
+                            <SelectItem value="unavailable">
+                              Currently Unavailable
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -339,7 +392,9 @@ export default function LogisticsClient() {
           {/* Results */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">{filteredData.length} Services Found</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {filteredData.length} Services Found
+              </h2>
               <Select defaultValue="rating">
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Sort by" />
@@ -369,38 +424,60 @@ export default function LogisticsClient() {
                         className="w-full h-56 object-cover rounded-t-lg"
                       />
                       <div className="absolute top-4 left-4">
-                        <Badge className="bg-blue-500 text-white">{service.serviceType}</Badge>
+                        <Badge className="bg-blue-500 text-white">
+                          {service.serviceType}
+                        </Badge>
                       </div>
                       <div className="absolute top-4 right-4">
                         {service.availability ? (
-                          <Badge className="bg-green-500 text-white">Available</Badge>
+                          <Badge className="bg-green-500 text-white">
+                            Available
+                          </Badge>
                         ) : (
-                          <Badge className="bg-red-500 text-white">Unavailable</Badge>
+                          <Badge className="bg-red-500 text-white">
+                            Unavailable
+                          </Badge>
                         )}
                       </div>
                     </div>
 
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-xl font-bold text-gray-900 line-clamp-1">{service.serviceName}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 line-clamp-1">
+                          {service.serviceName}
+                        </h3>
                         <div className="flex items-center space-x-1">
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="font-semibold">{getAverageRating(service?.reviews)}</span>
-                          {service.reviews?.length &&<span className="text-gray-500">({service.reviews?.length})</span>}
+                          <span className="font-semibold">
+                            {getAverageRating(service?.reviews)}
+                          </span>
+                          {service.reviews?.length && (
+                            <span className="text-gray-500">
+                              ({service.reviews?.length})
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      <p className="text-gray-600 mb-4 line-clamp-2">{service.description}</p>
+                      <p className="text-gray-600 mb-4 line-clamp-2">
+                        {service.description}
+                      </p>
 
                       {/* Coverage Areas */}
                       <div className="mb-4">
                         <div className="flex items-center space-x-2 mb-2">
                           <MapPin className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-medium text-gray-700">Coverage Areas:</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            Coverage Areas:
+                          </span>
                         </div>
                         <div className="flex flex-wrap gap-1">
                           {service.coverageArea.slice(0, 3).map((area) => (
-                            <Badge key={area} variant="outline" className="text-xs">
+                            <Badge
+                              key={area}
+                              variant="outline"
+                              className="text-xs"
+                            >
                               {area}
                             </Badge>
                           ))}
@@ -416,19 +493,28 @@ export default function LogisticsClient() {
                       <div className="mb-4">
                         <div className="flex items-center space-x-2 mb-2">
                           <Truck className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-medium text-gray-700">Vehicle Options:</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            Vehicle Options:
+                          </span>
                         </div>
                         <div className="space-y-1">
                           {service.vehicles.slice(0, 2).map((vehicle, idx) => (
-                            <div key={idx} className="flex justify-between text-sm">
+                            <div
+                              key={idx}
+                              className="flex justify-between text-sm"
+                            >
                               <span>
                                 {vehicle.type} ({vehicle.capacity})
                               </span>
-                              <span className="text-green-600 font-medium">₹{vehicle.pricePerKm}/km</span>
+                              <span className="text-green-600 font-medium">
+                                ₹{vehicle.pricePerKm}/km
+                              </span>
                             </div>
                           ))}
                           {service.vehicles.length > 2 && (
-                            <p className="text-xs text-gray-500">+{service.vehicles.length - 2} more options</p>
+                            <p className="text-xs text-gray-500">
+                              +{service.vehicles.length - 2} more options
+                            </p>
                           )}
                         </div>
                       </div>
@@ -437,7 +523,11 @@ export default function LogisticsClient() {
                       <div className="mb-4">
                         <div className="flex flex-wrap gap-1">
                           {service.features.slice(0, 3).map((feature) => (
-                            <Badge key={feature} variant="secondary" className="text-xs">
+                            <Badge
+                              key={feature}
+                              variant="secondary"
+                              className="text-xs"
+                            >
                               {feature}
                             </Badge>
                           ))}
@@ -448,20 +538,33 @@ export default function LogisticsClient() {
                       <div className="flex items-center justify-between pt-4 border-t">
                         <div>
                           <span className="text-lg font-bold text-gray-900">
-                            ₹{service.priceRange.min} - ₹{service.priceRange.max}
+                            ₹{service.priceRange.min} - ₹
+                            {service.priceRange.max}
                           </span>
-                          <p className="text-sm text-gray-500">Starting price</p>
+                          <p className="text-sm text-gray-500">
+                            Starting price
+                          </p>
                         </div>
                         <div className="flex space-x-2">
-                          
                           <Link className="" href={`/logistics/${service._id}`}>
-<Button size="sm" className="bg-cyan-500 hover:bg-cyan-600">
-                            View Details
-                          </Button>
+                            <Button
+                              size="sm"
+                              className="bg-cyan-500 hover:bg-cyan-600"
+                            >
+                              View Details
+                            </Button>
                           </Link>
-                          <Button className="bg-amber-500 hover:bg-orange-600" size="sm">
-                            Book Now
-                          </Button>
+                          <Link
+                            className=""
+                            href={`/booking?logistics=${service._id}&serviceType=Logistics`}
+                          >
+                            <Button
+                              className="bg-amber-500 hover:bg-orange-600"
+                              size="sm"
+                            >
+                              Book Now
+                            </Button>
+                          </Link>
                         </div>
                       </div>
                     </CardContent>
@@ -471,10 +574,18 @@ export default function LogisticsClient() {
             </div>
 
             {filteredData.length === 0 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-12"
+              >
                 <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No services found</h3>
-                <p className="text-gray-600 mb-4">Try adjusting your filters to see more results</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No services found
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Try adjusting your filters to see more results
+                </p>
                 <Button onClick={clearFilters} variant="outline">
                   Clear Filters
                 </Button>
@@ -484,5 +595,5 @@ export default function LogisticsClient() {
         </div>
       </div>
     </div>
-  )
+  );
 }
