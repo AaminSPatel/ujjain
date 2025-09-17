@@ -335,7 +335,7 @@ create: async (hotelData) => {
   if (hotelData.rooms && hotelData.rooms.length > 0) {
     // Add rooms data without images
     const roomsWithoutImages = hotelData.rooms.map(room => {
-      const { images, ...roomWithoutImages } = room;
+      const { ...roomWithoutImages } = room;
       return roomWithoutImages;
     });
     formData.append('rooms', JSON.stringify(roomsWithoutImages));
