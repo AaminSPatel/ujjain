@@ -1,12 +1,12 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense  } from "react"
 import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTruck } from "react-icons/fa"
 import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
 
-export default function Booking() {
+ function BookingContent() {
   const { addBooking, cars, hotels, logistics, user } = useUjjain()
   const searchParams = useSearchParams()
   const [bookingType, setBookingType] = useState("Car")
@@ -693,5 +693,26 @@ export default function Booking() {
         </div>
       </section>
     </div>
+  )
+}
+
+// Loading component for Suspense fallback
+function BookingLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading booking page...</p>
+      </div>
+    </div>
+  )
+}
+
+// Main export with Suspense boundary
+export default function Booking() {
+  return (
+    <Suspense fallback={<BookingLoading />}>
+      <BookingContent />
+    </Suspense>
   )
 }
