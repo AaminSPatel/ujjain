@@ -616,7 +616,7 @@ export default function MobileHome() {
                     </span>
                   </div>
                   <div className="flex items-center justify-center">
-                   <Link href={`/places/${places[0]._id}`}>
+                   <Link href={`/places/${places[0]?._id}`}>
                    <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base w-full">
                       Learn More
                     </button>
@@ -624,15 +624,15 @@ export default function MobileHome() {
                   </div>
                 </div>
               </div>
-              {places.slice(0, 6).map((place) => (
+              {places?.slice(0, 6).map((place) => (
                 <motion.div
-                  key={place._id}
+                  key={place?._id}
                   variants={itemVariants}
                   className="bg-card w-[31%] md:w-auto md:rounded-xl rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
                 >
                   <img
-                    src={place.images[0]?.url || "/placeholder.svg"}
-                    alt={place.title}
+                    src={place?.images[0]?.url || "/placeholder.svg"}
+                    alt={place?.title}
                     className="w-full h-20 md:h-48 md:object-cover object-cover rounded-md"
                   />
                   <div className="md:p-6 p-1">
