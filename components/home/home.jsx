@@ -150,10 +150,10 @@ export default function MobileHome() {
   };
 
   const stats = [
-    {value: '100+', details:'Places Traveled'},
-    {value: '500+', details:'Happy Pilgrims'},
-    {value: '50+', details:'Cars Added'}
-  ]
+    { value: "100+", details: "Places Traveled" },
+    { value: "500+", details: "Happy Pilgrims" },
+    { value: "50+", details: "Cars Added" },
+  ];
   const tabs = [
     { id: "cars", label: "Cars", icon: <FaCar /> },
     { id: "hotels", label: "Hotels", icon: <MdHotel /> },
@@ -166,9 +166,9 @@ export default function MobileHome() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -177,9 +177,9 @@ export default function MobileHome() {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.5
-      }
-    }
+        duration: 0.5,
+      },
+    },
   };
 
   return (
@@ -248,7 +248,11 @@ export default function MobileHome() {
                 >
                   <FaFilter className="mr-2 text-sm" />
                   <span className="text-sm">Filters</span>
-                  <FaChevronDown className={`ml-2 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                  <FaChevronDown
+                    className={`ml-2 transition-transform ${
+                      showFilters ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
               </div>
 
@@ -267,10 +271,18 @@ export default function MobileHome() {
                       onChange={(e) => setBudget(e.target.value)}
                       className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm backdrop-blur-sm flex-1 min-w-[120px]"
                     >
-                      <option className="text-gray-800" value="">Budget</option>
-                      <option className="text-gray-800" value="low">Under ₹500</option>
-                      <option className="text-gray-800" value="mid">₹500-₹1000</option>
-                      <option className="text-gray-800" value="high">Above ₹1000</option>
+                      <option className="text-gray-800" value="">
+                        Budget
+                      </option>
+                      <option className="text-gray-800" value="low">
+                        Under ₹500
+                      </option>
+                      <option className="text-gray-800" value="mid">
+                        ₹500-₹1000
+                      </option>
+                      <option className="text-gray-800" value="high">
+                        Above ₹1000
+                      </option>
                     </select>
 
                     <select
@@ -278,10 +290,18 @@ export default function MobileHome() {
                       onChange={(e) => setPassengers(e.target.value)}
                       className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm backdrop-blur-sm flex-1 min-w-[120px]"
                     >
-                      <option value="" className="text-gray-800">Passengers</option>
-                      <option value="2"className="text-gray-800" >2 People</option>
-                      <option value="4"className="text-gray-800" >4 People</option>
-                      <option value="6"className="text-gray-800" >6+ People</option>
+                      <option value="" className="text-gray-800">
+                        Passengers
+                      </option>
+                      <option value="2" className="text-gray-800">
+                        2 People
+                      </option>
+                      <option value="4" className="text-gray-800">
+                        4 People
+                      </option>
+                      <option value="6" className="text-gray-800">
+                        6+ People
+                      </option>
                     </select>
                   </motion.div>
                 )}
@@ -378,85 +398,89 @@ export default function MobileHome() {
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             Popular Car Rentals
           </h2>
-         <Link href={'/cars'}> <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
-            <FaArrowRight />
-          </button></Link>
+          <Link href={"/cars"}>
+            {" "}
+            <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
+              <FaArrowRight />
+            </button>
+          </Link>
         </div>
-        
+
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 md:gap-6 gap-1 gap-y-4"
         >
-          {isLoading ? (
-            Array.from({ length: 6 }).map((_, index) => (
-              <LoadingCard key={index} />
-            ))
-          ) : (
-            cars.slice(0, 6).map((car, index) => (
-              <motion.div
-                key={car._id}
-                variants={itemVariants}
-                className="bg-card md:rounded-xl rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
-              >
-                <img
-                  src={car.images[0]?.url || "/placeholder.svg"}
-                  alt={car.model}
-                  className="w-full h-20 md:h-48 md:object-cover object-contain"
-                />
-                <div className="md:p-6 p-1">
-                  <h3 className="md:font-bold font-semibold md:text-xl line-clamp-1 text-sm text-card-foreground">
-                    {car.model}
-                  </h3>
-                  <div className="flex items-center md:mb-3 mb-1">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <FaStar
-                          key={i}
-                          className={`md:text-sm text-xs ${
-                            i < Math.floor(getAverageRating(car.reviews))
-                              ? "text-orange-500"
-                              : "text-muted"
-                          }`}
-                        />
-                      ))}
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, index) => (
+                <LoadingCard key={index} />
+              ))
+            : cars.slice(0, 6).map((car, index) => (
+                <motion.div
+                  key={car._id}
+                  variants={itemVariants}
+                  className="bg-card md:rounded-xl rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
+                >
+                  <img
+                    src={
+                      car.images?.[0]?.url ||
+                      car.image?.url ||
+                      "/placeholder.svg"
+                    }
+                    alt={car.model}
+                    className="w-full h-20 md:h-48 md:object-cover object-contain"
+                  />
+                  <div className="md:p-6 p-1">
+                    <h3 className="md:font-bold font-semibold md:text-xl line-clamp-1 text-sm text-card-foreground">
+                      {car.model}
+                    </h3>
+                    <div className="flex items-center md:mb-3 mb-1">
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar
+                            key={i}
+                            className={`md:text-sm text-xs ${
+                              i < Math.floor(getAverageRating(car.reviews))
+                                ? "text-orange-500"
+                                : "text-muted"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {getAverageRating(car.reviews)}
+                      </span>
                     </div>
-                    <span className="text-sm text-muted-foreground ml-2">
-                      {getAverageRating(car.reviews)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between md:mb-4 mb-1">
-                    <div>
-                      <div className="md:text-2xl text-gray-700 text-sm md:font-bold font-semibold text-card-foreground flex items-center">
-                        <FaRupeeSign className="text-xs md:text-base" />{" "}
-                        {car.pricePerDay}
+                    <div className="flex items-center justify-between md:mb-4 mb-1">
+                      <div>
+                        <div className="md:text-2xl text-gray-700 text-sm md:font-bold font-semibold text-card-foreground flex items-center">
+                          <FaRupeeSign className="text-xs md:text-base" />{" "}
+                          {car.pricePerDay}
+                        </div>
+                        <div className="text-sm text-muted-foreground hidden md:block">
+                          per day
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground hidden md:block">
-                        per day
-                      </div>
-                    </div>
-                    <div className="text-right hidden md:block">
-                      <div className="text-sm text-muted-foreground">
-                        {car.seats} seats • {car.fueltype}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {car.geartype}
+                      <div className="text-right hidden md:block">
+                        <div className="text-sm text-muted-foreground">
+                          {car.seats} seats • {car.fueltype}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {car.geartype}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <Link href={`/booking?car=${car._id}`}>
-                      <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
-                        Book Now
-                      </button>
-                      
+                    <div className="flex items-center justify-center">
+                      <Link href={`/booking?car=${car._id}`}>
+                        <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
+                          Book Now
+                        </button>
                       </Link>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))
-          )}
+                </motion.div>
+              ))}
         </motion.div>
       </div>
 
@@ -467,93 +491,97 @@ export default function MobileHome() {
             <h2 className="text-2xl md:text-3xl font-bold text-foreground">
               Top Hotels
             </h2>
-           <Link href={'/hotels'}> <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
-            <FaArrowRight />
-          </button></Link>
+            <Link href={"/hotels"}>
+              {" "}
+              <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
+                <FaArrowRight />
+              </button>
+            </Link>
           </div>
-          
+
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 md:gap-6 gap-1 gap-y-4"
           >
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, index) => (
-                <LoadingCard key={index} />
-              ))
-            ) : (
-              hotels.slice(0, 6).map((hotel) => (
-                <motion.div
-                  key={hotel._id}
-                  variants={itemVariants}
-                  className="bg-card md:rounded-xl rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
-                >
-                  <img
-                    src={hotel.images[0]?.url || "/placeholder.svg"}
-                    alt={hotel.name}
-                    className="w-full h-20 md:h-48 rounded-md object-cover text-xs"
-                  />
-                  <div className="md:p-6 p-1">
-                    <h3 className="md:font-bold font-semibold md:text-xl line-clamp-1 text-sm text-card-foreground">
-                      {hotel.name}
-                    </h3>
-                    <div className="flex items-center md:mb-3 mb-1">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar
-                            key={i}
-                            className={`md:text-sm text-[9px] ${
-                              i < Math.floor(getAverageRating(hotel.reviews))
-                                ? "text-orange-500"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="md:text-sm text-xs text-muted-foreground capitalize ml-1">
-                        {hotel.category}
-                      </span>
-                    </div>
-                    <div className="flex items-center md:mb-4 mb-1">
-                      <FaMapMarkerAlt className="text-muted-foreground mr-1 text-xs md:text-sm" />
-                      <span className="text-xs md:text-sm text-muted-foreground line-clamp-1">
-                        {hotel.location}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between md:mb-4 mb-1">
-                      <div>
-                        <div className="md:text-2xl text-gray-700 text-sm md:font-bold font-semibold flex items-center">
-                          <FaRupeeSign className="text-xs md:text-base" />{" "}
-                          {hotel.price}
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, index) => (
+                  <LoadingCard key={index} />
+                ))
+              : hotels.slice(0, 6).map((hotel) => (
+                  <motion.div
+                    key={hotel._id}
+                    variants={itemVariants}
+                    className="bg-card md:rounded-xl rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
+                  >
+                    <img
+                      src={
+                        hotel.images?.[0]?.url ||
+                        hotel.image?.url ||
+                        "/placeholder.svg"
+                      }
+                      alt={hotel.name}
+                      className="w-full h-20 md:h-48 rounded-md object-cover text-xs"
+                    />
+                    <div className="md:p-6 p-1">
+                      <h3 className="md:font-bold font-semibold md:text-xl line-clamp-1 text-sm text-card-foreground">
+                        {hotel.name}
+                      </h3>
+                      <div className="flex items-center md:mb-3 mb-1">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar
+                              key={i}
+                              className={`md:text-sm text-[9px] ${
+                                i < Math.floor(getAverageRating(hotel.reviews))
+                                  ? "text-orange-500"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
                         </div>
-                        <div className="text-sm text-muted-foreground hidden md:block">
-                          per night
+                        <span className="md:text-sm text-xs text-muted-foreground capitalize ml-1">
+                          {hotel.category}
+                        </span>
+                      </div>
+                      <div className="flex items-center md:mb-4 mb-1">
+                        <FaMapMarkerAlt className="text-muted-foreground mr-1 text-xs md:text-sm" />
+                        <span className="text-xs md:text-sm text-muted-foreground line-clamp-1">
+                          {hotel.location}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between md:mb-4 mb-1">
+                        <div>
+                          <div className="md:text-2xl text-gray-700 text-sm md:font-bold font-semibold flex items-center">
+                            <FaRupeeSign className="text-xs md:text-base" />{" "}
+                            {hotel.price}
+                          </div>
+                          <div className="text-sm text-muted-foreground hidden md:block">
+                            per night
+                          </div>
+                        </div>
+                        <div className="hidden md:flex items-start gap-0.5">
+                          {hotel.amenities.slice(0, 3).map((item, index) => (
+                            <span
+                              key={index}
+                              className="text-xs px-1 py-0.5 whitespace-nowrap bg-sky-300 rounded-full flex items-center justify-center"
+                            >
+                              {item}
+                            </span>
+                          ))}
                         </div>
                       </div>
-                      <div className="hidden md:flex items-start gap-0.5">
-                        {hotel.amenities.slice(0, 3).map((item, index) => (
-                          <span
-                            key={index}
-                            className="text-xs px-1 py-0.5 whitespace-nowrap bg-sky-300 rounded-full flex items-center justify-center"
-                          >
-                            {item}
-                          </span>
-                        ))}
+                      <div className="flex items-center justify-center">
+                        <Link href={`/booking?hotel=${hotel._id}`}>
+                          <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
+                            Book Now
+                          </button>
+                        </Link>
                       </div>
                     </div>
-                    <div className="flex items-center justify-center">
-                      <Link href={`/booking?hotel=${hotel._id}`}>
-                      <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
-                        Book Now
-                      </button>
-                      
-                      </Link>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            )}
+                  </motion.div>
+                ))}
           </motion.div>
         </div>
       </div>
@@ -564,11 +592,14 @@ export default function MobileHome() {
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             Sacred Places to Visit
           </h2>
-          <Link href={'/places'}> <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
-            <FaArrowRight />
-          </button></Link>
+          <Link href={"/places"}>
+            {" "}
+            <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
+              <FaArrowRight />
+            </button>
+          </Link>
         </div>
-        
+
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -583,7 +614,11 @@ export default function MobileHome() {
             <>
               <div className="bg-card md:hidden md:rounded-xl flex max-w-[100%] rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow">
                 <img
-                  src={places[0]?.images[0]?.url || "/placeholder.svg"}
+                  src={
+                    places[0]?.images?.[0]?.url ||
+                    places[0]?.image?.url ||
+                    "/placeholder.svg"
+                  }
                   alt={places[0]?.title}
                   className="max-w-[50%] h-48 md:object-cover object-cover rounded-md"
                 />
@@ -616,11 +651,11 @@ export default function MobileHome() {
                     </span>
                   </div>
                   <div className="flex items-center justify-center">
-                   <Link href={`/places/${places[0]?._id}`}>
-                   <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base w-full">
-                      Learn More
-                    </button>
-                   </Link> 
+                    <Link href={`/places/${places[0]?._id}`}>
+                      <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base w-full">
+                        Learn More
+                      </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -631,13 +666,17 @@ export default function MobileHome() {
                   className="bg-card w-[31%] md:w-auto md:rounded-xl rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
                 >
                   <img
-                    src={place?.images[0]?.url || "/placeholder.svg"}
+                    src={
+                      place?.images?.[0]?.url ||
+                      place?.image?.url ||
+                      "/placeholder.svg"
+                    }
                     alt={place?.title}
                     className="w-full h-20 md:h-48 md:object-cover object-cover rounded-md"
                   />
                   <div className="md:p-6 p-1">
                     <h3 className="md:font-bold font-semibold md:text-xl line-clamp-1 text-sm text-card-foreground">
-                      {place.title}
+                      {place?.title}
                     </h3>
                     <div className="flex items-center md:mb-3">
                       <div className="flex">
@@ -661,9 +700,9 @@ export default function MobileHome() {
                     </p>
                     <div className="flex items-center justify-center">
                       <Link href={`/places/${place._id}`}>
-                      <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base w-full">
-                        Learn More
-                      </button>
+                        <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base w-full">
+                          Learn More
+                        </button>
                       </Link>
                     </div>
                   </div>
@@ -696,57 +735,69 @@ export default function MobileHome() {
             animate="visible"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
           >
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, index) => (
-                <LoadingReview key={index} />
-              ))
-            ) : (
-              reviews.slice(0, 6).map((review) => (
-                <motion.div
-                  key={review._id}
-                  variants={itemVariants}
-                  className="bg-muted/30 rounded-xl p-4 md:p-6 border border-border"
-                >
-                  <div className="flex items-start space-x-3 md:space-x-4">
-                    <div className="w-8 h-8 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white font-bold text-sm md:text-lg">
-                        {review?.user?.fullName?.charAt(0) || "U"}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center mb-2">
-                        <h4 className="font-bold text-card-foreground text-sm md:text-base line-clamp-1">
-                          {review?.user?.fullName || "User"}
-                        </h4>
-                      </div>
-                      <div className="flex items-center mb-2 md:mb-3">
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <FaStar
-                              key={i}
-                              className={`text-orange-500 ${
-                                i < review.rating
-                                  ? "text-orange-500"
-                                  : "text-muted"
-                              } text-xs md:text-sm`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs md:text-sm text-muted-foreground ml-2 line-clamp-1">
-                          {review.location || "Ujjain"}
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, index) => (
+                  <LoadingReview key={index} />
+                ))
+              : reviews.slice(0, 6).map((review) => (
+                  <motion.div
+                    key={review._id}
+                    variants={itemVariants}
+                    className="bg-muted/30 rounded-xl p-4 md:p-6 border border-border"
+                  >
+                    <div className="flex items-start space-x-3 md:space-x-4">
+                      <div className="w-8 h-8 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-bold text-sm md:text-lg">
+                          {review?.user?.fullName?.charAt(0) || "U"}
                         </span>
                       </div>
-                      <p className="text-muted-foreground text-xs md:text-sm line-clamp-3">
-                        "{review.comment}"
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center mb-2">
+                          <h4 className="font-bold text-card-foreground text-sm md:text-base line-clamp-1">
+                            {review?.user?.fullName || "User"}
+                          </h4>
+                        </div>
+                        <div className="flex items-center mb-2 md:mb-3">
+                          <div className="flex">
+                            {[...Array(5)].map((_, i) => (
+                              <FaStar
+                                key={i}
+                                className={`text-orange-500 ${
+                                  i < review.rating
+                                    ? "text-orange-500"
+                                    : "text-muted"
+                                } text-xs md:text-sm`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs md:text-sm text-muted-foreground ml-2 line-clamp-1">
+                            {review.location || "Ujjain"}
+                          </span>
+                        </div>
+                        <p className="text-muted-foreground text-xs md:text-sm line-clamp-3">
+                          "{review.comment}"
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <img
+                          src={
+                            review.reviewedItem?.images?.[0]?.url ||
+                            review?.reviewedItem?.image?.url ||
+                            "/placeholder.svg"
+                          }
+                          alt={
+                            review.reviewedItem?.model ||
+                            review.reviewedItem?.name ||
+                            review.reviewedItem?.title ||
+                            review.reviewedItem?.serviceName ||
+                            "Review item"
+                          }
+                          className="h-18 w-18 text-xs rounded-md"
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center justify-center">
-                      <img src={review.reviewedItem?.images[0]?.url || review?.reviewedItem?.image?.url} alt={review.reviewedItem.model || review.reviewedItem.name || review.reviewedItem.title|| review.reviewedItem.serviceName} className="h-18 w-18 text-xs rounded-md"/>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            )}
+                  </motion.div>
+                ))}
           </motion.div>
         </div>
       </div>
