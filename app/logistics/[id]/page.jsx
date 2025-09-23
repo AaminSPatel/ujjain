@@ -20,8 +20,8 @@ function Stars({ value = 0 }) {
 }
 
 export default function LogisticsDetailsPage() {
-  const params = useParams()
   const { logistics = [],getAverageRating } = useUjjain()
+  const params = useParams()
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id
 
   const service = useMemo(() => {
@@ -176,7 +176,7 @@ export default function LogisticsDetailsPage() {
               <div className="rounded-md border border-gray-200 p-4 text-gray-600">No reviews yet.</div>
             )}
             {reviews.map((r) => (
-              <div key={r.id} className="rounded-md border border-gray-200 p-4">
+              <div key={r._id} className="rounded-md border border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <div className="font-semibold text-gray-900 capitalize">{r?.user?.fullName}</div>
                   <Stars value={r.rating} />

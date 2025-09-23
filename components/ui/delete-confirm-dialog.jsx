@@ -13,7 +13,7 @@ import {
 
 export function DeleteConfirmDialog({ open, onOpenChange, onConfirm, title, description }) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={onOpenChange} className='max-w-44'>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
