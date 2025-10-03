@@ -5,6 +5,10 @@ import { motion } from "framer-motion"
 import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTruck } from "react-icons/fa"
 import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
+import MapPicker from "@/components/MapPicker"
+//import RouteLine from "@/components/polyline"
+import { haversineDistance } from "@/components/utils/distance";
+import BookingMap from "@/components/BookingMap";
 
 function BookingContent() {
   const { addBooking, cars, hotels, logistics, user } = useUjjain()
@@ -46,6 +50,9 @@ function BookingContent() {
   const [availableServices, setAvailableServices] = useState([])
   const [selectedService, setSelectedService] = useState(null)
 
+
+  const km = haversineDistance(bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates);
+console.log("Direct distance:", km, "km");
   // Handle URL parameters for pre-selecting service
   useEffect(() => {
     const serviceType = searchParams.get('serviceType') || searchParams.get('type')
@@ -368,34 +375,42 @@ function BookingContent() {
             />
           </div>
 
-          {(bookingType === "Car"|| bookingType === "Logistics" )&& (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Pickup Location *</label>
-                <input
-                  type="text"
-                  name="pickupLocation.address"
-                  value={bookingData.pickupLocation.address}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="Enter pickup address"
-                />
-              </div>
+          {(bookingType === "Car" || bookingType === "Logistics") && (
+  <>
+  {/* <MapPicker
+  pickupLocation={bookingData.pickupLocation}
+  setPickupLocation={(val) =>
+    setBookingData((prev) => ({ ...prev, pickupLocation: val }))
+  }
+  dropoffLocation={bookingData.dropoffLocation}
+  setDropoffLocation={(val) =>
+    setBookingData((prev) => ({ ...prev, dropoffLocation: val }))
+  }
+/> */}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Drop-off Location</label>
-                <input
-                  type="text"
-                  name="dropoffLocation.address"
-                  value={bookingData.dropoffLocation.address}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="Enter drop-off address"
-                />
-              </div>
-            </>
-          )}
+    <MapPicker
+      label="Pickup Location *"
+      value={bookingData.pickupLocation}
+      onChange={(val) =>
+        setBookingData((prev) => ({ ...prev, pickupLocation: val }))
+      }
+    />
+
+    <MapPicker
+      label="Drop-off Location"
+      value={bookingData.dropoffLocation}
+      onChange={(val) =>
+        setBookingData((prev) => ({ ...prev, dropoffLocation: val }))
+      }
+    />
+     <BookingMap
+  bookingData={bookingData}
+  setBookingData={setBookingData}
+/>
+
+       </>
+)}
+
         </div>
 
         <div className="space-y-4">
