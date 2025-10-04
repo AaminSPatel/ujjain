@@ -1,9 +1,6 @@
-import SignInClientPage from "./SignInClientPage"
+"use client"
 
-export const metadata = {
-  title: "Sign In - Ujjain Travel",
-  description: "Sign in to your Ujjain Travel account to access premium hotels and logistics services.",
-}
+import SignInClientPage from "./SignInClientPage"
 
 export default function SignInPage() {
   return <SignInClientPage />

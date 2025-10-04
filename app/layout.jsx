@@ -2,7 +2,7 @@ import "./globals.css"
 import BottomTabBar from "@/components/BottomTabBar"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
-import { UjjainProvider } from "@/components/context/UjjainContext"
+import ClientLayout from "@/components/ClientLayout"
 export const metadata = {
   title: "Safar Sathi - Sacred City Explorer",
   description:
@@ -11,25 +11,7 @@ export const metadata = {
 /*   themeColor: "#f97316",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
  */
-"name": "Safar Sathi",
-  "short_name": "Safar Sathi",
-  "icons": [
-    {
-      "src": "/web-app-manifest-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/web-app-manifest-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "theme_color": "#ffffff",
-  "background_color": "#f7ff74",
-  "display": "standalone"
+
 }
 export default function RootLayout({ children }) {
   return (
@@ -50,14 +32,14 @@ export default function RootLayout({ children }) {
         <meta name="background-color" content="#f7ff74" />
       </head>
       <body className="antialiased">
-        <UjjainProvider>
+        <ClientLayout>
         <Header/>
-          
-          
+
+
           {children}
-          
+
        <Footer/>
-          </UjjainProvider>
+          </ClientLayout>
        {<BottomTabBar/>}
       </body>
     </html>

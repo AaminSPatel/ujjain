@@ -14,6 +14,8 @@ import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog"
 import { useUjjain } from "@/components/context/UjjainContext"
 import { useToast } from "@/hooks/use-toast"
 
+export const dynamic = 'force-dynamic'
+
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState([])
   const [filteredBlogs, setFilteredBlogs] = useState([])
