@@ -70,7 +70,7 @@ export default function InstallPWA() {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          className="fixed bottom-4 right-4 z-50"
+          className="fixed bottom-14 right-4 z-50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
@@ -88,14 +88,14 @@ export default function InstallPWA() {
             <div className="pr-5">
               <h3 className="font-semibold text-gray-900 mb-1">Install Our App</h3>
               <p className="text-sm text-gray-600 mb-3">
-                जानिए अपने गाँव की ताकत, पढ़िए समाज के हीरो की कहानी – इंस्टॉल करें और जुड़ें!
+                “Install Safar Saathi – book hotels, cabs & logistics instantly!”
               </p>
             </div>
 
             <div className="flex gap-2">
               <button
                 onClick={handleInstall}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-sm"
+                className="flex-1 bg-yellow-600 hover:bg-amber-700 hover:text-white text-black font-medium py-2 px-4 rounded-md transition-colors text-sm"
               >
                 Install Now
               </button>
