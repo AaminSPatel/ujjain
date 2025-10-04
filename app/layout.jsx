@@ -4,38 +4,50 @@ import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import { UjjainProvider } from "@/components/context/UjjainContext"
 export const metadata = {
-  title: "Ujjain Explore - Sacred City Explorer",
+  title: "Safar Sathi - Sacred City Explorer",
   description:
     "Your trusted companion for exploring the sacred city of Ujjain with premium car rentals, hotel bookings, and expert guidance.",
-  manifest: "/manifest.json",
+ // manifest: "/manifest.json",
 /*   themeColor: "#f97316",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
  */
-icons: {
-    icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: "/apple-touch-icon.png",
-    other: [
-      {
-        rel: "manifest",
-        url: "/site.webmanifest",
-      },
-    ],
-}
+"name": "Safar Sathi",
+  "short_name": "Safar Sathi",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#f7ff74",
+  "display": "standalone"
 }
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#f97316" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Ujjain Travel" />
-        <link rel="apple-touch-icon" href="/placeholder.svg?height=180&width=180" />
+
+        {/* Favicon setup */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="background-color" content="#f7ff74" />
       </head>
       <body className="antialiased">
         <UjjainProvider>
