@@ -20,6 +20,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { useUjjain } from "../context/UjjainContext"
+import InstallPWA from "../InstallPwa"
 import Link from "next/link"
 
 // Fix default marker issue in Leaflet
@@ -666,7 +667,9 @@ export default function MobileHome() {
           </motion.div>
         )}
       </div>
-
+ <div className="fixed">
+  <InstallPWA />
+ </div>
       <AnimatePresence>
         {searchTerm && filteredResults.length > 0 && (
           <motion.div

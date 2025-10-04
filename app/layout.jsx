@@ -3,6 +3,7 @@ import BottomTabBar from "@/components/BottomTabBar"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import ClientLayout from "@/components/ClientLayout"
+import InstallPWA from "@/components/InstallPwa"
 export const metadata = {
   title: "Safar Sathi - Sacred City Explorer",
   description:
@@ -37,7 +38,7 @@ export default function RootLayout({ children }) {
 
 
           {children}
-
+  <InstallPWA/> 
        <Footer/>
           </ClientLayout>
        {<BottomTabBar/>}
