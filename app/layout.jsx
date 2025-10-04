@@ -8,10 +8,23 @@ export const metadata = {
   description:
     "Your trusted companion for exploring the sacred city of Ujjain with premium car rentals, hotel bookings, and expert guidance.",
   manifest: "/manifest.json",
-  themeColor: "#f97316",
+/*   themeColor: "#f97316",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+ */
+icons: {
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+    other: [
+      {
+        rel: "manifest",
+        url: "/site.webmanifest",
+      },
+    ],
 }
-
+}
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
