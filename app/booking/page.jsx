@@ -5,7 +5,11 @@ import { motion } from "framer-motion"
 import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTruck } from "react-icons/fa"
 import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
-import MapPicker from "@/components/MapPicker"
+import dynamic from "next/dynamic";
+
+const MapPicker = dynamic(() => import("@/components/MapPicker"), {
+  ssr: false,
+});
 //import RouteLine from "@/components/polyline"
 import { haversineDistance } from "@/components/utils/distance";
 import BookingMap from "@/components/BookingMap";
@@ -20,6 +24,7 @@ function BookingContent() {
     service: "",
     startDate: "",
     endDate: "",
+    rooms: 1,
     pickupLocation: {
       address: "",
       coordinates: { lat: 0, lng: 0 },
@@ -51,8 +56,8 @@ function BookingContent() {
   const [selectedService, setSelectedService] = useState(null)
 
 
-  const km = haversineDistance(bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates);
-console.log("Direct distance:", km, "km");
+ // const km = haversineDistance(bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates);
+//console.log("Direct distance:", km, "km");
   // Handle URL parameters for pre-selecting service
   useEffect(() => {
     const serviceType = searchParams.get('serviceType') || searchParams.get('type')
@@ -170,7 +175,7 @@ console.log("Direct distance:", km, "km");
       serviceType: bookingType,
       payment: {
         ...prev.payment,
-        amount: service.price || service.pricePerDay || service.pricePerNight || service.priceRange.max || 0,
+        amount: service.price || service.pricePerDay || service.pricePerNight || (service.priceRange?.max ?? 0)
       },
     }))
     setStep(2)
