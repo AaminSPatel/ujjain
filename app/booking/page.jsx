@@ -408,10 +408,10 @@ function BookingContent() {
         setBookingData((prev) => ({ ...prev, dropoffLocation: val }))
       }
     />
-     <BookingMap
+ {/*     <BookingMap
   bookingData={bookingData}
   setBookingData={setBookingData}
-/>
+/> */}
 
        </>
 )}
