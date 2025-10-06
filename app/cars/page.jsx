@@ -334,8 +334,8 @@ export default function Cars() {
                   {/* Car Image with Gradient */}
                   <div className="relative h-64 overflow-hidden bg-gradient-to-br from-amber-50 to-sky-50">
                     <img
-                      src={car.images[0].url || "/placeholder.svg?height=300&width=400"}
-                      alt={car.model}
+                      src={car?.images[0]?.url || "/placeholder.svg?height=300&width=400"}
+                      alt={car?.model}
                       className="w-full h-full object-contain relative z-10 mix-blend-multipl"
                     />
 

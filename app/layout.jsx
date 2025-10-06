@@ -1,47 +1,66 @@
+"use client"
+
 import "./globals.css"
+import { useEffect, useState } from "react"
 import BottomTabBar from "@/components/BottomTabBar"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import ClientLayout from "@/components/ClientLayout"
 import InstallPWA from "@/components/InstallPwa"
+
 export const metadata = {
   title: "Safar Sathi - Sacred City Explorer",
   description:
     "Your trusted companion for exploring the sacred city of Ujjain with premium car rentals, hotel bookings, and expert guidance.",
- // manifest: "/manifest.json",
-/*   themeColor: "#f97316",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
- */
-
 }
+
 export default function RootLayout({ children }) {
+  const [isPWA, setIsPWA] = useState(false)
+
+  useEffect(() => {
+    // ✅ Detect PWA (standalone) mode
+    const checkPWA = () => {
+      const standalone =
+        window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone
+      setIsPWA(standalone)
+    }
+
+    checkPWA()
+    window.addEventListener("resize", checkPWA)
+    return () => window.removeEventListener("resize", checkPWA)
+  }, [])
+
   return (
     <html lang="en">
       <head>
-        <meta name="theme-color" content="#f97316" />
-        <meta name="mobile-web-app-capable" content="yes" />
+        {/* ✅ PWA Essentials */}
+        <meta name="application-name" content="Safar Sathi" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Ujjain Travel" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Safar Sathi" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="theme-color" content="#f97316" />
+        <meta name="background-color" content="#ffffff" />
+        <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
 
-        {/* Favicon setup */}
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#ffffff" />
-        <meta name="background-color" content="#f7ff74" />
+        {/* ✅ App Icons for Android/iOS */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
       </head>
+
       <body className="antialiased">
         <ClientLayout>
-        <Header/>
-
-
+          <Header />
           {children}
-  <InstallPWA/> 
-       <Footer/>
-          </ClientLayout>
-       {<BottomTabBar/>}
+          <InstallPWA />
+          <Footer />
+          {/* ✅ Show BottomTabBar only if in PWA mode */}
+          {isPWA && <BottomTabBar />}
+        </ClientLayout>
       </body>
     </html>
   )

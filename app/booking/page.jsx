@@ -1,8 +1,9 @@
 "use client"
-import { useState, useEffect, Suspense  } from "react"
 import { useSearchParams } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
 import { motion } from "framer-motion"
-import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTruck } from "react-icons/fa"
+import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTruck, FaMotorcycle, FaBus } from "react-icons/fa"
+import { MdElectricRickshaw } from "react-icons/md"
 import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
 import dynamic from "next/dynamic";
@@ -10,58 +11,210 @@ import dynamic from "next/dynamic";
 const MapPicker = dynamic(() => import("@/components/MapPicker"), {
   ssr: false,
 });
-//import RouteLine from "@/components/polyline"
-import { haversineDistance } from "@/components/utils/distance";
-import BookingMap from "@/components/BookingMap";
+
+// Transportation options data (same as home page)
+const transportOptions = [
+  {
+    id: "cab",
+    name: "Cab",
+    icon: <FaCar className="text-2xl" />,
+    baseFare: 40,
+    perKm: 12,
+    capacity: "4 passengers",
+    color: "bg-blue-500",
+    textColor: "text-blue-500",
+  },
+  {
+    id: "bike",
+    name: "Bike",
+    icon: <FaMotorcycle className="text-2xl" />,
+    baseFare: 20,
+    perKm: 8,
+    capacity: "1 passenger",
+    color: "bg-green-500",
+    textColor: "text-green-500",
+  },
+  {
+    id: "rickshaw",
+    name: "Auto Rickshaw",
+    icon: <MdElectricRickshaw className="text-2xl" />,
+    baseFare: 30,
+    perKm: 10,
+    capacity: "3 passengers",
+    color: "bg-yellow-500",
+    textColor: "text-yellow-500",
+  },
+  {
+    id: "bus",
+    name: "Bus",
+    icon: <FaBus className="text-2xl" />,
+    baseFare: 15,
+    perKm: 5,
+    capacity: "40+ passengers",
+    color: "bg-purple-500",
+    textColor: "text-purple-500",
+  }
+]
 
 function BookingContent() {
   const { addBooking, cars, hotels, logistics, user } = useUjjain()
   const searchParams = useSearchParams()
   const [bookingType, setBookingType] = useState("Car")
   const [step, setStep] = useState(1)
-  const [bookingData, setBookingData] = useState({
-    serviceType: "Car",
-    service: "",
-    startDate: "",
-    endDate: "",
-    rooms: 1,
-    pickupLocation: {
-      address: "",
-      coordinates: { lat: 0, lng: 0 },
-    },
-    dropoffLocation: {
-      address: "",
-      coordinates: { lat: 0, lng: 0 },
-    },
-    passengers: {
-      adults: 1,
-      children: 0,
-      infants: 0,
-    },
-    rooms: 1,
-    personalInfo: {
-      fullname: "",
-      email: "",
-      mobile: "",
-      address: "",
-    },
-    specialRequests: "",
-    payment: {
-      amount: 0,
-      method: "credit_card",
-    },
+  const [bookingId, setBookingId] = useState(null)
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [pickup, setPickup] = useState("")
+  const [destination, setDestination] = useState("")
+  const [isInstantBooking, setIsInstantBooking] = useState(false)
+  const [selectedTransport, setSelectedTransport] = useState("cab")
+  const [selectedVehicleId, setSelectedVehicleId] = useState("")
+  
+  const [bookingData, setBookingData] = useState(() => {
+    // Set default dates
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    return {
+      serviceType: "Car",
+      service: "",
+      startDate: today,
+      endDate: tomorrow,
+      dates: [new Date(today), new Date(tomorrow)],
+      passengers: {
+        adults: 1,
+        children: 0,
+        infants: 0
+      },
+      rooms: 1,
+      pickupLocation: {
+        address: "",
+        coordinates: { lat: 0, lng: 0 },
+      },
+      dropoffLocation: {
+        address: "",
+        coordinates: { lat: 0, lng: 0 },
+      },
+      personalInfo: {
+        fullname: "",
+        email: "",
+        mobile: "",
+        address: "",
+      },
+      specialRequests: "",
+      payment: {
+        method: "credit_card",
+        amount: 0,
+        status: "pending"
+      },
+      pricing: {
+        basePrice: 0,
+        discount: 0,
+        tax: 0,
+        totalPrice: 0
+      }
+    }
   })
 
   const [availableServices, setAvailableServices] = useState([])
   const [selectedService, setSelectedService] = useState(null)
 
+  useEffect(() => {
+    const pickupParam = searchParams.get("pickup")
+    const pickupLat = searchParams.get("pickupLat")
+    const pickupLng = searchParams.get("pickupLng")
+    const destinationParam = searchParams.get("destination")
+    const destinationLat = searchParams.get("destLat")
+    const destinationLng = searchParams.get("destLng")
+    const transportParam = searchParams.get("transport")
+    const fareParam = searchParams.get("fare")
+    const bookingTypeParam = searchParams.get("bookingType")
+    const startDateParam = searchParams.get("startDate")
+    const endDateParam = searchParams.get("endDate")
+    const v_id = searchParams.get("_id")
+    
+    console.log('Vehicle ID from URL:', v_id);
+    
+    // Set current date and next date as default
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    if (pickupParam) {
+      setPickup(pickupParam)
+      setBookingData(prev => ({
+        ...prev,
+        pickupLocation: {
+          address: pickupParam,
+          coordinates: { 
+            lat: parseFloat(pickupLat) || 0, 
+            lng: parseFloat(pickupLng) || 0 
+          },
+        },
+        dropoffLocation: {
+          address: destinationParam || "",
+          coordinates: { 
+            lat: parseFloat(destinationLat) || 0, 
+            lng: parseFloat(destinationLng) || 0 
+          },
+        },
+        startDate: startDateParam || today,
+        endDate: endDateParam || tomorrow,
+        dates: [
+          new Date(startDateParam || today), 
+          new Date(endDateParam || tomorrow)
+        ],
+        serviceType: 'Car',
+        service: v_id || "",
+      }))
+    } else {
+      // Set default dates even if no pickup param
+      setBookingData(prev => ({
+        ...prev,
+        startDate: startDateParam || today,
+        endDate: endDateParam || tomorrow,
+        dates: [
+          new Date(startDateParam || today), 
+          new Date(endDateParam || tomorrow)
+        ],
+        serviceType: 'Car',
+        service: v_id || "",
+      }))
+    }
+    
+    if (destinationParam) setDestination(destinationParam)
+    
+    if (transportParam) {
+      setSelectedTransport(transportParam)
+      setSelectedVehicleId(v_id)
+      setBookingType("Car")
+    }
+    
+    if (fareParam) {
+      const fareAmount = parseFloat(fareParam) || 0
+      setBookingData(prev => ({
+        ...prev,
+        payment: {
+          ...prev.payment,
+          amount: fareAmount,
+        },
+        pricing: {
+          basePrice: fareAmount,
+          discount: 0,
+          tax: 0,
+          totalPrice: fareAmount
+        }
+      }))
+    }
+    
+    if (bookingTypeParam === "instant") {
+      setIsInstantBooking(true)
+      setStep(2) // Skip vehicle selection for instant booking
+    }
+  }, [searchParams])
 
- // const km = haversineDistance(bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates);
-//console.log("Direct distance:", km, "km");
   // Handle URL parameters for pre-selecting service
   useEffect(() => {
     const serviceType = searchParams.get('serviceType') || searchParams.get('type')
-    const serviceId = searchParams.get('service') || searchParams.get('hotel') || searchParams.get('car') || searchParams.get('logistics')
+    const serviceId = searchParams.get('_id') || searchParams.get('service') || searchParams.get('hotel') || searchParams.get('car') || searchParams.get('logistics')
     const roomId = searchParams.get('room')
 
     // Determine service type from parameter if not explicitly provided
@@ -72,7 +225,7 @@ function BookingContent() {
       else if (searchParams.get('logistics')) detectedType = "Logistics";
     }
 
-    if (detectedType) {
+    if (detectedType && !isInstantBooking) {
       setBookingType(detectedType)
       setBookingData(prev => ({
         ...prev,
@@ -82,69 +235,96 @@ function BookingContent() {
       }))
     }
 
-    if (serviceId) {
+    if (serviceId && !isInstantBooking) {
       setBookingData(prev => ({
         ...prev,
         service: serviceId,
         room: roomId || ""
       }))
-
-      // Automatically skip to step 2 if service ID is provided
       setStep(2)
     }
-  }, [searchParams])
+  }, [searchParams, isInstantBooking])
 
   useEffect(() => {
-    if (bookingType === "Car" && cars) {
+    if (isInstantBooking) {
+      // For instant booking, we don't need to load specific vehicles
+      setAvailableServices([])
+      const transport = transportOptions.find(t => t.name.toLowerCase() === selectedTransport)
+      setSelectedService({
+        _id: selectedVehicleId,
+        name: transport?.name || "Car",
+        type: "instant",
+        capacity: transport?.capacity || "",
+        price: bookingData.payment.amount
+      })
+    } else if (bookingType === "Car" && cars) {
       setAvailableServices(cars)
-      // Find and set the selected service if ID is provided
       if (bookingData.service) {
         const service = cars.find(car => car._id === bookingData.service)
         if (service) {
           setSelectedService(service)
+          const price = service.price || service.pricePerDay || service.pricePerNight || 0
           setBookingData(prev => ({
             ...prev,
             payment: {
               ...prev.payment,
-              amount: service.price || service.pricePerDay || service.pricePerNight || 0,
+              amount: price,
             },
+            pricing: {
+              basePrice: price,
+              discount: 0,
+              tax: 0,
+              totalPrice: price
+            }
           }))
         }
       }
     } else if (bookingType === "Hotel" && hotels) {
       setAvailableServices(hotels)
-      // Find and set the selected service if ID is provided
       if (bookingData.service) {
         const service = hotels.find(hotel => hotel._id === bookingData.service)
         if (service) {
           setSelectedService(service)
+          const price = service.price || service.pricePerDay || service.pricePerNight || 0
           setBookingData(prev => ({
             ...prev,
             payment: {
               ...prev.payment,
-              amount: service.price || service.pricePerDay || service.pricePerNight || 0,
+              amount: price,
             },
+            pricing: {
+              basePrice: price,
+              discount: 0,
+              tax: 0,
+              totalPrice: price
+            }
           }))
         }
       }
     } else if (bookingType === "Logistics" && logistics) {
       setAvailableServices(logistics)
-      // Find and set the selected service if ID is provided
       if (bookingData.service) {
         const service = logistics.find(logistic => logistic._id === bookingData.service)
         if (service) {
           setSelectedService(service)
+          const price = service.price || service.pricePerDay || service.pricePerNight || service.priceRange?.max || 0
           setBookingData(prev => ({
             ...prev,
             payment: {
               ...prev.payment,
-              amount: service.price || service.pricePerDay || service.pricePerNight || service.priceRange.max || 0,
+              amount: price,
             },
+            pricing: {
+              basePrice: price,
+              discount: 0,
+              tax: 0,
+              totalPrice: price
+            }
           }))
         }
       }
     }
-  }, [bookingType, cars, hotels, logistics, bookingData.service])
+  }, [bookingType, cars, hotels, logistics, bookingData.service, isInstantBooking, selectedTransport, selectedVehicleId])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -169,53 +349,108 @@ function BookingContent() {
 
   const handleServiceSelect = (service) => {
     setSelectedService(service)
+    const price = service.price || service.pricePerDay || service.pricePerNight || (service.priceRange?.max ?? 0)
+    
     setBookingData((prev) => ({
       ...prev,
       service: service._id,
       serviceType: bookingType,
       payment: {
         ...prev.payment,
-        amount: service.price || service.pricePerDay || service.pricePerNight || (service.priceRange?.max ?? 0)
+        amount: price,
       },
+      pricing: {
+        basePrice: price,
+        discount: 0,
+        tax: 0,
+        totalPrice: price
+      }
     }))
     setStep(2)
   }
 
-  const handleSubmit = (e) => {
+  const handleTransportSelect = (transportId) => {
+    setSelectedTransport(transportId)
+    const transport = transportOptions.find(t => t.id === transportId)
+    if (transport) {
+      setSelectedService({
+        _id: `instant-${transportId}`,
+        name: transport.name,
+        type: "instant",
+        capacity: transport.capacity,
+        price: bookingData.payment.amount
+      })
+    }
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const booking = {
-      ...bookingData,
-      user: user ? user._id : null,
-      status: "pending",
-      isPaid: false,
-      isCancelled: false,
+    setIsProcessingPayment(true)
+
+    try {
+      // Prepare booking data according to your schema
+      const bookingPayload = {
+        serviceType: isInstantBooking ? "Car" : bookingData.serviceType,
+        service: isInstantBooking ? selectedVehicleId : bookingData.service,
+        startDate: new Date(bookingData.startDate),
+        endDate: bookingData.endDate ? new Date(bookingData.endDate) : undefined,
+        dates: bookingData.endDate 
+          ? [new Date(bookingData.startDate), new Date(bookingData.endDate)]
+          : [new Date(bookingData.startDate)],
+        
+        // Passenger details
+        passengers: bookingData.passengers,
+        
+        // Hotel specific
+        rooms: bookingType === "Hotel" ? bookingData.rooms : undefined,
+        room: bookingData.room || undefined,
+        
+        // Location details
+        pickupLocation: bookingData.pickupLocation,
+        dropoffLocation: bookingData.dropoffLocation,
+        
+        // Personal info
+        email: bookingData.personalInfo.email,
+        mobile: bookingData.personalInfo.mobile,
+        fullname: bookingData.personalInfo.fullname,
+        address: bookingData.personalInfo.address,
+        
+        // Payment and pricing
+        payment: {
+          method: bookingData.payment.method,
+          amount: bookingData.payment.amount,
+          status: "pending"
+        },
+        pricing: bookingData.pricing,
+        
+        // Additional fields
+        specialRequests: bookingData.specialRequests,
+        status: "pending",
+        isPaid: false,
+        isCancelled: false,
+        user: user ? user._id : null,
+        
+        // Instant booking flag
+        isInstantBooking: isInstantBooking,
+        transportType: isInstantBooking ? selectedTransport : undefined
+      }
+
+      console.log('Submitting booking data:', bookingPayload)
+
+      const result = await addBooking(bookingPayload)
+      if (result && result._id) {
+        setBookingId(result._id)
+        setStep(4) // Go to payment step
+      } else {
+        console.error('Booking creation failed')
+        alert('Failed to create booking. Please try again.')
+      }
+    } catch (error) {
+      console.error('Booking submission error:', error)
+      alert('An error occurred while creating your booking. Please try again.')
+    } finally {
+      setIsProcessingPayment(false)
     }
-    // Transform booking data to match backend schema
-    const transformedBooking = {
-      serviceType: booking.serviceType,
-      service: booking.service,
-      startDate: booking.startDate,
-      endDate: booking.endDate,
-      pickupLocation: booking.pickupLocation,
-      dropoffLocation: booking.dropoffLocation,
-      passengers: booking.passengers,
-      rooms: booking.rooms,
-      email: booking.personalInfo.email,
-      mobile: booking.personalInfo.mobile,
-      fullname: booking.personalInfo.fullname,
-      address: booking.personalInfo.address,
-      car_id: booking.service,
-      room: booking.room, // Add room id to booking data sent to backend
-      dates: booking.endDate ? [new Date(booking.startDate), new Date(booking.endDate)] : [new Date(booking.startDate)],
-      specialRequests: booking.specialRequests,
-      payment: booking.payment,
-      status: booking.status,
-      isPaid: booking.isPaid,
-      isCancelled: booking.isCancelled,
-      user: booking.user,
-    }
-    addBooking(transformedBooking)
-    setStep(4)
   }
 
   const renderStep1 = () => (
@@ -334,144 +569,172 @@ function BookingContent() {
   const renderStep2 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4">Booking Details</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          {isInstantBooking ? "Transport Booking Details" : "Booking Details"}
+        </h2>
+        
+        {isInstantBooking ? (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Choose Your Transport:</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+              {transportOptions.map((transport) => (
+                <motion.button
+                  key={transport.id}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleTransportSelect(transport.id)}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    selectedTransport === transport.id
+                      ? `${transport.color} text-white shadow-md`
+                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="flex flex-col items-center">
+                    <div className="mb-2">{transport.icon}</div>
+                    <span className="text-sm font-medium">{transport.name}</span>
+                    <span className="text-xs mt-1 opacity-80">{transport.capacity}</span>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         {selectedService && (
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-md mx-auto">
             <p className="text-blue-800 font-medium">
-             <span  className="text-amber-500 font-semibold">{bookingType}</span> 
+              <span className="text-amber-500 font-semibold">
+                {isInstantBooking ? "Transport" : bookingType}
+              </span> 
             </p>
             <p className="text-blue-800 font-medium">
-              Booking: {selectedService.name || selectedService.serviceName || selectedService.model}
+              {isInstantBooking 
+                ? `Instant ${transportOptions.find(t => t.id === selectedTransport)?.name} Booking`
+                : `Booking: ${selectedService.name || selectedService.serviceName || selectedService.model}`
+              }
             </p>
             <p className="text-blue-600">
-              ₹{selectedService.price || selectedService.pricePerDay || selectedService.pricePerNight || selectedService.priceRange.max || 0}
-              /{bookingType === "Hotel" ? "night" : bookingType === "Logistics" ? "trip" : "day"}
+              ₹{bookingData.payment.amount}
+              {isInstantBooking ? "" : `/${bookingType === "Hotel" ? "night" : bookingType === "Logistics" ? "trip" : "day"}`}
             </p>
+            {isInstantBooking && (
+              <p className="text-blue-600 text-sm mt-1">
+                {transportOptions.find(t => t.id === selectedTransport)?.capacity}
+              </p>
+            )}
           </div>
         )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {bookingType === "Car" ? "Pickup Date" : bookingType === "Hotel" ? "Check-in Date" : "Service Date"} *
-            </label>
-            <input
-              type="date"
-              name="startDate"
-              value={bookingData.startDate}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
+          {!isInstantBooking && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {bookingType === "Car" ? "Pickup Date" : bookingType === "Hotel" ? "Check-in Date" : "Service Date"} *
+                </label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={bookingData.startDate}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {bookingType === "Car" ? "Return Date" : bookingType === "Hotel" ? "Check-out Date" : "End Date"}
-            </label>
-            <input
-              type="date"
-              name="endDate"
-              value={bookingData.endDate}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {bookingType === "Car" ? "Return Date" : bookingType === "Hotel" ? "Check-out Date" : "End Date"}
+                </label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={bookingData.endDate}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+            </>
+          )}
 
-          {(bookingType === "Car" || bookingType === "Logistics") && (
-  <>
-  {/* <MapPicker
-  pickupLocation={bookingData.pickupLocation}
-  setPickupLocation={(val) =>
-    setBookingData((prev) => ({ ...prev, pickupLocation: val }))
-  }
-  dropoffLocation={bookingData.dropoffLocation}
-  setDropoffLocation={(val) =>
-    setBookingData((prev) => ({ ...prev, dropoffLocation: val }))
-  }
-/> */}
+          {(bookingType === "Car" || bookingType === "Logistics" || isInstantBooking) && (
+            <>
+              <MapPicker
+                label="Pickup Location *"
+                value={bookingData.pickupLocation}
+                onChange={(val) =>
+                  setBookingData((prev) => ({ ...prev, pickupLocation: val }))
+                }
+              />
 
-    <MapPicker
-      label="Pickup Location *"
-      value={bookingData.pickupLocation}
-      onChange={(val) =>
-        setBookingData((prev) => ({ ...prev, pickupLocation: val }))
-      }
-    />
-
-    <MapPicker
-      label="Drop-off Location"
-      value={bookingData.dropoffLocation}
-      onChange={(val) =>
-        setBookingData((prev) => ({ ...prev, dropoffLocation: val }))
-      }
-    />
- {/*     <BookingMap
-  bookingData={bookingData}
-  setBookingData={setBookingData}
-/> */}
-
-       </>
-)}
-
+              <MapPicker
+                label="Drop-off Location"
+                value={bookingData.dropoffLocation}
+                onChange={(val) =>
+                  setBookingData((prev) => ({ ...prev, dropoffLocation: val }))
+                }
+              />
+            </>
+          )}
         </div>
 
         <div className="space-y-4">
-         {(bookingType === "Car"|| bookingType === "Hotel" )&&   <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Passengers *
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Adults</label>
-                <select
-                  name="passengers.adults"
-                  value={bookingData.passengers.adults}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                >
-                  {[0,1,2,3,4,5,6,7,8].map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Children</label>
-                <select
-                  name="passengers.children"
-                  value={bookingData.passengers.children}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                >
-                  {[0,1,2,3,4,5,6,7,8].map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Infants</label>
-                <select
-                  name="passengers.infants"
-                  value={bookingData.passengers.infants}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                >
-                  {[0,1,2,3,4,5,6,7,8].map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
+          {(bookingType === "Car" || bookingType === "Hotel" || isInstantBooking) && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Passengers *
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Adults</label>
+                  <select
+                    name="passengers.adults"
+                    value={bookingData.passengers.adults}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  >
+                    {[1,2,3,4,5,6,7,8].map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Children</label>
+                  <select
+                    name="passengers.children"
+                    value={bookingData.passengers.children}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  >
+                    {[0,1,2,3,4,5,6,7,8].map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Infants</label>
+                  <select
+                    name="passengers.infants"
+                    value={bookingData.passengers.infants}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  >
+                    {[0,1,2,3,4,5,6,7,8].map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
-}
+          )}
+
           {bookingType === "Hotel" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Number of Rooms *</label>
@@ -502,6 +765,7 @@ function BookingContent() {
               <option value="wallet">Digital Wallet</option>
               <option value="paypal">PayPal</option>
               <option value="bank_transfer">Bank Transfer</option>
+              <option value="cash">Cash</option>
             </select>
           </div>
 
@@ -520,15 +784,17 @@ function BookingContent() {
       </div>
 
       <div className="flex justify-between">
-        <button
-          onClick={() => setStep(1)}
-          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-50 transition-colors duration-300"
-        >
-          Back
-        </button>
+        {!isInstantBooking && (
+          <button
+            onClick={() => setStep(1)}
+            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-50 transition-colors duration-300"
+          >
+            Back
+          </button>
+        )}
         <button
           onClick={() => setStep(3)}
-          className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300"
+          className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300 ml-auto"
         >
           Continue
         </button>
@@ -536,7 +802,7 @@ function BookingContent() {
     </motion.div>
   )
 
-    const renderStep3 = () => (
+  const renderStep3 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Personal Information</h2>
@@ -603,14 +869,18 @@ function BookingContent() {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600">Service Type:</span>
-              <span className="font-semibold capitalize">{bookingData.serviceType}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Duration:</span>
-              <span className="font-semibold">
-                {bookingData.startDate} {bookingData.endDate && `to ${bookingData.endDate}`}
+              <span className="font-semibold capitalize">
+                {isInstantBooking ? `Instant ${transportOptions.find(t => t.id === selectedTransport)?.name}` : bookingData.serviceType}
               </span>
             </div>
+            {!isInstantBooking && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Duration:</span>
+                <span className="font-semibold">
+                  {bookingData.startDate} {bookingData.endDate && `to ${bookingData.endDate}`}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-gray-600">Passengers:</span>
               <span className="font-semibold">
@@ -644,9 +914,10 @@ function BookingContent() {
           </button>
           <button
             type="submit"
-            className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300"
+            disabled={isProcessingPayment}
+            className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300 disabled:opacity-50"
           >
-            Confirm Booking
+            {isProcessingPayment ? "Processing..." : "Confirm Booking"}
           </button>
         </div>
       </form>
@@ -654,6 +925,148 @@ function BookingContent() {
   )
 
   const renderStep4 = () => (
+    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-800 mb-4">Payment</h2>
+        <p className="text-gray-600">Complete your payment to confirm the booking</p>
+      </div>
+
+      <div className="max-w-md mx-auto">
+        <div className="bg-gradient-to-br from-orange-50 to-blue-50 rounded-3xl p-6 mb-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Payment Summary</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Service:</span>
+              <span className="font-semibold">
+                {isInstantBooking ? `Instant ${transportOptions.find(t => t.id === selectedTransport)?.name}` : bookingData.serviceType}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Payment Method:</span>
+              <span className="font-semibold capitalize">{bookingData.payment.method.replace("_", " ")}</span>
+            </div>
+            <div className="border-t pt-3 flex justify-between text-lg font-bold">
+              <span>Total Amount:</span>
+              <span className="text-orange-500">₹{bookingData.payment.amount}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {bookingData.payment.method === "credit_card" && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Card Number *</label>
+                <input
+                  type="text"
+                  placeholder="1234 5678 9012 3456"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  maxLength="19"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Expiry Date *</label>
+                  <input
+                    type="text"
+                    placeholder="MM/YY"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    maxLength="5"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">CVV *</label>
+                  <input
+                    type="text"
+                    placeholder="123"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    maxLength="4"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {bookingData.payment.method === "wallet" && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select Wallet *</label>
+                <select className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+                  <option value="paytm">Paytm</option>
+                  <option value="gpay">Google Pay</option>
+                  <option value="phonepe">PhonePe</option>
+                  <option value="amazonpay">Amazon Pay</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number *</label>
+                <input
+                  type="tel"
+                  placeholder="+91 9876543210"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+            </div>
+          )}
+
+          {bookingData.payment.method === "paypal" && (
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">You will be redirected to PayPal to complete your payment</p>
+              <div className="bg-blue-600 text-white px-6 py-3 rounded-2xl inline-block">
+                PayPal
+              </div>
+            </div>
+          )}
+
+          {bookingData.payment.method === "bank_transfer" && (
+            <div className="bg-gray-50 p-4 rounded-2xl">
+              <h4 className="font-semibold text-gray-800 mb-2">Bank Transfer Details</h4>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p><strong>Account Name:</strong> Safar Sathi Services</p>
+                <p><strong>Account Number:</strong> 1234567890</p>
+                <p><strong>IFSC Code:</strong> SBIN0001234</p>
+                <p><strong>Bank:</strong> State Bank of India</p>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Please include your booking ID ({bookingId}) in the transfer remarks
+              </p>
+            </div>
+          )}
+
+          {bookingData.payment.method === "cash" && (
+            <div className="text-center py-8">
+              <p className="text-gray-600">Cash payment will be collected at the time of service</p>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between mt-8">
+          <button
+            onClick={() => setStep(3)}
+            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-50 transition-colors duration-300"
+          >
+            Back
+          </button>
+          <button
+            onClick={() => {
+              // Simulate payment processing
+              setIsProcessingPayment(true)
+              setTimeout(() => {
+                setIsProcessingPayment(false)
+                setStep(5) // Go to confirmation
+              }, 2000)
+            }}
+            disabled={isProcessingPayment}
+            className="px-6 py-3 bg-green-500 text-white rounded-2xl font-semibold hover:bg-green-600 transition-colors duration-300 disabled:opacity-50"
+          >
+            {isProcessingPayment ? "Processing..." : `Pay ₹${bookingData.payment.amount}`}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  )
+
+  const renderStep5 = () => (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -666,8 +1079,16 @@ function BookingContent() {
       <div>
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Booking Confirmed!</h2>
         <p className="text-xl text-gray-600 mb-6">
-          Thank you for choosing Safar Sathi. Your booking has been confirmed.
+          {isInstantBooking
+            ? `Your ${transportOptions.find(t => t.id === selectedTransport)?.name} has been booked successfully!`
+            : "Thank you for choosing Safar Sathi. Your booking has been confirmed."
+          }
         </p>
+        {isInstantBooking && (
+          <p className="text-lg text-green-600 font-semibold">
+            Driver will arrive at your pickup location shortly!
+          </p>
+        )}
       </div>
 
       <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-3xl p-6 max-w-md mx-auto">
@@ -675,15 +1096,25 @@ function BookingContent() {
         <div className="space-y-3 text-left">
           <div className="flex items-center">
             <FaCheckCircle className="text-green-500 mr-3" />
-            <span className="text-gray-700">Confirmation email sent</span>
+            <span className="text-gray-700">Confirmation {isInstantBooking ? 'SMS' : 'email'} sent</span>
           </div>
           <div className="flex items-center">
             <FaPhone className="text-blue-500 mr-3" />
-            <span className="text-gray-700">Our team will call you within 30 minutes</span>
+            <span className="text-gray-700">
+              {isInstantBooking
+                ? 'Driver will call you for exact location'
+                : 'Our team will call you within 30 minutes'
+              }
+            </span>
           </div>
           <div className="flex items-center">
             <FaClock className="text-orange-500 mr-3" />
-            <span className="text-gray-700">Service details will be shared via SMS</span>
+            <span className="text-gray-700">
+              {isInstantBooking
+                ? 'Vehicle will arrive in 5-15 minutes'
+                : 'Service details will be shared via SMS'
+              }
+            </span>
           </div>
         </div>
       </div>
@@ -691,20 +1122,28 @@ function BookingContent() {
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <button
           onClick={() => {
+            const today = new Date().toISOString().split('T')[0];
+            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
             setStep(1)
             setBookingData({
               serviceType: "Car",
               service: "",
-              startDate: "",
-              endDate: "",
+              startDate: today,
+              endDate: tomorrow,
+              dates: [new Date(today), new Date(tomorrow)],
               pickupLocation: { address: "", coordinates: { lat: 0, lng: 0 } },
               dropoffLocation: { address: "", coordinates: { lat: 0, lng: 0 } },
               passengers: { adults: 1, children: 0, infants: 0 },
               rooms: 1,
               personalInfo: { fullname: "", email: "", mobile: "", address: "" },
               specialRequests: "",
-              payment: { amount: 0, method: "credit_card" },
+              payment: { method: "credit_card", amount: 0, status: "pending" },
+              pricing: { basePrice: 0, discount: 0, tax: 0, totalPrice: 0 }
             })
+            setIsInstantBooking(false)
+            setSelectedTransport("cab")
+            setSelectedVehicleId("")
           }}
           className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300"
         >
@@ -719,7 +1158,6 @@ function BookingContent() {
       </div>
     </motion.div>
   )
-  // ... rest of the code remains the same (renderStep3, renderStep4, etc.)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
@@ -732,9 +1170,14 @@ function BookingContent() {
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-r from-orange-600 to-blue-600 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Book Your Journey</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            {isInstantBooking ? "Instant Transport Booking" : "Book Your Journey"}
+          </h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto">
-            Secure your car and accommodation for a comfortable spiritual journey to Ujjain
+            {isInstantBooking 
+              ? "Get immediate transportation service for your Ujjain journey"
+              : "Secure your car and accommodation for a comfortable spiritual journey to Ujjain"
+            }
           </p>
         </div>
       </section>
@@ -743,7 +1186,7 @@ function BookingContent() {
       <section className="py-8 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center space-x-4 md:space-x-8">
-            {[1, 2, 3, 4].map((stepNum) => (
+            {[1, 2, 3, 4, 5].map((stepNum) => (
               <div key={stepNum} className="flex items-center">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
@@ -752,7 +1195,7 @@ function BookingContent() {
                 >
                   {step > stepNum ? <FaCheckCircle /> : stepNum}
                 </div>
-                {stepNum < 4 && (
+                {stepNum < 5 && (
                   <div
                     className={`w-8 md:w-16 h-1 transition-all duration-300 ${
                       step > stepNum ? "bg-orange-500" : "bg-gray-200"
@@ -765,14 +1208,16 @@ function BookingContent() {
           <div className="flex justify-center mt-4">
             <div className="text-center">
               <div className="text-sm text-gray-600">
-                Step {step} of 4:{" "}
+                Step {step} of 5:{" "}
                 {step === 1
                   ? "Choose Service"
                   : step === 2
-                    ? "Select Dates"
+                    ? isInstantBooking ? "Transport Details" : "Select Dates"
                     : step === 3
                       ? "Personal Info"
-                      : "Confirmation"}
+                      : step === 4
+                        ? "Payment"
+                        : "Confirmation"}
               </div>
             </div>
           </div>
@@ -783,10 +1228,11 @@ function BookingContent() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            {step === 1 && renderStep1()}
+            {step === 1 && !isInstantBooking && renderStep1()}
             {step === 2 && renderStep2()}
             {step === 3 && renderStep3()}
             {step === 4 && renderStep4()}
+            {step === 5 && renderStep5()}
           </div>
         </div>
       </section>

@@ -149,10 +149,10 @@ export default function MobileHome() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white p-8 rounded-b-3xl shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-yellow-500 to-blue-500 text-white p-8 rounded-b-3xl shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">Explore Ujjain</h1>
+          <h1 className="text-3xl font-bold mb-2">Safar Saathi</h1>
           <p className="text-orange-100 mb-6">Your spiritual journey begins here</p>
           <div className="relative">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />

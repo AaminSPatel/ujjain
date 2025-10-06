@@ -13,8 +13,10 @@ import {
   FaRupeeSign,
   FaLocationArrow,
   FaMap,
+  FaMotorcycle,
+  FaBus,
 } from "react-icons/fa"
-import { MdPlace, MdHotel, MdMyLocation } from "react-icons/md"
+import { MdPlace, MdHotel, MdMyLocation, MdMoped, MdElectricRickshaw } from "react-icons/md"
 import { BiTab } from "react-icons/bi"
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
@@ -22,6 +24,7 @@ import L from "leaflet"
 import { useUjjain } from "../context/UjjainContext"
 import InstallPWA from "../InstallPwa"
 import Link from "next/link"
+import { haversineDistance } from "@/components/utils/distance";
 
 // Fix default marker issue in Leaflet
 const DefaultIcon = L.icon({
@@ -139,6 +142,59 @@ const LoadingSearchResult = () => (
   </motion.div>
 )
 
+// Transportation options data
+const transportOptions = [
+  {
+    id: "68e3627f58138fe47e4e56fc",
+    
+    name: "Cab",
+    icon: <FaCar className="text-2xl" />,
+    baseFare: 40,
+    perKm: 12,
+    capacity: "4 passengers",
+    image: "/cab.png",
+    color: "bg-blue-500",
+    textColor: "text-blue-500",
+    borderColor: "border-blue-200"
+  },
+  {
+    id: "68e3627f58138fe47e4e56fd",
+    name: "Bike",
+    icon: <FaMotorcycle className="text-2xl" />,
+    baseFare: 20,
+    perKm: 8,
+    capacity: "1 passenger",
+    image: "/bike.png",
+    color: "bg-green-500",
+    textColor: "text-green-500",
+    borderColor: "border-green-200"
+  },
+  {
+    id: "68e3627f58138fe47e4e56fe",
+    name: "Auto Rickshaw",
+    icon: <MdElectricRickshaw className="text-2xl" />,
+    baseFare: 30,
+    perKm: 10,
+    capacity: "3 passengers",
+    image: "/rickshaw.png",
+    color: "bg-yellow-500",
+    textColor: "text-yellow-500",
+    borderColor: "border-yellow-200"
+  },
+  {
+    id: "68e3627f58138fe47e4e56ff",
+    name: "Bus",
+    icon: <FaBus className="text-2xl" />,
+    baseFare: 15,
+    perKm: 5,
+    capacity: "40+ passengers",
+    image: "/bus.png",
+    color: "bg-purple-500",
+    textColor: "text-purple-500",
+    borderColor: "border-purple-200"
+  }
+]
+
 export default function MobileHome() {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("cars")
@@ -160,6 +216,8 @@ export default function MobileHome() {
   const [pickupCoords, setPickupCoords] = useState({ lat: 0, lng: 0 })
   const [destinationCoords, setDestinationCoords] = useState({ lat: 0, lng: 0 })
   const [mapCenter, setMapCenter] = useState([23.1765, 75.7885]) // Ujjain coordinates
+  const [selectedTransport, setSelectedTransport] = useState("cab")
+  const [transport_id, setTransport_id] = useState("")
 
   const { cars, places, hotels, reviews, getAverageRating } = useUjjain()
 
@@ -274,11 +332,12 @@ export default function MobileHome() {
     setDestinationCoords(locationData.coordinates)
   }
 
-  const calculateFare = () => {
-    const baseFare = 40
-    const perKm = 12
-    const estimatedDistance = 5
-    return baseFare + estimatedDistance * perKm
+  const calculateFare = (transportType = selectedTransport) => {
+    const transport = transportOptions.find(option => option.name.toLowerCase() === transportType.toLowerCase())
+    if (!transport) return 0
+
+    const estimatedDistance = haversineDistance(pickupCoords, destinationCoords)
+    return Math.floor((transport.baseFare + estimatedDistance * transport.perKm), 2)
   }
 
   const getFilteredResults = () => {
@@ -392,10 +451,10 @@ export default function MobileHome() {
   return (
     <div className="min-h-screen bg-background">
       {/* Enhanced Hero Section with Map Picker */}
-      <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white p-6 rounded-b-3xl shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-sky-500 to-blue-500 text-white p-6 rounded-b-3xl shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">Explore Ujjain</h1>
+          <h1 className="text-3xl font-bold mb-2">Safar Saathi</h1>
           <p className="text-orange-100 mb-6">Your spiritual journey begins here</p>
 
           {/* Ride Booking Interface */}
@@ -523,36 +582,81 @@ export default function MobileHome() {
               )}
             </AnimatePresence>
 
+            {/* Transportation Options */}
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Choose your ride:</h3>
+              <div className="grid grid-cols-4 gap-2">
+                {transportOptions.map((transport) => (
+                  <motion.button
+                    key={transport.id}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setSelectedTransport(transport.name.toLowerCase())
+                      setTransport_id(transport.id)
+                    }}
+                    className={`p-3 rounded-xl border-2 transition-all ${
+                      selectedTransport === transport.name.toLowerCase()
+                        ? `${transport.borderColor} ${transport.color} text-white shadow-md`
+                        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex flex-col items-center">
+                      <div className="mb-1">{transport.icon}</div>
+                      <span className="text-xs font-medium">{transport.name}</span>
+                      {currentLocation && destination && (
+                        <span className="text-xs font-bold mt-1">
+                          ₹{calculateFare(transport.name)}
+                        </span>
+                      )}
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
             {currentLocation && destination && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-orange-50 rounded-lg p-3 mb-3"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700 font-medium">Estimated Fare:</span>
+                <div className="flex justify-between items-center mb-2">
+                  <div>
+                    <span className="text-gray-700 font-medium">Estimated Fare:</span>
+                    <span className="text-xs text-gray-500 ml-2">
+                      {transportOptions.find(t => t.id === selectedTransport)?.capacity}
+                    </span>
+                  </div>
                   <span className="text-orange-600 font-bold text-lg">₹{calculateFare()}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Approximate cost for this trip</p>
+                <p className="text-xs text-gray-500">
+                  {transportOptions.find(t => t.id === selectedTransport)?.name} • Approximate cost
+                </p>
               </motion.div>
             )}
 
-            <button
-              onClick={() => {
-                if (currentLocation && destination) {
-                  alert(`Booking ride from ${currentLocation} to ${destination}`)
-                } else {
-                  alert("Please enter both pickup and destination locations")
-                }
-              }}
-              className={`w-full py-3 rounded-lg font-semibold transition-all ${
-                currentLocation && destination
-                  ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg"
-                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
-              }`}
-            >
-              {currentLocation && destination ? "Book Ride" : "Enter Locations"}
-            </button>
+         <button
+  onClick={() => {
+    if (currentLocation && destination) {
+      // Set current date for instant booking
+      const today = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      // For instant booking, we don't need to select specific vehicles
+      // Redirect to booking page with transport type and calculated fare
+      const bookingUrl = `/booking?pickup=${encodeURIComponent(currentLocation)}&pickupLat=${pickupCoords.lat}&pickupLng=${pickupCoords.lng}&destination=${encodeURIComponent(destination)}&destLat=${destinationCoords.lat}&destLng=${destinationCoords.lng}&transport=${selectedTransport}&_id=${transport_id}&fare=${calculateFare()}&bookingType=instant&startDate=${today}&endDate=${tomorrow}`
+      window.location.href = bookingUrl;
+    }
+  }}
+  disabled={!currentLocation || !destination}
+  className={`w-full py-3 capitalize rounded-lg font-semibold transition-all ${
+    currentLocation && destination
+      ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg"
+      : "bg-gray-200 text-gray-500 cursor-not-allowed"
+  }`}
+>
+  {currentLocation && destination ? `Book ${selectedTransport}` : "Enter Locations"}
+</button>
           </div>
 
           {/* Quick Location Buttons */}
@@ -582,7 +686,8 @@ export default function MobileHome() {
         </div>
       </div>
 
-      <div className="flex justify-around mt-4 border-b border-border">
+      {/* Rest of your existing code remains the same... */}
+    {/*   <div className="flex justify-around mt-4 border-b border-border">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -596,8 +701,8 @@ export default function MobileHome() {
           </button>
         ))}
       </div>
-
-      <div className="p-4">
+ */}
+      {/* <div className="p-4">
         <button
           onClick={() => setShowFilters(!showFilters)}
           className="flex items-center space-x-2 text-sm text-muted-foreground"
@@ -666,10 +771,10 @@ export default function MobileHome() {
             )}
           </motion.div>
         )}
-      </div>
- <div className="fixed">
+      </div> */}
+ {/* <div className="fixed">
   <InstallPWA />
- </div>
+ </div> */}
       <AnimatePresence>
         {searchTerm && filteredResults.length > 0 && (
           <motion.div

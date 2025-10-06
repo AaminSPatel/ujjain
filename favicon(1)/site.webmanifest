@@ -1,21 +1,28 @@
 {
-  "name": "Safar Sathi",
+  "name": "Safar Sathi - Sacred City Explorer",
   "short_name": "Safar Sathi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "description": "Explore the sacred city of Ujjain with Safar Sathi - Book cabs, hotels, and more!",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/web-app-manifest-192x192.png",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     },
     {
-      "src": "/web-app-manifest-512x512.png",
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/maskable_icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
-  ],
-  "theme_color": "#ffffff",
-  "background_color": "#f7ff74",
-  "display": "standalone"
+  ]
 }
