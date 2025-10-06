@@ -18,23 +18,22 @@ export default function Footer() {
     { href: "/places", label: "Places" },
     { href: "/cars", label: "Car Rental" },
     { href: "/hotels", label: "Hotels" },
-    { href: "/blogs", label: "Blogs" },
+  /*   { href: "/blogs", label: "Blogs" }, */
     { href: "/faqs", label: "FAQs" },
   ]
 const {brand}=useUjjain()
   const services = [
     { href: "/cars", label: "Car Booking" },
     { href: "/hotels", label: "Hotel Booking" },
-    { href: "/places", label: "Temple Tours" },
     { href: "/contact", label: "24/7 Support" },
-    { href: "/booking", label: "Package Deals" },
-    { href: "/reviews", label: "Reviews" },
+    /* { href: "/booking", label: "Package Deals" },
+    { href: "/reviews", label: "Reviews" }, */
   ]
 
   const legal = [
     { href: "/terms", label: "Terms & Conditions" },
     { href: "/privacy", label: "Privacy Policy" },
-    { href: "/refund", label: "Refund Policy" },
+    /* { href: "/refund", label: "Refund Policy" }, */
     { href: "/contact", label: "Contact Us" },
   ]
 
@@ -45,7 +44,7 @@ const {brand}=useUjjain()
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-3 mb-6">
-              <FaStar className="text-3xl text-orange-500" />
+              <img src={brand.image} alt="Safar Saathi" className="h-12 w-12 rounded-full"/>
               <div>
                 <h3 className="text-2xl font-bold"> {brand.name}</h3>
                 <p className="text-gray-400">Sacred City Explorer</p>

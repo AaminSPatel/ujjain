@@ -43,7 +43,15 @@ export const UjjainProvider = ({ children }) => {
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL 
 
-    
+     const brand = {
+    name: "Safar Saathi",
+    image: "/logo.png",
+    description: "",
+    icon: "",
+    email: "wecare.safarsathi@gmail.com",
+    mobile: "9232 398 239",
+  };
+
   const getAverageRating = (reviews, ratingKey = 'rating') => {
   if (!reviews || !Array.isArray(reviews) || reviews.length === 0) {
     return 0;
@@ -295,15 +303,7 @@ const markAllAsRead = async (userId) => {
   const clearError = () => setError('');
 
 
-  const brand = {
-    name: "Explore Ujjain",
-    image: "/logo.png",
-    description: "",
-    icon: "",
-    email: "exploreujjain@gmail.com",
-    mobile: "9232 398 239",
-  };
-
+ 
   /* 
   const hotels = [
     {

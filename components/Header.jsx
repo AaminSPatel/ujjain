@@ -12,7 +12,7 @@ import NotificationBell from "./NotificationBell" // Import the notification com
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const { user } = useUjjain()
+  const { user ,brand} = useUjjain()
   
   useEffect(() => {
     if (user) {
@@ -36,7 +36,7 @@ export default function Header() {
           <Link href="/" className="flex items-center space-x-2">
             <img src="/logo.png" alt="Safar Sathi" className="h-10 w-10 rounded-full"/>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 poppin uppercase">Safar Sathi</h1>
+              <h1 className="text-xl font-bold text-gray-900 poppin uppercase">{brand.name}</h1>
               <p className="text-xs text-gray-600 hidden sm:block">Sacred City Explorer</p>
             </div>
           </Link>

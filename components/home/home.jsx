@@ -219,7 +219,7 @@ export default function MobileHome() {
   const [selectedTransport, setSelectedTransport] = useState("cab")
   const [transport_id, setTransport_id] = useState("")
 
-  const { cars, places, hotels, reviews, getAverageRating } = useUjjain()
+  const { cars,brand, places, hotels, reviews, getAverageRating } = useUjjain()
 
   const pickupInputRef = useRef(null)
   const destinationInputRef = useRef(null)
@@ -454,7 +454,7 @@ export default function MobileHome() {
       <div className="bg-gradient-to-r from-sky-500 to-blue-500 text-white p-6 rounded-b-3xl shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">Safar Saathi</h1>
+          <h1 className="text-3xl font-bold mb-2">{brand.name}</h1>
           <p className="text-orange-100 mb-6">Your spiritual journey begins here</p>
 
           {/* Ride Booking Interface */}
