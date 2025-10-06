@@ -1,7 +1,4 @@
-"use client"
-
 import "./globals.css"
-import { useEffect, useState } from "react"
 import BottomTabBar from "@/components/BottomTabBar"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
@@ -15,21 +12,6 @@ export const metadata = {
 }
 
 export default function RootLayout({ children }) {
-  const [isPWA, setIsPWA] = useState(false)
-
-  useEffect(() => {
-    // ✅ Detect PWA (standalone) mode
-    const checkPWA = () => {
-      const standalone =
-        window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone
-      setIsPWA(standalone)
-    }
-
-    checkPWA()
-    window.addEventListener("resize", checkPWA)
-    return () => window.removeEventListener("resize", checkPWA)
-  }, [])
-
   return (
     <html lang="en">
       <head>
@@ -58,9 +40,8 @@ export default function RootLayout({ children }) {
           {children}
           <InstallPWA />
           <Footer />
-          {/* ✅ Show BottomTabBar only if in PWA mode */}
-          {isPWA && <BottomTabBar />}
         </ClientLayout>
+        <BottomTabBar />
       </body>
     </html>
   )
