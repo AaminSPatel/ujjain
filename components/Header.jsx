@@ -37,7 +37,7 @@ export default function Header() {
             <img src="/logo.png" alt="Safar Sathi" className="h-10 w-10 rounded-full"/>
             <div>
               <h1 className="text-xl font-bold text-gray-900 poppin uppercase">{brand.name}</h1>
-              <p className="text-xs text-gray-600 hidden sm:block">Sacred City Explorer</p>
+              <p className="text-xs text-gray-600 hidden sm:block">{brand.description}</p>
             </div>
           </Link>
 

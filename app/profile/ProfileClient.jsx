@@ -46,7 +46,7 @@ export default function ProfileClient() {
   const [loading, setLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
-  const { user,logout} = useUjjain()
+  const { user,logout,formatDate,brand} = useUjjain()
 
   useEffect(() => {
       //setLoading(true)
@@ -103,7 +103,7 @@ export default function ProfileClient() {
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
           <div className="text-center">
             <UserIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Ujjain Travel</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to {brand.name}</h2>
             <p className="text-gray-600 mb-6">Sign in to access your profile and manage your account</p>
             <Link href="/auth/signin">
               <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
@@ -153,7 +153,7 @@ export default function ProfileClient() {
 
             <div className="flex-1 text-center md:text-left">
               <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
-                <h1 className="text-3xl font-bold">{userData.fullName}</h1>
+                <h1 className="text-3xl font-bold capitalize">{userData.fullName}</h1>
                 {userData.isVerified && (
                   <Badge className="bg-green-500 text-white">
                     <Shield className="h-3 w-3 mr-1" />
@@ -290,22 +290,22 @@ export default function ProfileClient() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {userData.bookings?.slice(0, 3).map((booking) => (
-                    <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={booking._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="p-2 bg-blue-100 rounded-lg">
-                          {booking.type === "Hotel" ? (
+                          {booking.serviceType === "Hotel" ? (
                             <MapPin className="h-4 w-4 text-blue-600" />
                           ) : (
                             <Package className="h-4 w-4 text-blue-600" />
                           )}
                         </div>
                         <div>
-                          <p className="font-medium">{booking.name}</p>
-                          <p className="text-sm text-gray-500">{booking.date}</p>
+                          <p className="font-medium">{booking.service.name || booking.service.model ||booking.service?.serviceName }</p>
+                          <p className="text-sm text-gray-500">{formatDate(booking.createdAt)}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">₹{booking.amount}</p>
+                        <p className="font-medium">₹{booking.payment.amount}</p>
                         <Badge variant={booking.status === "confirmed" ? "default" : "secondary"}>
                           {booking.status}
                         </Badge>
@@ -344,24 +344,24 @@ export default function ProfileClient() {
               <CardContent>
                 <div className="space-y-4">
                   {userData.bookings?.map((booking) => (
-                    <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={booking._id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-blue-100 rounded-lg">
-                          {booking.type === "Hotel" ? (
+                          {booking.serviceType === "Hotel" ? (
                             <MapPin className="h-6 w-6 text-blue-600" />
                           ) : (
                             <Package className="h-6 w-6 text-blue-600" />
                           )}
                         </div>
                         <div>
-                          <h3 className="font-semibold">{booking.name}</h3>
+                          <h3 className="font-semibold">{booking?.service?.name || booking?.service?.model || booking?.service?.serviceName }</h3>
                           <p className="text-gray-500">
-                            {booking.type} • {booking.date}
+                            {booking.serviceType} • {formatDate(booking.createdAt)}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xl font-bold">₹{booking.amount}</p>
+                        <p className="text-xl font-bold">₹{booking.payment.amount}</p>
                         <Badge
                           variant={
                             booking.status === "confirmed"
@@ -371,7 +371,7 @@ export default function ProfileClient() {
                                 : "destructive"
                           }
                         >
-                          {booking.status}
+                          {booking.status} {/* {booking.payment.status} */}
                         </Badge>
                       </div>
                     </div>
@@ -426,7 +426,7 @@ export default function ProfileClient() {
                 <div className="text-center p-6 bg-gradient-to-r from-orange-100 to-yellow-100 rounded-lg">
                   <Gift className="h-12 w-12 text-orange-500 mx-auto mb-4" />
                   <h3 className="text-xl font-bold mb-2">Earn ₹100 for every referral!</h3>
-                  <p className="text-gray-600">Share your referral code and earn rewards when your friends sign up</p>
+                  <p className="text-gray-600">Share your referral code and earn rewards when your friends book their first ride.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -465,21 +465,23 @@ export default function ProfileClient() {
                   <Card>
                     <CardContent className="p-4 text-center">
                       <Users className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                      <div className="text-2xl font-bold">12</div>
+                      <div className="text-2xl font-bold">{userData.referralStats?.totalReferred || 0}</div>
                       <div className="text-sm text-gray-500">Friends Referred</div>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-4 text-center">
                       <TrendingUp className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                      <div className="text-2xl font-bold">₹1,200</div>
+                      <div className="text-2xl font-bold">₹{userData.referralStats?.referralEarnings || 0}</div>
                       <div className="text-sm text-gray-500">Total Earned</div>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-4 text-center">
                       <Award className="h-8 w-8 text-orange-500 mx-auto mb-2" />
-                      <div className="text-2xl font-bold">Gold</div>
+                      <div className="text-2xl font-bold">
+                        {userData.referralStats?.totalReferred >= 10 ? "Gold" : userData.referralStats?.totalReferred >= 5 ? "Silver" : "Bronze"}
+                      </div>
                       <div className="text-sm text-gray-500">Referral Tier</div>
                     </CardContent>
                   </Card>

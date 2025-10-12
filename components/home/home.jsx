@@ -22,7 +22,6 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import { useUjjain } from "../context/UjjainContext"
-import InstallPWA from "../InstallPwa"
 import Link from "next/link"
 import { haversineDistance } from "@/components/utils/distance";
 
@@ -217,7 +216,7 @@ export default function MobileHome() {
   const [destinationCoords, setDestinationCoords] = useState({ lat: 0, lng: 0 })
   const [mapCenter, setMapCenter] = useState([23.1765, 75.7885]) // Ujjain coordinates
   const [selectedTransport, setSelectedTransport] = useState("cab")
-  const [transport_id, setTransport_id] = useState("")
+  const [transport_id, setTransport_id] = useState("68e3627f58138fe47e4e56fc")
 
   const { cars,brand, places, hotels, reviews, getAverageRating } = useUjjain()
 
@@ -455,7 +454,7 @@ export default function MobileHome() {
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="relative z-10">
           <h1 className="text-3xl font-bold mb-2">{brand.name}</h1>
-          <p className="text-orange-100 mb-6">Your spiritual journey begins here</p>
+          <p className="text-orange-100 mb-6">{brand.description}</p>
 
           {/* Ride Booking Interface */}
           <div className="bg-white rounded-2xl p-4 shadow-lg mb-4">
@@ -1116,7 +1115,7 @@ export default function MobileHome() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center mb-2">
-                          <h4 className="font-bold text-card-foreground text-sm md:text-base line-clamp-1">
+                          <h4 className="font-bold text-card-foreground text-sm md:text-base capitalize line-clamp-1">
                             {review?.user?.fullName || "User"}
                           </h4>
                         </div>
@@ -1140,9 +1139,9 @@ export default function MobileHome() {
                       <div className="flex items-center justify-center">
                         <img
                           src={
-                            review.reviewedItem?.images?.[0]?.url ||
-                            review?.reviewedItem?.image?.url ||
-                            "/placeholder.svg" ||
+                            review.reviewedItem?.image?.url ||
+                              review?.reviewedItem?.images?.[0]?.url ||
+                            
                             "/placeholder.svg"
                           }
                           alt={

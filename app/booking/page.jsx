@@ -117,7 +117,7 @@ function BookingContent() {
       },
       specialRequests: "",
       payment: {
-        method: "credit_card",
+        method: "razorpay",
         amount: 0,
         status: "pending"
       },
@@ -409,27 +409,27 @@ function BookingContent() {
         service: isInstantBooking ? selectedVehicleId : bookingData.service,
         startDate: new Date(bookingData.startDate),
         endDate: bookingData.endDate ? new Date(bookingData.endDate) : undefined,
-        dates: bookingData.endDate 
+        dates: bookingData.endDate
           ? [new Date(bookingData.startDate), new Date(bookingData.endDate)]
           : [new Date(bookingData.startDate)],
-        
+
         // Passenger details
         passengers: bookingData.passengers,
-        
+
         // Hotel specific
         rooms: bookingType === "Hotel" ? bookingData.rooms : undefined,
         room: bookingData.room || undefined,
-        
+
         // Location details
         pickupLocation: bookingData.pickupLocation,
         dropoffLocation: bookingData.dropoffLocation,
-        
+
         // Personal info
         email: bookingData.personalInfo.email,
         mobile: bookingData.personalInfo.mobile,
         fullname: bookingData.personalInfo.fullname,
         address: bookingData.personalInfo.address,
-        
+
         // Payment and pricing
         payment: {
           method: bookingData.payment.method,
@@ -437,14 +437,14 @@ function BookingContent() {
           status: "pending"
         },
         pricing: bookingData.pricing,
-        
+
         // Additional fields
         specialRequests: bookingData.specialRequests,
         status: "pending",
         isPaid: false,
         isCancelled: false,
         user: user ? user._id : null,
-        
+
         // Instant booking flag
         isInstantBooking: isInstantBooking,
         transportType: isInstantBooking ? selectedTransport : undefined
@@ -462,7 +462,18 @@ function BookingContent() {
       }
     } catch (error) {
       console.error('Booking submission error:', error)
-      alert('An error occurred while creating your booking. Please try again.')
+
+      // Check for authentication errors
+      if (error.status === 401 || error.message?.includes('401') || error.message?.includes('unauthorized')) {
+        alert('Your session has expired. Please sign in again.')
+        // Redirect to signin
+        window.location.href = '/auth/signin'
+        return
+      }
+
+      // Show specific error message if available
+      const errorMessage = error.message || error.error || 'An error occurred while creating your booking. Please try again.'
+      alert(errorMessage)
     } finally {
       setIsProcessingPayment(false)
     }
@@ -767,7 +778,7 @@ function BookingContent() {
               </select>
             </div>
           )}
-
+{/* 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method *</label>
             <select
@@ -776,15 +787,15 @@ function BookingContent() {
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
-              <option value="razorpay">Razorpay (Online Payment)</option>
-              <option value="credit_card">Credit Card</option>
+              <option value="razorpay">Online Payment</option>
+             <option value="credit_card">Credit Card</option>
               <option value="upi">UPI</option>
               <option value="paypal">PayPal</option>
               <option value="bank_transfer">Bank Transfer</option>
-              <option value="cash">Cash</option>
+              <option value="cash">Cash</option> 
             </select>
           </div>
-
+ */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Special Requests</label>
             <textarea
@@ -966,6 +977,12 @@ function BookingContent() {
       })
 
       if (!response.ok) {
+        // Check for authentication errors
+        if (response.status === 401) {
+          alert('Your session has expired. Please sign in again.')
+          window.location.href = '/auth/signin'
+          return
+        }
         throw new Error('Failed to create payment order')
       }
 
@@ -981,6 +998,16 @@ function BookingContent() {
         order_id: orderData.id,
         handler: async function (response) {
           // Handle successful payment
+          console.log('Razorpay success response:', response);
+
+          // Validate that we have the payment_id (required field)
+          if (!response.razorpay_payment_id) {
+            console.error('Missing required Razorpay payment_id:', response);
+            alert('Payment response incomplete. Please contact support.');
+            setIsProcessingPayment(false);
+            return;
+          }
+
           try {
             const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/verify-payment`, {
               method: 'POST',
@@ -989,21 +1016,45 @@ function BookingContent() {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
               },
               body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
+                razorpay_order_id: response.razorpay_order_id || null,
                 razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
+                razorpay_signature: response.razorpay_signature || null,
                 bookingId: bookingId,
               }),
-            })
+            });
+
+            console.log('Verify payment response status:', verifyResponse.status);
 
             if (verifyResponse.ok) {
-              setStep(5) // Go to confirmation
+              const verifyData = await verifyResponse.json();
+              console.log('Payment verification successful:', verifyData);
+              setStep(5); // Go to confirmation
             } else {
-              alert('Payment verification failed. Please contact support.')
+              const errorData = await verifyResponse.json();
+              console.error('Payment verification failed:', errorData);
+
+              // Check for authentication errors in verification
+              if (verifyResponse.status === 401) {
+                alert('Your session has expired. Please sign in again.');
+                window.location.href = '/auth/signin';
+                return;
+              }
+
+              alert(`Payment verification failed: ${errorData.error || 'Please contact support.'}`);
             }
           } catch (error) {
-            console.error('Payment verification error:', error)
-            alert('Payment verification failed. Please contact support.')
+            console.error('Payment verification error:', error);
+
+            // Check for authentication errors in verification
+            if (error.status === 401 || error.message?.includes('401') || error.message?.includes('unauthorized')) {
+              alert('Your session has expired. Please sign in again.');
+              window.location.href = '/auth/signin';
+              return;
+            }
+
+            alert('Payment verification failed. Please contact support.');
+          } finally {
+            setIsProcessingPayment(false);
           }
         },
         prefill: {
@@ -1025,7 +1076,17 @@ function BookingContent() {
       rzp.open()
     } catch (error) {
       console.error('Razorpay payment error:', error)
-      alert('Payment failed. Please try again.')
+
+      // Check for authentication errors
+      if (error.status === 401 || error.message?.includes('401') || error.message?.includes('unauthorized')) {
+        alert('Your session has expired. Please sign in again.')
+        window.location.href = '/auth/signin'
+        return
+      }
+
+      // Show specific error message if available
+      const errorMessage = error.message || 'Payment failed. Please try again.'
+      alert(errorMessage)
       setIsProcessingPayment(false)
     }
   }
@@ -1269,7 +1330,7 @@ function BookingContent() {
               rooms: 1,
               personalInfo: { fullname: "", email: "", mobile: "", address: "" },
               specialRequests: "",
-              payment: { method: "credit_card", amount: 0, status: "pending" },
+              payment: { method: "razorpay", amount: 0, status: "pending" },
               pricing: { basePrice: 0, discount: 0, tax: 0, totalPrice: 0 }
             })
             setIsInstantBooking(false)

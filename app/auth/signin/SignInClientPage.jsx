@@ -19,7 +19,7 @@ export default function SignInClientPage() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const { signIn } = useUjjain()
+  const { signIn, brand } = useUjjain()
   const router = useRouter()
 
   const handleSubmit = async (e) => {
@@ -70,8 +70,8 @@ export default function SignInClientPage() {
               <div className="flex items-center space-x-2">
                 <Star className="h-8 w-8 text-orange-500" />
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Ujjain Travel</h1>
-                  <p className="text-xs text-gray-600">Sacred City Explorer</p>
+                  <h1 className="text-xl font-bold text-gray-900">{brand.name}</h1>
+                  <p className="text-xs text-gray-600">{brand.description}</p>
                 </div>
               </div>
             </div>

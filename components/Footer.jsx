@@ -47,7 +47,7 @@ const {brand}=useUjjain()
               <img src={brand.image} alt="Safar Saathi" className="h-12 w-12 rounded-full"/>
               <div>
                 <h3 className="text-2xl font-bold"> {brand.name}</h3>
-                <p className="text-gray-400">Sacred City Explorer</p>
+                <p className="text-gray-400">{brand.description}</p>
               </div>
             </div>
             <p className="text-gray-300 mb-6 leading-relaxed">
@@ -55,16 +55,16 @@ const {brand}=useUjjain()
               including car rentals, hotel bookings, and guided tours to make your spiritual journey memorable.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-2xl text-blue-500 hover:bg-white  p-0 rounded-sm transition-colors duration-300">
+              <a href="https://www.facebook.com/share/16RxfBC2NE/" className="text-2xl text-blue-500 hover:bg-white  p-0 rounded-sm transition-colors duration-300">
                 <FaFacebook />
               </a>
-              <a href="#" className="text-2xl text-[#E1306C] hover:bg-white  rounded-sm transition-colors duration-300">
+              <a href="https://www.instagram.com/safar__sathi?igsh=bDljNms5ZjRmM2Nv" className="text-2xl text-[#E1306C] hover:bg-white  rounded-sm transition-colors duration-300">
                <FaInstagram />
               </a>
-              <a href="#" className="text-2xl text-[#1DA1F2] hover:bg-white  rounded-sm transition-colors duration-300">
+              <a href="https://x.com/Safar__Sathi?t=gRfS7jeHa1pgSLdmOAaaag&s=08" className="text-2xl text-[#1DA1F2] hover:bg-white  rounded-sm transition-colors duration-300">
                  <FaTwitter />
               </a>
-              <a href="#" className="text-2xl text-[#FF0000] hover:bg-white  rounded-sm transition-colors duration-300">
+              <a href="https://youtube.com/@safarsathiofficial?si=IxK-fvOfb9lUFsH8" className="text-2xl text-[#FF0000] hover:bg-white  rounded-sm transition-colors duration-300">
                 <FaYoutube />
               </a>
             </div>

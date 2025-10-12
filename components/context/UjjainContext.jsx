@@ -46,10 +46,10 @@ export const UjjainProvider = ({ children }) => {
      const brand = {
     name: "Safar Sathi",
     image: "/logo.png",
-    description: "",
+    description: "Sacred City Explorer",
     icon: "",
     email: "wecare.safarsathi@gmail.com",
-    mobile: "9232 398 239",
+    mobile: "9294757679",
   };
 
   const getAverageRating = (reviews, ratingKey = 'rating') => {
@@ -941,7 +941,7 @@ const updateReview = async () => {
 
   }, []);
 
-  // Save to localStorage
+  /* // Save to localStorage
   useEffect(() => {
     localStorage.setItem("ujjain-favorites", JSON.stringify(favorites));
   }, [favorites]);
@@ -953,7 +953,7 @@ const updateReview = async () => {
   useEffect(() => {
     localStorage.setItem("ujjain-reviews", JSON.stringify(reviews));
   }, [reviews]);
-
+ */
   const addToFavorites = (item) => {
     setFavorites((prev) => [...prev.filter((fav) => fav.id !== item.id), item]);
   };
@@ -993,7 +993,7 @@ const updateReview = async () => {
     }
   }, []); */
 
-  const apiCall = async (endpoint, method, data) => {
+/*   const apiCall = async (endpoint, method, data) => {
     try {
       const url = `${API_BASE_URL}${endpoint}`;
       const options = {
@@ -1126,7 +1126,7 @@ const updateReview = async () => {
     } catch (error) {
       throw error;
     }
-  };
+  }; */
   const getUserById = (userId) => {
   if (!userId || !users || !Array.isArray(users)) {
     return null;
@@ -1140,6 +1140,13 @@ const updateReview = async () => {
            (u._id && u._id.toString() === cleanUserId);
   }) || null;
 };
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { day: "2-digit", month: "long", year: "numeric" };
+  return date.toLocaleDateString("en-IN", options); // Output: "06 October 2025"
+}
+
   const value = {
     // notificaitons functions
 addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
@@ -1173,7 +1180,7 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     addContact,
     removeContact,
     logout,
-    apiCall,
+    formatDate,
     favorites,
     addToFavorites,
     removeFromFavorites,
