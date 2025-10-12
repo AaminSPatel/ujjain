@@ -44,7 +44,7 @@ export const UjjainProvider = ({ children }) => {
     process.env.NEXT_PUBLIC_API_URL 
 
      const brand = {
-    name: "Safar Saathi",
+    name: "Safar Sathi",
     image: "/logo.png",
     description: "",
     icon: "",

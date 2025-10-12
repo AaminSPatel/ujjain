@@ -8,6 +8,21 @@ import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
 import dynamic from "next/dynamic";
 
+// Razorpay script loader
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const MapPicker = dynamic(() => import("@/components/MapPicker"), {
   ssr: false,
 });
@@ -573,7 +588,7 @@ function BookingContent() {
           {isInstantBooking ? "Transport Booking Details" : "Booking Details"}
         </h2>
         
-        {isInstantBooking ? (
+       {/*  {isInstantBooking ? (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">Choose Your Transport:</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
@@ -597,7 +612,7 @@ function BookingContent() {
               ))}
             </div>
           </div>
-        ) : null}
+        ) : null} */}
 
         {selectedService && (
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-md mx-auto">
@@ -658,7 +673,7 @@ function BookingContent() {
             </>
           )}
 
-          {(bookingType === "Car" || bookingType === "Logistics" || isInstantBooking) && (
+          {((bookingType === "Car" || bookingType === "Logistics") && !isInstantBooking )&&(
             <>
               <MapPicker
                 label="Pickup Location *"
@@ -761,8 +776,9 @@ function BookingContent() {
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
+              <option value="razorpay">Razorpay (Online Payment)</option>
               <option value="credit_card">Credit Card</option>
-              <option value="wallet">Digital Wallet</option>
+              <option value="upi">UPI</option>
               <option value="paypal">PayPal</option>
               <option value="bank_transfer">Bank Transfer</option>
               <option value="cash">Cash</option>
@@ -924,6 +940,96 @@ function BookingContent() {
     </motion.div>
   )
 
+  const handleRazorpayPayment = async () => {
+    try {
+      setIsProcessingPayment(true)
+
+      // Load Razorpay script if not loaded
+      const scriptLoaded = await loadRazorpayScript()
+      if (!scriptLoaded) {
+        alert('Razorpay SDK failed to load. Please try again.')
+        setIsProcessingPayment(false)
+        return
+      }
+
+      // Create Razorpay order
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/create-razorpay-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          bookingId: bookingId,
+          amount: bookingData.payment.amount * 100, // Convert to paisa
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create payment order')
+      }
+
+      const orderData = await response.json()
+
+      // Razorpay options
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // You'll need to add this to your env
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Safar Sathi',
+        description: `Payment for ${isInstantBooking ? 'Transport' : bookingData.serviceType} Booking`,
+        order_id: orderData.id,
+        handler: async function (response) {
+          // Handle successful payment
+          try {
+            const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/verify-payment`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                bookingId: bookingId,
+              }),
+            })
+
+            if (verifyResponse.ok) {
+              setStep(5) // Go to confirmation
+            } else {
+              alert('Payment verification failed. Please contact support.')
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error)
+            alert('Payment verification failed. Please contact support.')
+          }
+        },
+        prefill: {
+          name: bookingData.personalInfo.fullname,
+          email: bookingData.personalInfo.email,
+          contact: bookingData.personalInfo.mobile,
+        },
+        theme: {
+          color: '#f97316', // Orange color
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessingPayment(false)
+          }
+        }
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.open()
+    } catch (error) {
+      console.error('Razorpay payment error:', error)
+      alert('Payment failed. Please try again.')
+      setIsProcessingPayment(false)
+    }
+  }
+
   const renderStep4 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
@@ -953,6 +1059,29 @@ function BookingContent() {
         </div>
 
         <div className="space-y-4">
+          {bookingData.payment.method === "razorpay" && (
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">Secure payment powered by Razorpay</p>
+              <p className="text-sm text-gray-500 mb-6">
+                You will be redirected to Razorpay's secure payment gateway
+              </p>
+              <button
+                onClick={handleRazorpayPayment}
+                disabled={isProcessingPayment}
+                className="w-full bg-blue-600 text-white px-6 py-4 rounded-2xl font-semibold hover:bg-blue-700 transition-colors duration-300 disabled:opacity-50 flex items-center justify-center"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  `Pay ₹${bookingData.payment.amount} with Razorpay`
+                )}
+              </button>
+            </div>
+          )}
+
           {bookingData.payment.method === "credit_card" && (
             <div className="space-y-4">
               <div>
@@ -1047,20 +1176,22 @@ function BookingContent() {
           >
             Back
           </button>
-          <button
-            onClick={() => {
-              // Simulate payment processing
-              setIsProcessingPayment(true)
-              setTimeout(() => {
-                setIsProcessingPayment(false)
-                setStep(5) // Go to confirmation
-              }, 2000)
-            }}
-            disabled={isProcessingPayment}
-            className="px-6 py-3 bg-green-500 text-white rounded-2xl font-semibold hover:bg-green-600 transition-colors duration-300 disabled:opacity-50"
-          >
-            {isProcessingPayment ? "Processing..." : `Pay ₹${bookingData.payment.amount}`}
-          </button>
+          {bookingData.payment.method !== "razorpay" && (
+            <button
+              onClick={() => {
+                // Simulate payment processing
+                setIsProcessingPayment(true)
+                setTimeout(() => {
+                  setIsProcessingPayment(false)
+                  setStep(5) // Go to confirmation
+                }, 2000)
+              }}
+              disabled={isProcessingPayment}
+              className="px-6 py-3 bg-green-500 text-white rounded-2xl font-semibold hover:bg-green-600 transition-colors duration-300 disabled:opacity-50"
+            >
+              {isProcessingPayment ? "Processing..." : `Pay ₹${bookingData.payment.amount}`}
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
