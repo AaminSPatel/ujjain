@@ -1,4 +1,4 @@
-"use client"
+ "use client"
 
 import { useMemo, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,10 +13,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, ResponsiveContainer, BarChart, Bar } from "recharts"
-import { Star, Trophy, Car, CreditCard, Wallet2, Ticket, CalendarDays, MapPin, MessageSquare } from "lucide-react"
+import { Star, Trophy, Car, CreditCard, Wallet2, Ticket, CalendarDays, MapPin, MessageSquare, Clock, CheckCircle, XCircle, Eye, Navigation } from "lucide-react"
 import Image from "next/image"
 import { useUjjain } from '@/components/context/UjjainContext';
 import { useEffect } from "react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { MoreHorizontal } from "lucide-react"
+import { BookingService, ReviewService } from '@/components/apiService'
 
 // NOTE: Replace sample data with your API/context data.
 // Keep IDs from your DB (cars/hotels/logistics) when wiring.
@@ -40,13 +43,71 @@ const reviewsSample = [
 export default function DriverPanelPage() {
   const [tab, setTab] = useState("overview")
   const [driver, setDriver] = useState({})
-  const {user} = useUjjain()
+  const [bookings, setBookings] = useState([])
+  const [reviews, setReviews] = useState([])
+  const [loading, setLoading] = useState(false)
+  const {user, formatDate} = useUjjain()
   //console.log('driver page', user);
   useEffect(()=>{
     if(user){
 setDriver(user)
     }
   },[user])
+
+  useEffect(() => {
+    fetchBookings()
+  }, [])
+
+  useEffect(() => {
+    if (driver._id) {
+      fetchReviews()
+    }
+  }, [driver._id])
+
+  const fetchBookings = async () => {
+    try {
+      console.log('Fetching bookings...')
+      const data = await BookingService.getDriverBookings()
+      console.log('Bookings data:', data)
+      setBookings(data.bookings || [])
+    } catch (error) {
+      console.error('Error fetching bookings:', error)
+    }
+  }
+
+  const fetchReviews = async () => {
+    try {
+      const data = await ReviewService.getReviewsByDriver(driver._id)
+      setReviews(data.reviews || [])
+    } catch (error) {
+      console.error('Error fetching reviews:', error)
+    }
+  }
+
+  const acceptBooking = async (bookingId) => {
+    setLoading(true)
+    try {
+      await BookingService.driverAcceptBooking(bookingId)
+      fetchBookings() // Refresh bookings
+    } catch (error) {
+      console.error('Error accepting booking:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateBookingStatus = async (bookingId, status) => {
+    setLoading(true)
+    try {
+      await BookingService.driverUpdateStatus(bookingId, status)
+      fetchBookings() // Refresh bookings
+    } catch (error) {
+      console.error('Error updating booking status:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const nextPayout = useMemo(() => {
     const eligible = Math.max(driver?.wallet?.balance - 500, 0)
     return eligible
@@ -103,7 +164,7 @@ setDriver(user)
                   <Car className="h-8 w-8 text-muted-foreground" />
                 </CardContent>
               </Card>
-              <Card>
+             {/*  <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Wallet Balance</CardTitle>
                   <CardDescription>Available</CardDescription>
@@ -112,7 +173,7 @@ setDriver(user)
                   <div className="text-3xl font-bold">₹{driver?.wallet?.balance?.toLocaleString()}</div>
                   <Wallet2 className="h-8 w-8 text-muted-foreground" />
                 </CardContent>
-              </Card>
+              </Card> */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Pending Payout</CardTitle>
@@ -125,92 +186,108 @@ setDriver(user)
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Earnings & Bookings</CardTitle>
-                  <CardDescription>Last 6 months</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer
-                    config={{
-                      earnings: { label: "Earnings", color: "hsl(var(--chart-1))" },
-                      bookings: { label: "Bookings", color: "hsl(var(--chart-2))" },
-                    }}
-                    className="h-[280px]"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={earningsData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar
-                          dataKey="earnings"
-                          name="Earnings (₹)"
-                          fill="var(--color-earnings)"
-                          radius={[6, 6, 0, 0]}
-                        />
-                        <Line type="monotone" dataKey="bookings" name="Bookings" stroke="var(--color-bookings)" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Achievements</CardTitle>
-                  <CardDescription>Milestones earned</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-wrap gap-2">
-                  {driver?.achievements?.map((ach) => (
-                    <Badge key={ach?.id} className={`${ach?.color} flex items-center gap-1`}>
-                      <ach.icon className="h-4 w-4" /> {ach?.title}
-                    </Badge>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Achievements</CardTitle>
+                <CardDescription>Milestones earned</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {driver?.achievements?.map((ach) => (
+                  <Badge key={ach?.id} className={`${ach?.color} flex items-center gap-1`}>
+                    <ach.icon className="h-4 w-4" /> {ach?.title}
+                  </Badge>
+                ))}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Bookings */}
           <TabsContent value="bookings" className="mt-4 space-y-4">
             <Card>
               <CardHeader className="space-y-1">
-                <CardTitle>My Bookings</CardTitle>
-                <CardDescription>Manage upcoming and past bookings</CardDescription>
+                <CardTitle>Available Bookings</CardTitle>
+                <CardDescription>Accept and manage car bookings</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {[1, 2, 3, 4].map((b) => (
-                    <div key={b} className="rounded-lg border p-3 md:p-4">
-                      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                        <div className="space-y-1">
+                {bookings.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No bookings available at the moment.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {bookings.filter((item)=> item.serviceType==='Car').map((booking) => (
+                      <div key={booking._id} className="rounded-lg border p-3 md:p-4">
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={booking.status === 'pending' ? 'secondary' : 'default'}>
+                                {booking.status.toUpperCase()}
+                              </Badge>
+                              <span className="text-sm text-muted-foreground">#{booking._id.slice(-6)}</span>
+                            </div>
+                            <div className="text-sm md:text-base">
+                              {booking.serviceType} • {booking.duration} hrs • {booking.distance} km
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              <CalendarDays className="mr-1 inline-block h-3.5 w-3.5" />
+                              {formatDate(booking.createdAt)} • <MapPin className="mr-1 inline-block h-3.5 w-3.5" />
+                              Pickup: {booking.pickupLocation?.address || 'N/A'}
+                            </div>
+                            <div className="text-sm font-medium">₹{booking?.payment?.amount}</div>
+                          </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline">UPCOMING</Badge>
-                            <span className="text-sm text-muted-foreground">#{1000 + b}</span>
+                            {(!booking.isAssignedToMe && (booking.status === 'pending' || booking.status === 'confirmed')) ? (
+                              <Button
+                                size="sm"
+                                onClick={() => acceptBooking(booking._id)}
+                                disabled={loading}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Accept
+                              </Button>
+                            ) : (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'in-progress')}>
+                                    <Clock className="h-4 w-4 mr-2" />
+                                    Start Ride
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'completed')}>
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Complete
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'cancelled')}>
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Cancel
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                            <Button size="sm" variant="secondary" onClick={() => {
+                              if (booking.pickupLocation?.coordinates) {
+                                const { lat, lng } = booking.pickupLocation.coordinates;
+                                const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                                window.open(url, '_blank');
+                              }
+                            }}>
+                              <Navigation className="h-4 w-4 mr-1" />
+                              Navigate
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <MessageSquare className="h-4 w-4 mr-1" />
+                              Contact
+                            </Button>
                           </div>
-                          <div className="text-sm md:text-base">Ujjain City Tour • 3 hrs • 30 km</div>
-                          <div className="text-xs text-muted-foreground">
-                            <CalendarDays className="mr-1 inline-block h-3.5 w-3.5" />
-                            12 Sep 2025, 10:00 AM • <MapPin className="mr-1 inline-block h-3.5 w-3.5" />
-                            Pickup: Tower Square
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" variant="secondary">
-                            Navigate
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            Contact
-                          </Button>
-                          <Button size="sm">Start</Button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -287,18 +364,24 @@ setDriver(user)
                   <CardDescription>What riders say</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {reviewsSample?.map((rv) => (
-                    <div key={rv?.id} className="rounded-lg border p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="font-medium">{rv?.user}</div>
-                        <div className="flex items-center gap-1 text-amber-600">
-                          <Star className="h-4 w-4 fill-amber-500 text-amber-500" /> {rv?.rating}
-                        </div>
-                      </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{rv?.text}</p>
-                      <div className="mt-2 text-xs text-muted-foreground">{rv?.date}</div>
+                  {reviews.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No reviews available yet.
                     </div>
-                  ))}
+                  ) : (
+                    reviews?.map((rv) => (
+                      <div key={rv?._id} className="rounded-lg border p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{rv?.user?.fullName || 'Anonymous'}</div>
+                          <div className="flex items-center gap-1 text-amber-600">
+                            <Star className="h-4 w-4 fill-amber-500 text-amber-500" /> {rv?.rating}
+                          </div>
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground">{rv?.comment}</p>
+                        <div className="mt-2 text-xs text-muted-foreground">{new Date(rv?.createdAt).toLocaleDateString()}</div>
+                      </div>
+                    ))
+                  )}
                 </CardContent>
               </Card>
             </div>

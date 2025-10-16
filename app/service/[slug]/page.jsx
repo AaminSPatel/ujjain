@@ -32,9 +32,9 @@ export default function ServiceDetail({ params }) {
   return (
     <div className="min-h-screen bg-white">
       <SEOHead
-        title={`${service.title} - Ujjain Travel`}
+         title={`${service.title} - Safar Sathi`}
         description={service.description}
-        keywords={`${service.title.toLowerCase()}, ujjain ${service.title.toLowerCase()}, ujjain travel services`}
+        keywords={`${service.title.toLowerCase()}, safar sathi ${service.title.toLowerCase()}, travel services`}
         image={service.image}
       />
       

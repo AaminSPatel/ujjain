@@ -258,7 +258,7 @@ export default function FAQs() {
               Call: +91-9876543210
             </a>
             <a
-              href="mailto:info@ujjaintravel.com"
+              href="mailto:info@safarsathi.com"
               className="border-2 border-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-blue-600 transition-colors duration-300"
             >
               Email Us

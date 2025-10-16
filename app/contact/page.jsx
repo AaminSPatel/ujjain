@@ -1,10 +1,13 @@
 "use client"
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { motion } from "framer-motion"
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaWhatsapp, FaHeadset } from "react-icons/fa"
 import SEOHead from "@/components/SEOHead"
+import { useUjjain } from "@/components/context/UjjainContext"
+import { ContactService } from "@/components/apiService"
 
 export default function Contact() {
+  const { brand } = useUjjain()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -15,6 +18,7 @@ export default function Contact() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState(null) // null, 'success', 'error'
 
   const handleInputChange = (e) => {
     setFormData({
@@ -26,45 +30,50 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setSubmitStatus(null)
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    alert("Thank you for your message! We will get back to you within 2 hours.")
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: "",
-      message: "",
-      urgency: "normal",
-    })
-    setIsSubmitting(false)
+    try {
+      await ContactService.create(formData)
+      setSubmitStatus('success')
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+        urgency: "normal",
+      })
+    } catch (error) {
+      console.error('Contact form submission error:', error)
+      setSubmitStatus('error')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const contactMethods = [
     {
       icon: <FaPhone className="text-3xl text-orange-500" />,
-      title: "24/7 Phone Support",
-      details: ["+91-9876543210", "+91-9876543211"],
-      description: "Call us anytime for immediate assistance",
-      action: "tel:+919876543210",
+      title: "Phone Support",
+      details: [brand.mobile],
+      description: "Call us for immediate assistance",
+      action: `tel:${brand.mobile}`,
       actionText: "Call Now",
     },
     {
       icon: <FaWhatsapp className="text-3xl text-green-500" />,
       title: "WhatsApp Support",
-      details: ["+91-9876543210"],
+      details: [brand.mobile],
       description: "Quick responses via WhatsApp chat",
-      action: "https://wa.me/919876543210",
+      action: `https://wa.me/${brand.mobile}`,
       actionText: "Chat on WhatsApp",
     },
     {
       icon: <FaEnvelope className="text-3xl text-blue-500" />,
       title: "Email Support",
-      details: ["info@ujjaintravel.com", "support@ujjaintravel.com"],
+      details: [brand.email],
       description: "Send us your queries, we respond within 2 hours",
-      action: "mailto:info@ujjaintravel.com",
+      action: `mailto:${brand.email}`,
       actionText: "Send Email",
     },
   ]
@@ -73,7 +82,7 @@ export default function Contact() {
     {
       icon: <FaMapMarkerAlt className="text-2xl text-orange-500" />,
       title: "Main Office",
-      details: ["Near Mahakaleshwar Temple", "Temple Road, Ujjain", "Madhya Pradesh 456001"],
+      details: [ "Indore Road, Ujjain", "Madhya Pradesh 456001"],
     },
     {
       icon: <FaClock className="text-2xl text-blue-500" />,
@@ -83,39 +92,18 @@ export default function Contact() {
     {
       icon: <FaHeadset className="text-2xl text-green-500" />,
       title: "Support Languages",
-      details: ["Hindi (Native)", "English (Fluent)", "Gujarati (Available)"],
+      details: ["Hindi (Native)", "English (Available)"],
     },
   ]
 
-  const emergencyServices = [
-    {
-      service: "Emergency Car Breakdown",
-      number: "+91-9876543212",
-      available: "24/7",
-    },
-    {
-      service: "Hotel Emergency Support",
-      number: "+91-9876543213",
-      available: "24/7",
-    },
-    {
-      service: "Medical Emergency Assistance",
-      number: "+91-9876543214",
-      available: "24/7",
-    },
-    {
-      service: "Tourist Helpline",
-      number: "+91-9876543215",
-      available: "24/7",
-    },
-  ]
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
       <SEOHead
-        title="Contact Us - 24/7 Support | Ujjain Travel"
-        description="Get 24/7 support for your Ujjain travel needs. Contact us via phone, WhatsApp, or email for immediate assistance."
-        keywords="ujjain travel contact, 24/7 support ujjain, ujjain travel help, contact ujjain travel"
+        title={`Contact Us - ${brand.name}`}
+        description={`Get in touch with ${brand.name} for all your travel needs. Contact us via phone, WhatsApp, or email for immediate assistance.`}
+        keywords="safar sathi contact, support, travel help, contact safar sathi"
       />
 
       
@@ -126,18 +114,18 @@ export default function Contact() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">We're Here to Help</h1>
             <p className="text-xl md:text-2xl max-w-3xl mx-auto mb-8">
-              24/7 support for all your Ujjain travel needs. Our dedicated team is always ready to assist you.
+              Support for all your travel needs. Our dedicated team is always ready to assist you.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <a
-                href="tel:+919876543210"
+                href={`tel:${brand.mobile}`}
                 className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-colors duration-300"
               >
                 <FaPhone className="inline mr-2" />
-                Call Now: +91-9876543210
+                Call Now: {brand.mobile}
               </a>
               <a
-                href="https://wa.me/919876543210"
+                href={`https://wa.me/${brand.mobile}`}
                 className="border-2 border-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-green-600 transition-colors duration-300"
               >
                 <FaWhatsapp className="inline mr-2" />
@@ -154,7 +142,7 @@ export default function Contact() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">Get in Touch</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose your preferred way to contact us. We're available 24/7 to assist you.
+              Choose your preferred way to contact us. We're here to assist you.
             </p>
           </div>
 
@@ -298,6 +286,18 @@ export default function Contact() {
                   >
                     {isSubmitting ? "Sending..." : "Send Message"}
                   </button>
+
+                  {submitStatus === 'success' && (
+                    <div className="mt-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-2xl">
+                      Thank you for your message! We will get back to you within 2 hours.
+                    </div>
+                  )}
+
+                  {submitStatus === 'error' && (
+                    <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-2xl">
+                      Failed to send message. Please try again or contact us directly.
+                    </div>
+                  )}
                 </form>
               </motion.div>
 
@@ -322,7 +322,7 @@ export default function Contact() {
                 ))}
 
                 {/* Map Placeholder */}
-                <div className="card p-6">
+               {/*  <div className="card p-6">
                   <h3 className="font-bold text-gray-800 mb-4">Find Us</h3>
                   <div className="bg-gray-200 rounded-2xl h-48 flex items-center justify-center">
                     <div className="text-center text-gray-500">
@@ -331,49 +331,14 @@ export default function Contact() {
                       <p className="text-sm">Near Mahakaleshwar Temple, Ujjain</p>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </motion.div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Emergency Services */}
-      <section className="py-16 bg-red-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Emergency Services</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              In case of emergency, contact our dedicated helplines available 24/7
-            </p>
-          </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {emergencyServices.map((service, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-shadow duration-300"
-              >
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaPhone className="text-2xl text-red-500" />
-                </div>
-                <h3 className="font-bold text-gray-800 mb-2">{service.service}</h3>
-                <p className="text-red-500 font-bold text-lg mb-2">{service.number}</p>
-                <p className="text-sm text-gray-600">{service.available}</p>
-                <a
-                  href={`tel:${service.number}`}
-                  className="inline-block mt-4 bg-red-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-red-600 transition-colors duration-300"
-                >
-                  Call Now
-                </a>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* FAQ Quick Links */}
       <section className="py-16 bg-gradient-to-r from-blue-600 to-green-600 text-white">

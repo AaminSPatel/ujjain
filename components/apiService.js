@@ -137,6 +137,38 @@ export const BookingService = {
   // Legacy method for backward compatibility
   updateBookingStatus: async (id, status) => {
     return (await api.put(`/bookings/${id}`, { status })).data;
+  },
+
+  // Get bookings by service type and service IDs (for hotel managers)
+  getBookingsByService: async (serviceType, serviceIds) => {
+    const queryString = new URLSearchParams({ serviceType, serviceIds: serviceIds.join(',') }).toString();
+    return (await api.get(`/bookings/service?${queryString}`)).data;
+  },
+
+  // Driver routes
+  assignBookingToDriver: async (bookingId, driverId) => {
+    return (await api.post(`/bookings/${bookingId}/assign-driver`, { driverId })).data;
+  },
+
+  driverAcceptBooking: async (bookingId) => {
+    return (await api.post(`/bookings/${bookingId}/driver-accept`)).data;
+  },
+
+  driverUpdateStatus: async (bookingId, status) => {
+    return (await api.put(`/bookings/${bookingId}/driver-status`, { status })).data;
+  },
+
+  driverShareLocation: async (bookingId, latitude, longitude) => {
+    return (await api.post(`/bookings/${bookingId}/driver-location`, { latitude, longitude })).data;
+  },
+
+  getDriverBookings: async () => {
+    return (await api.get('/bookings/driver/bookings')).data;
+  },
+
+  // Live tracking for passengers
+  getLiveTracking: async (bookingId) => {
+    return (await api.get(`/bookings/${bookingId}/live-tracking`)).data;
   }
 };
 
@@ -187,21 +219,54 @@ export const UserService = {
     const formData = new FormData();
 
     // Append basic user info
-    if (userData.fullName) formData.append('fullName', userData.fullName);
-    if (userData.email) formData.append('email', userData.email);
-    if (userData.mobile) formData.append('mobile', userData.mobile);
+    if (userData.fullName !== undefined) formData.append('fullName', userData.fullName);
+    if (userData.email !== undefined) formData.append('email', userData.email);
+    if (userData.mobile !== undefined) formData.append('mobile', userData.mobile);
+
+    // Handle nested address object
+    if (userData.address) {
+      if (userData.address.street !== undefined) formData.append('address.street', userData.address.street);
+      if (userData.address.city !== undefined) formData.append('address.city', userData.address.city);
+      if (userData.address.state !== undefined) formData.append('address.state', userData.address.state);
+      if (userData.address.country !== undefined) formData.append('address.country', userData.address.country);
+      if (userData.address.postalCode !== undefined) formData.append('address.postalCode', userData.address.postalCode);
+    }
+
+    // Handle driver license
+    if (userData.driverLicense) {
+      if (userData.driverLicense.number !== undefined) formData.append('driverLicense.number', userData.driverLicense.number);
+      if (userData.driverLicense.expiryDate !== undefined) formData.append('driverLicense.expiryDate', userData.driverLicense.expiryDate);
+    }
+
+    // Handle vehicle info
+    if (userData.vehicleInfo) {
+      if (userData.vehicleInfo.make !== undefined) formData.append('vehicleInfo.make', userData.vehicleInfo.make);
+      if (userData.vehicleInfo.model !== undefined) formData.append('vehicleInfo.model', userData.vehicleInfo.model);
+      if (userData.vehicleInfo.year !== undefined) formData.append('vehicleInfo.year', userData.vehicleInfo.year);
+      if (userData.vehicleInfo.color !== undefined) formData.append('vehicleInfo.color', userData.vehicleInfo.color);
+      if (userData.vehicleInfo.licensePlate !== undefined) formData.append('vehicleInfo.licensePlate', userData.vehicleInfo.licensePlate);
+    }
+
+    // Handle preferred payment method
+    if (userData.preferredPaymentMethod !== undefined) formData.append('preferredPaymentMethod', userData.preferredPaymentMethod);
 
     // Handle profile picture
     if (userData.profilePic && userData.profilePic instanceof File) {
       formData.append('image', userData.profilePic);
     }
 
-    return (await axios.put(`${backendUrl}/users/update-profile`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${token}`,
-      },
-    })).data;
+    try {
+      const response = await axios.put(`${backendUrl}/users/update-profile`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
   },
 
   // Change password
@@ -222,6 +287,42 @@ export const UserService = {
   deleteAccount: async () => {
     const response = await api.delete('/users/delete-account');
     localStorage.removeItem('token');
+    return response.data;
+  },
+
+  // Add notification to user
+  addNotification: async (userId, notificationData) => {
+    const response = await api.post(`/users/${userId}/notifications`, notificationData);
+    return response.data;
+  },
+
+  // Get user notifications
+  getNotifications: async (userId) => {
+    const response = await api.get(`/users/${userId}/notifications`);
+    return response.data;
+  },
+
+  // Mark notification as read
+  markNotificationAsRead: async (userId, notificationId) => {
+    const response = await api.patch(`/users/${userId}/notifications/${notificationId}/read`);
+    return response.data;
+  },
+
+  // Mark all notifications as read
+  markAllNotificationsAsRead: async (userId) => {
+    const response = await api.patch(`/users/${userId}/notifications/read-all`);
+    return response.data;
+  },
+
+  // Delete notification
+  deleteNotification: async (userId, notificationId) => {
+    const response = await api.delete(`/users/${userId}/notifications/${notificationId}`);
+    return response.data;
+  },
+
+  // Clear all notifications
+  clearAllNotifications: async (userId) => {
+    const response = await api.delete(`/users/${userId}/notifications`);
     return response.data;
   },
 };
@@ -355,7 +456,7 @@ create: async (hotelData) => {
   return (await axios.post(`${backendUrl}/hotels`, formData, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      'Content-Type': 'multipart/form-data',
+      
     },
   })).data;
 },
@@ -545,11 +646,71 @@ export const ReviewService = {
       }
     });
     return response.data;
+  },
+
+  getReviewsByDriver: async (driverId) => {
+    const params = new URLSearchParams({ model: 'Driver' });
+    const response = await axios.get(`${backendUrl}/reviews/${driverId}?${params}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.data;
   }
+};
+
+// ====================== ADS ======================
+export const AdService = {
+  getAll: async () => (await api.get('/ads')).data,
+  getActive: async () => (await api.get('/ads/active')).data,
+  create: async (adData) => {
+    console.log(adData);
+
+    let formData;
+    if (adData instanceof FormData) {
+      formData = adData;
+    } else {
+      formData = new FormData();
+      Object.keys(adData).forEach((key) => {
+        if (key === 'image') {
+          formData.append('image', adData[key]);
+        } else {
+          formData.append(key, adData[key]);
+        }
+      });
+    }
+    return (await axios.post(`${backendUrl}/ads`, formData, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    })).data;
+  },
+  update: async (id, adData) => {
+    let formData;
+    if (adData instanceof FormData) {
+      formData = adData;
+    } else {
+      formData = new FormData();
+      Object.keys(adData).forEach((key) => {
+        if (key === 'image') {
+          formData.append('image', adData[key]);
+        } else {
+          formData.append(key, adData[key]);
+        }
+      });
+    }
+    return (await axios.put(`${backendUrl}/ads/${id}`, formData, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    })).data;
+  },
+  delete: async (id) => (await api.delete(`/ads/${id}`)).data,
 };
 
 // ====================== CONTACT ======================
 export const ContactService = {
-  getAll: async () => (await api.get('/contacts')).data,
-  delete: async (id) => (await api.delete(`/contacts/${id}`)).data,
+  getAll: async () => (await api.get('/contact')).data,
+  create: async (contactData) => (await api.post('/contact', contactData)).data,
+  delete: async (id) => (await api.delete(`/contact/${id}`)).data,
 };

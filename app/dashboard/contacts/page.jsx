@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Search, Filter, MoreHorizontal, Trash2, Mail } from "lucide-react"
+import { Search, Filter, MoreHorizontal, Trash2, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useUjjain } from "@/components/context/UjjainContext"
 import { useToast } from "@/hooks/use-toast"
 
@@ -17,9 +18,14 @@ export default function ContactsPage() {
   const [filteredContacts, setFilteredContacts] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [deletingContact, setDeletingContact] = useState(null)
-  const { contacts, isLoading: contextLoading, removeContact } = useUjjain()
+  const [viewingContact, setViewingContact] = useState(null)
+  const { contacts, isLoading: contextLoading, removeContact, fetchContacts } = useUjjain()
   const { toast } = useToast()
   const [localLoading, setLocalLoading] = useState(false)
+
+  useEffect(() => {
+    fetchContacts()
+  }, [fetchContacts])
 
   useEffect(() => {
     const filtered = contacts.filter(
@@ -135,14 +141,12 @@ export default function ContactsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <a href={`mailto:${contact.email}`} className="flex items-center">
-                              <Mail className="mr-2 h-4 w-4" />
-                              Reply
-                            </a>
+                          <DropdownMenuItem onClick={() => setViewingContact(contact)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => setDeletingContact(contact)} 
+                          <DropdownMenuItem
+                            onClick={() => setDeletingContact(contact)}
                             className="text-red-600"
                             disabled={localLoading}
                           >
@@ -168,6 +172,69 @@ export default function ContactsPage() {
         description={`Are you sure you want to delete the message from ${deletingContact?.name}? This action cannot be undone.`}
         isLoading={localLoading}
       />
+
+      <Dialog open={!!viewingContact} onOpenChange={() => setViewingContact(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Contact Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about the customer inquiry
+            </DialogDescription>
+          </DialogHeader>
+          {viewingContact && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Name</label>
+                  <p className="text-sm font-semibold">{viewingContact.name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Email</label>
+                  <p className="text-sm font-semibold">{viewingContact.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                  <p className="text-sm font-semibold">{viewingContact.phone}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Type</label>
+                  <Badge variant={
+                    viewingContact.type === "Complaint" ? "destructive" :
+                    viewingContact.type === "Feedback" ? "default" : "outline"
+                  }>
+                    {viewingContact.type}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Urgency</label>
+                  <Badge variant={
+                    viewingContact.urgency === "emergency" ? "destructive" :
+                    viewingContact.urgency === "urgent" ? "default" : "outline"
+                  }>
+                    {viewingContact.urgency}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Date</label>
+                  <p className="text-sm font-semibold">
+                    {new Date(viewingContact.date).toLocaleDateString()} at {new Date(viewingContact.date).toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Subject</label>
+                <p className="text-sm font-semibold">{viewingContact.subject}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Message</label>
+                <div className="mt-1 p-3 bg-muted rounded-md">
+                  <p className="text-sm whitespace-pre-wrap">{viewingContact.message}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

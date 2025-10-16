@@ -7,6 +7,7 @@ import { MdElectricRickshaw } from "react-icons/md"
 import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
 import dynamic from "next/dynamic";
+import { haversineDistance } from "@/components/utils/distance";
 
 // Razorpay script loader
 const loadRazorpayScript = () => {
@@ -146,35 +147,35 @@ function BookingContent() {
     const startDateParam = searchParams.get("startDate")
     const endDateParam = searchParams.get("endDate")
     const v_id = searchParams.get("_id")
-    
+
     console.log('Vehicle ID from URL:', v_id);
-    
+
     // Set current date and next date as default
     const today = new Date().toISOString().split('T')[0];
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
+
     if (pickupParam) {
       setPickup(pickupParam)
       setBookingData(prev => ({
         ...prev,
         pickupLocation: {
           address: pickupParam,
-          coordinates: { 
-            lat: parseFloat(pickupLat) || 0, 
-            lng: parseFloat(pickupLng) || 0 
+          coordinates: {
+            lat: parseFloat(pickupLat) || 0,
+            lng: parseFloat(pickupLng) || 0
           },
         },
         dropoffLocation: {
           address: destinationParam || "",
-          coordinates: { 
-            lat: parseFloat(destinationLat) || 0, 
-            lng: parseFloat(destinationLng) || 0 
+          coordinates: {
+            lat: parseFloat(destinationLat) || 0,
+            lng: parseFloat(destinationLng) || 0
           },
         },
         startDate: startDateParam || today,
         endDate: endDateParam || tomorrow,
         dates: [
-          new Date(startDateParam || today), 
+          new Date(startDateParam || today),
           new Date(endDateParam || tomorrow)
         ],
         serviceType: 'Car',
@@ -187,22 +188,22 @@ function BookingContent() {
         startDate: startDateParam || today,
         endDate: endDateParam || tomorrow,
         dates: [
-          new Date(startDateParam || today), 
+          new Date(startDateParam || today),
           new Date(endDateParam || tomorrow)
         ],
         serviceType: 'Car',
         service: v_id || "",
       }))
     }
-    
+
     if (destinationParam) setDestination(destinationParam)
-    
+
     if (transportParam) {
       setSelectedTransport(transportParam)
       setSelectedVehicleId(v_id)
       setBookingType("Car")
     }
-    
+
     if (fareParam) {
       const fareAmount = parseFloat(fareParam) || 0
       setBookingData(prev => ({
@@ -219,12 +220,27 @@ function BookingContent() {
         }
       }))
     }
-    
+
     if (bookingTypeParam === "instant") {
       setIsInstantBooking(true)
       setStep(2) // Skip vehicle selection for instant booking
     }
   }, [searchParams])
+
+  // Prefill user data in booking form
+  useEffect(() => {
+    if (user) {
+      setBookingData(prev => ({
+        ...prev,
+        personalInfo: {
+          fullname: user.fullName || '',
+          email: user.email || '',
+          mobile: user.mobile || '',
+          address: user.address?.street + " " +  user.address?.city + " " + user.address?.state + " " +  user.address?.country + " " + user.address?.postalCode || '',
+        }
+      }));
+    }
+  }, [user])
 
   // Handle URL parameters for pre-selecting service
   useEffect(() => {
@@ -264,21 +280,51 @@ function BookingContent() {
     if (isInstantBooking) {
       // For instant booking, we don't need to load specific vehicles
       setAvailableServices([])
-      const transport = transportOptions.find(t => t.name.toLowerCase() === selectedTransport)
+      const transport = transportOptions.find(t => t.id === selectedTransport)
+
+      // Calculate dynamic price based on distance for instant bookings
+      let calculatedPrice = bookingData.payment.amount // Default from URL or initial
+      if (transport && bookingData.pickupLocation.coordinates.lat && bookingData.pickupLocation.coordinates.lng &&
+          bookingData.dropoffLocation.coordinates.lat && bookingData.dropoffLocation.coordinates.lng) {
+        const distance = haversineDistance(
+          bookingData.pickupLocation.coordinates,
+          bookingData.dropoffLocation.coordinates
+        )
+        calculatedPrice = transport.baseFare + (distance * transport.perKm)
+        calculatedPrice = Math.round(calculatedPrice) // Round to nearest rupee
+      }
+
       setSelectedService({
         _id: selectedVehicleId,
         name: transport?.name || "Car",
         type: "instant",
         capacity: transport?.capacity || "",
-        price: bookingData.payment.amount
+        price: calculatedPrice
       })
+
+      // Update booking data with calculated price
+      setBookingData(prev => ({
+        ...prev,
+        payment: {
+          ...prev.payment,
+          amount: calculatedPrice,
+        },
+        pricing: {
+          basePrice: calculatedPrice,
+          discount: 0,
+          tax: 0,
+          totalPrice: calculatedPrice
+        }
+      }))
     } else if (bookingType === "Car" && cars) {
       setAvailableServices(cars)
       if (bookingData.service) {
         const service = cars.find(car => car._id === bookingData.service)
         if (service) {
           setSelectedService(service)
-          const price = service.price || service.pricePerDay || service.pricePerNight || 0
+          // Calculate fare based on days for car rentals
+          const days = Math.max(1, Math.ceil((new Date(bookingData.endDate) - new Date(bookingData.startDate)) / (1000 * 60 * 60 * 24)))
+          const price = (service.pricePerDay || 0) * days
           setBookingData(prev => ({
             ...prev,
             payment: {
@@ -300,7 +346,9 @@ function BookingContent() {
         const service = hotels.find(hotel => hotel._id === bookingData.service)
         if (service) {
           setSelectedService(service)
-          const price = service.price || service.pricePerDay || service.pricePerNight || 0
+          // Calculate hotel price based on days
+          const days = Math.max(1, Math.ceil((new Date(bookingData.endDate) - new Date(bookingData.startDate)) / (1000 * 60 * 60 * 24)))
+          const price = (service.pricePerNight || service.price || 0) * days
           setBookingData(prev => ({
             ...prev,
             payment: {
@@ -339,7 +387,7 @@ function BookingContent() {
         }
       }
     }
-  }, [bookingType, cars, hotels, logistics, bookingData.service, isInstantBooking, selectedTransport, selectedVehicleId])
+  }, [bookingType, cars, hotels, logistics, bookingData.service, isInstantBooking, selectedTransport, selectedVehicleId, bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates, bookingData.startDate, bookingData.endDate])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -403,7 +451,30 @@ function BookingContent() {
     setIsProcessingPayment(true)
 
     try {
-      // Prepare booking data according to your schema
+      // Check if user is logged in
+      if (!user || !user._id) {
+        alert('Please sign in to continue with your booking.')
+        window.location.href = '/auth/signin'
+        setIsProcessingPayment(false)
+        return
+      }
+
+      // Update user profile with personal information
+      try {
+        const { UserService } = await import('@/components/apiService')
+        await UserService.updateProfile({
+          fullName: bookingData.personalInfo.fullname,
+          email: bookingData.personalInfo.email,
+          mobile: bookingData.personalInfo.mobile,
+          address: bookingData.personalInfo.address
+        })
+        console.log('User profile updated successfully')
+      } catch (profileError) {
+        console.error('Failed to update user profile:', profileError)
+        // Continue with booking even if profile update fails
+      }
+
+      // Prepare booking data according to your schema (without personal info)
       const bookingPayload = {
         serviceType: isInstantBooking ? "Car" : bookingData.serviceType,
         service: isInstantBooking ? selectedVehicleId : bookingData.service,
@@ -424,12 +495,6 @@ function BookingContent() {
         pickupLocation: bookingData.pickupLocation,
         dropoffLocation: bookingData.dropoffLocation,
 
-        // Personal info
-        email: bookingData.personalInfo.email,
-        mobile: bookingData.personalInfo.mobile,
-        fullname: bookingData.personalInfo.fullname,
-        address: bookingData.personalInfo.address,
-
         // Payment and pricing
         payment: {
           method: bookingData.payment.method,
@@ -443,7 +508,7 @@ function BookingContent() {
         status: "pending",
         isPaid: false,
         isCancelled: false,
-        user: user ? user._id : null,
+        user: user._id,
 
         // Instant booking flag
         isInstantBooking: isInstantBooking,
@@ -458,7 +523,7 @@ function BookingContent() {
         setStep(4) // Go to payment step
       } else {
         console.error('Booking creation failed')
-        alert('Failed to create booking. Please try again.')
+       // alert('Failed to create booking. Please try again.')
       }
     } catch (error) {
       console.error('Booking submission error:', error)
@@ -524,9 +589,13 @@ function BookingContent() {
             className="card overflow-hidden cursor-pointer group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
           >
             <div className="relative">
-              {service.images && service.images.length > 0 ? (
+              { (service?.image?.url) || (service?.images?.length > 0)  ? (
                 <img
-                  src={service.images[0].url || service.image?.url || "/placeholder.svg"}
+                  src={
+                    bookingType === "Logistics"
+                      ? service?.image?.url
+                      : service?.images[0]?.url || "/placeholder.svg"
+                  }
                   alt={service.name || service.model || service.serviceName}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -599,33 +668,7 @@ function BookingContent() {
           {isInstantBooking ? "Transport Booking Details" : "Booking Details"}
         </h2>
         
-       {/*  {isInstantBooking ? (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Choose Your Transport:</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-              {transportOptions.map((transport) => (
-                <motion.button
-                  key={transport.id}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleTransportSelect(transport.id)}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    selectedTransport === transport.id
-                      ? `${transport.color} text-white shadow-md`
-                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex flex-col items-center">
-                    <div className="mb-2">{transport.icon}</div>
-                    <span className="text-sm font-medium">{transport.name}</span>
-                    <span className="text-xs mt-1 opacity-80">{transport.capacity}</span>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        ) : null} */}
-
-        {selectedService && (
+               {selectedService && (
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-md mx-auto">
             <p className="text-blue-800 font-medium">
               <span className="text-amber-500 font-semibold">
@@ -1354,9 +1397,9 @@ function BookingContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
       <SEOHead
-        title="Book Car & Hotel - Ujjain Travel"
-        description="Book premium cars and hotels for your Ujjain journey. Easy online booking with instant confirmation."
-        keywords="ujjain car booking, ujjain hotel booking, car rental ujjain, hotel reservation ujjain"
+        title="Book Car & Hotel - Safar Sathi"
+        description="Book premium cars and hotels for your travel. Easy online booking with instant confirmation."
+        keywords="safar sathi car booking, safar sathi hotel booking, car rental, hotel reservation"
       />
 
       {/* Hero Section */}

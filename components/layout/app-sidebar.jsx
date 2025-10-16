@@ -1,6 +1,6 @@
 "use client"
 
-import { Car, Calendar, MapPin, MessageSquare, FileText, Users, Settings, BarChart3, Home, Hotel, Truck, User, PersonStandingIcon } from "lucide-react"
+import { Car, Calendar, MapPin, MessageSquare, FileText, Users, Settings, BarChart3, Home, Hotel, Truck, User, PersonStandingIcon, Megaphone } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -57,20 +57,21 @@ const menuItems = [
     url: "/dashboard/users",
     icon: User,
   },
-   {
+  {
     title: "Reviews",
     url: "/dashboard/reviews",
     icon: MessageSquare,
   },
- 
-  /* 
- 
-  
+  {
+    title: "Ads",
+    url: "/dashboard/ads",
+    icon: Megaphone,
+  },
   {
     title: "Contacts",
     url: "/dashboard/contacts",
     icon: Users,
-  }, */
+  },
 ]
 
 const secondaryItems = [

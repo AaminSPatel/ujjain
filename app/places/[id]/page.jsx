@@ -132,9 +132,9 @@ export default function PlaceDetail() {
   return (
     <div className="min-h-screen bg-white">
       <SEOHead
-        title={`${safePlace.name} - Sacred Places in Ujjain | Ujjain Travel`}
+         title={`${safePlace.name} - Places | Safar Sathi`}
         description={safePlace.description}
-        keywords={`${safePlace.name}, ujjain temples, ${place.category || 'temple'}, ujjain tourism`}
+        keywords={`${safePlace.name}, places, ${place.category || 'destination'}, tourism`}
         image={safePlace.images[0]?.url}
       />
 

@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import {
   PlaceService,
@@ -10,6 +10,7 @@ import {
   CarService,
   HotelService,
   LogisticsService,
+  AdService,
 } from "./../apiService.js";
 const UjjainContext = createContext();
 
@@ -36,6 +37,7 @@ export const UjjainProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [logistics, setLogistics] = useState([]);
   const [hotels, setHotels] = useState([]);
+  const [ads, setAds] = useState([]);
   const [users, setUsers] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -173,10 +175,11 @@ const signIn = async (credentials) => {
     try {
       setLoading(true);
       //console.log('sign in function',updates);
-      
+
       setError('');
       const response = await UserService.updateProfile(updates);
       setUser(response.data.user);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       return response;
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Profile update failed';
@@ -662,6 +665,18 @@ const markAllAsRead = async (userId) => {
       const result = await BookingService.create(bookingData);
       console.log('Booking created:', result);
       fetchBookings(); // Refresh bookings list
+
+      // Refetch user profile to get updated notifications
+      if (user && user._id) {
+        try {
+          const updatedUser = await UserService.getProfile();
+          setUser(updatedUser.data.user);
+          localStorage.setItem('user', JSON.stringify(updatedUser.data.user));
+        } catch (profileErr) {
+          console.error("Error refetching user profile:", profileErr);
+        }
+      }
+
       return result;
     } catch (err) {
       console.error("Error creating booking:", err);
@@ -733,6 +748,53 @@ const markAllAsRead = async (userId) => {
       return result;
     } catch (err) {
       console.error("Error fetching bookings by user:", err);
+      throw err;
+    }
+  };
+
+  // DRIVER FUNCTIONS
+  const fetchDriverBookings = async () => {
+    try {
+      const result = await BookingService.getDriverBookings();
+      setBookings(result.bookings || result);
+      return result;
+    } catch (err) {
+      console.error("Error fetching driver bookings:", err);
+      throw err;
+    }
+  };
+
+  const driverAcceptBooking = async (bookingId) => {
+    try {
+      const result = await BookingService.driverAcceptBooking(bookingId);
+      console.log('Driver accepted booking:', result);
+      fetchDriverBookings(); // Refresh driver bookings
+      return result;
+    } catch (err) {
+      console.error("Error accepting booking as driver:", err);
+      throw err;
+    }
+  };
+
+  const driverUpdateStatus = async (bookingId, status) => {
+    try {
+      const result = await BookingService.driverUpdateStatus(bookingId, status);
+      console.log('Driver updated booking status:', result);
+      fetchDriverBookings(); // Refresh driver bookings
+      return result;
+    } catch (err) {
+      console.error("Error updating booking status as driver:", err);
+      throw err;
+    }
+  };
+
+  const driverShareLocation = async (bookingId, latitude, longitude) => {
+    try {
+      const result = await BookingService.driverShareLocation(bookingId, latitude, longitude);
+      console.log('Driver shared location:', result);
+      return result;
+    } catch (err) {
+      console.error("Error sharing location as driver:", err);
       throw err;
     }
   };
@@ -868,6 +930,31 @@ const updateReview = async () => {
     console.error("Error updating review:", error);
   }
 };
+  // ADS
+  const fetchAds = async () => {
+    try {
+      const data = await AdService.getAll();
+      setAds(data);
+    } catch (err) {
+      console.error("Error fetching ads:", err);
+    }
+  };
+
+  const addAd = async (adData) => {
+    await AdService.create(adData);
+    fetchAds();
+  };
+
+  const updateAd = async (id, adData) => {
+    await AdService.update(id, adData);
+    fetchAds();
+  };
+
+  const removeAd = async (id) => {
+    await AdService.delete(id);
+    fetchAds();
+  };
+
   // CONTACTS
   const fetchContacts = async () => {
     try {
@@ -898,6 +985,7 @@ const updateReview = async () => {
     fetchReviews();
     fetchHotels();
     fetchLogistics();
+    fetchAds();
     fetchUsers()
   }, []);
 
@@ -929,9 +1017,9 @@ const updateReview = async () => {
 
   // Load data from localStorage
   useEffect(() => {
-    const savedFavorites = localStorage.getItem("ujjain-favorites");
-    const savedBookings = localStorage.getItem("ujjain-bookings");
-    const savedReviews = localStorage.getItem("ujjain-reviews");
+    const savedFavorites = localStorage.getItem("safar-sathi-favorites");
+    const savedBookings = localStorage.getItem("safar-sathi-bookings");
+    const savedReviews = localStorage.getItem("safar-sathi-reviews");
     const userLocal = localStorage.getItem("user");
 
     if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
@@ -941,19 +1029,18 @@ const updateReview = async () => {
 
   }, []);
 
-  /* // Save to localStorage
+  // Save to localStorage
   useEffect(() => {
-    localStorage.setItem("ujjain-favorites", JSON.stringify(favorites));
+    localStorage.setItem("safar-sathi-favorites", JSON.stringify(favorites));
   }, [favorites]);
 
   useEffect(() => {
-    localStorage.setItem("ujjain-bookings", JSON.stringify(bookings));
+    localStorage.setItem("safar-sathi-bookings", JSON.stringify(bookings));
   }, [bookings]);
 
   useEffect(() => {
-    localStorage.setItem("ujjain-reviews", JSON.stringify(reviews));
+    localStorage.setItem("safar-sathi-reviews", JSON.stringify(reviews));
   }, [reviews]);
- */
   const addToFavorites = (item) => {
     setFavorites((prev) => [...prev.filter((fav) => fav.id !== item.id), item]);
   };
@@ -981,17 +1068,6 @@ const updateReview = async () => {
       }
     }
   };
-
-/*   useEffect(() => {
-    // Check for stored token on mount
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-  }, []); */
 
 /*   const apiCall = async (endpoint, method, data) => {
     try {
@@ -1175,6 +1251,11 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     removeBooking,
     getBookingById,
     getBookingsByUser,
+    // Driver functions
+    fetchDriverBookings,
+    driverAcceptBooking,
+    driverUpdateStatus,
+    driverShareLocation,
     contacts,
     fetchContacts,
     addContact,
@@ -1195,6 +1276,7 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     serviceData,
     hotels,
     logistics,
+    ads,
     reviews,
     contacts,
     fetchHotels,
@@ -1205,6 +1287,10 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     addLogistics,
     updateLogistics,
     removeLogistics,
+    fetchAds,
+    addAd,
+    updateAd,
+    removeAd,
     fetchReviews,
     removeReview,
     fetchContacts,
@@ -1214,13 +1300,13 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     addUser,
     updateUser,
     removeUser,
-     
+
     loading,
     error,
     isAuthenticated: !!user,
     signUp,
     signIn,
-    
+
     updateProfile,
     deleteAccount,
     changePassword,

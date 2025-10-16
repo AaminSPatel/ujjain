@@ -1,18 +1,21 @@
 "use client"
 import { motion } from "framer-motion"
 import SEOHead from "@/components/SEOHead"
+import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function Terms() {
+  const { brand } = useUjjain();
+
   const sections = [
     {
       title: "1. Acceptance of Terms",
       content:
-        "By accessing and using Ujjain Travel services, you accept and agree to be bound by the terms and provision of this agreement. These terms apply to all visitors, users, and others who access or use our services.",
+        "By accessing and using Safar Sathi services, you accept and agree to be bound by the terms and provision of this agreement. These terms apply to all visitors, users, and others who access or use our services.",
     },
     {
       title: "2. Services Description",
       content:
-        "Ujjain Travel provides car rental services, hotel booking assistance, tour guidance, and travel-related services in and around Ujjain, Madhya Pradesh. We act as an intermediary between customers and service providers.",
+        "Safar Sathi provides car rental services, hotel booking assistance, tour guidance, and travel-related services across India. We act as an intermediary between customers and service providers.",
     },
     {
       title: "3. Booking and Payment Terms",
@@ -32,7 +35,7 @@ export default function Terms() {
     {
       title: "6. Limitation of Liability",
       content:
-        "Ujjain Travel acts as an intermediary and is not liable for services provided by third parties. We are not responsible for delays, cancellations, or changes in services due to circumstances beyond our control including weather, traffic, or force majeure events.",
+        "Safar Sathi acts as an intermediary and is not liable for services provided by third parties. We are not responsible for delays, cancellations, or changes in services due to circumstances beyond our control including weather, traffic, or force majeure events.",
     },
     {
       title: "7. Privacy Policy",
@@ -42,12 +45,12 @@ export default function Terms() {
     {
       title: "8. Intellectual Property",
       content:
-        "All content on our website including text, graphics, logos, and images are the property of Ujjain Travel. Users may not reproduce, distribute, or create derivative works without written permission.",
+        "All content on our website including text, graphics, logos, and images are the property of Safar Sathi. Users may not reproduce, distribute, or create derivative works without written permission.",
     },
     {
       title: "9. Dispute Resolution",
       content:
-        "Any disputes arising from the use of our services will be resolved through negotiation. If unresolved, disputes will be subject to the jurisdiction of courts in Ujjain, Madhya Pradesh, India.",
+        "Any disputes arising from the use of our services will be resolved through negotiation. If unresolved, disputes will be subject to the jurisdiction of courts in India.",
     },
     {
       title: "10. Changes to Terms",
@@ -59,9 +62,9 @@ export default function Terms() {
   return (
     <div className="min-h-screen bg-white">
       <SEOHead
-        title="Terms & Conditions - Ujjain Travel"
-        description="Read the terms and conditions for using Ujjain Travel services including car rentals, hotel bookings, and tour packages."
-        keywords="ujjain travel terms, conditions, policy, car rental terms, hotel booking policy"
+        title="Terms & Conditions - Safar Sathi"
+        description="Read the terms and conditions for using Safar Sathi services including car rentals, hotel bookings, and tour packages."
+        keywords="safar sathi terms, conditions, policy, car rental terms, hotel booking policy"
       />
 
 
@@ -86,7 +89,7 @@ export default function Terms() {
               <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-2xl">
                 <h2 className="text-xl font-bold text-blue-800 mb-2">Important Notice</h2>
                 <p className="text-blue-700">
-                  By using Ujjain Travel services, you agree to comply with and be bound by these terms and conditions.
+                  By using Safar Sathi services, you agree to comply with and be bound by these terms and conditions.
                   Please review them carefully. If you do not agree with these terms, please do not use our services.
                 </p>
               </div>
@@ -120,13 +123,13 @@ export default function Terms() {
               </p>
               <div className="space-y-2 text-gray-700">
                 <p>
-                  <strong>Email:</strong> legal@ujjaintravel.com
+                  <strong>Email:</strong> {brand.email}
                 </p>
                 <p>
-                  <strong>Phone:</strong> +91-9876543210
+                  <strong>Phone:</strong> {brand.mobile}
                 </p>
                 <p>
-                  <strong>Address:</strong> Near Mahakaleshwar Temple, Ujjain, Madhya Pradesh 456001
+                  <strong>Address:</strong> India
                 </p>
               </div>
             </motion.div>
@@ -134,7 +137,7 @@ export default function Terms() {
         </div>
       </section>
 
-     
+
     </div>
   )
 }

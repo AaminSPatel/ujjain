@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   FaCar,
@@ -18,72 +18,109 @@ import {
 } from "react-icons/fa"
 import { MdPlace, MdHotel, MdMyLocation, MdMoped, MdElectricRickshaw } from "react-icons/md"
 import { BiTab } from "react-icons/bi"
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet"
-import "leaflet/dist/leaflet.css"
-import L from "leaflet"
+import {
+  GoogleMap,
+  LoadScript,
+  Autocomplete,
+  Marker,
+} from "@react-google-maps/api"
 import { useUjjain } from "../context/UjjainContext"
 import Link from "next/link"
 import { haversineDistance } from "@/components/utils/distance";
+import AdCarousel from "../AdCarousel";
 
-// Fix default marker issue in Leaflet
-const DefaultIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-})
+// Google Maps constants
+const containerStyle = {
+  width: "100%",
+  height: "256px",
+}
 
-// Custom blue marker for pickup
-const PickupIcon = L.divIcon({
-  className: "custom-marker",
-  html: `<div style="background-color: #3B82F6; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><div style="width: 10px; height: 10px; background: white; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);"></div></div>`,
-  iconSize: [30, 30],
-  iconAnchor: [15, 30],
-})
+const center = {
+  lat: 22.7196, // Default center: Indore
+  lng: 75.8577,
+}
 
-// Custom red marker for destination
-const DestinationIcon = L.divIcon({
-  className: "custom-marker",
-  html: `<div style="background-color: #EF4444; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><div style="width: 10px; height: 10px; background: white; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);"></div></div>`,
-  iconSize: [30, 30],
-  iconAnchor: [15, 30],
-})
+const libraries = ["places"]
 
-L.Marker.prototype.options.icon = DefaultIcon
+// Google Maps interaction component
+function LocationMarker({ pickupCoords, destinationCoords, onPickupChange, onDestinationChange, selectionMode, mapCenter }) {
+  const handleMapClick = useCallback(async (event) => {
+    const lat = event.latLng.lat()
+    const lng = event.latLng.lng()
 
-// Map interaction component
-function LocationMarker({ pickupCoords, destinationCoords, onPickupChange, onDestinationChange, selectionMode }) {
-  useMapEvents({
-    async click(e) {
-      const { lat, lng } = e.latlng
-
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-        const data = await res.json()
-        const address = data.display_name || `Lat: ${lat}, Lng: ${lng}`
-
-        if (selectionMode === "pickup") {
-          onPickupChange({ address, coordinates: { lat, lng } })
-        } else if (selectionMode === "destination") {
-          onDestinationChange({ address, coordinates: { lat, lng } })
-        }
-      } catch (error) {
-        console.error("Reverse geocoding failed:", error)
-        const address = `Lat: ${lat}, Lng: ${lng}`
-        if (selectionMode === "pickup") {
-          onPickupChange({ address, coordinates: { lat, lng } })
-        } else if (selectionMode === "destination") {
-          onDestinationChange({ address, coordinates: { lat, lng } })
-        }
+    // Reverse geocode using Nominatim (OpenStreetMap)
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+      )
+      const data = await response.json()
+      const address = data.display_name || `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
+      if (selectionMode === "pickup") {
+        onPickupChange({ address, coordinates: { lat, lng } })
+      } else if (selectionMode === "destination") {
+        onDestinationChange({ address, coordinates: { lat, lng } })
       }
-    },
-  })
+    } catch (error) {
+      console.error("Reverse geocoding failed:", error)
+      const address = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
+      if (selectionMode === "pickup") {
+        onPickupChange({ address, coordinates: { lat, lng } })
+      } else if (selectionMode === "destination") {
+        onDestinationChange({ address, coordinates: { lat, lng } })
+      }
+    }
+  }, [onPickupChange, onDestinationChange, selectionMode])
 
   return (
-    <>
-      {pickupCoords.lat !== 0 && <Marker position={[pickupCoords.lat, pickupCoords.lng]} icon={PickupIcon} />}
-      {destinationCoords.lat !== 0 && (
-        <Marker position={[destinationCoords.lat, destinationCoords.lng]} icon={DestinationIcon} />
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={
+        pickupCoords.lat !== 0
+          ? pickupCoords
+          : destinationCoords.lat !== 0
+          ? destinationCoords
+          : mapCenter
+      }
+      zoom={13}
+      onClick={handleMapClick}
+      options={{
+        zoomControl: true,
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: true,
+      }}
+    >
+      {pickupCoords.lat !== 0 && (
+        <Marker
+          position={pickupCoords}
+          icon={{
+            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+              <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" fill="#3B82F6" stroke="white" stroke-width="3"/>
+                <circle cx="20" cy="20" r="8" fill="white"/>
+              </svg>
+            `),
+            scaledSize: new window.google.maps.Size(40, 40),
+            anchor: new window.google.maps.Point(20, 40),
+          }}
+        />
       )}
-    </>
+      {destinationCoords.lat !== 0 && (
+        <Marker
+          position={destinationCoords}
+          icon={{
+            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+              <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" fill="#EF4444" stroke="white" stroke-width="3"/>
+                <circle cx="20" cy="20" r="8" fill="white"/>
+              </svg>
+            `),
+            scaledSize: new window.google.maps.Size(40, 40),
+            anchor: new window.google.maps.Point(20, 40),
+          }}
+        />
+      )}
+    </GoogleMap>
   )
 }
 
@@ -206,6 +243,7 @@ export default function MobileHome() {
   // Location states
   const [currentLocation, setCurrentLocation] = useState("")
   const [destination, setDestination] = useState("")
+  const [distance, setDistance] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
   const [isLocating, setIsLocating] = useState(false)
   const [locationPermission, setLocationPermission] = useState(false)
@@ -214,7 +252,7 @@ export default function MobileHome() {
   const [selectionMode, setSelectionMode] = useState("pickup") // 'pickup' or 'destination'
   const [pickupCoords, setPickupCoords] = useState({ lat: 0, lng: 0 })
   const [destinationCoords, setDestinationCoords] = useState({ lat: 0, lng: 0 })
-  const [mapCenter, setMapCenter] = useState([23.1765, 75.7885]) // Ujjain coordinates
+  const [mapCenter, setMapCenter] = useState({ lat: 23.1765, lng: 75.7885 }) // Ujjain coordinates
   const [selectedTransport, setSelectedTransport] = useState("cab")
   const [transport_id, setTransport_id] = useState("68e3627f58138fe47e4e56fc")
 
@@ -289,7 +327,7 @@ export default function MobileHome() {
         const { latitude, longitude } = position.coords
         setUserLocation({ lat: latitude, lng: longitude })
         setPickupCoords({ lat: latitude, lng: longitude })
-        setMapCenter([latitude, longitude])
+        setMapCenter({ lat: latitude, lng: longitude })
 
         try {
           const response = await fetch(
@@ -331,14 +369,12 @@ export default function MobileHome() {
     setDestinationCoords(locationData.coordinates)
   }
 
-  const calculateFare = (transportType = selectedTransport) => {
+  const calculateFare = useCallback((transportType = selectedTransport, dist = distance || 0) => {
     const transport = transportOptions.find(option => option.name.toLowerCase() === transportType.toLowerCase())
     if (!transport) return 0
 
-    const estimatedDistance = haversineDistance(pickupCoords, destinationCoords)
-    return Math.floor((transport.baseFare + estimatedDistance * transport.perKm), 2)
-  }
-
+    return Math.floor((transport.baseFare + dist * transport.perKm), 2)
+  }, [selectedTransport, distance])
   const getFilteredResults = () => {
     if (!searchTerm) return []
 
@@ -423,7 +459,7 @@ export default function MobileHome() {
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 2000)
+    const timer = setTimeout(() => setIsLoading(false), 500)
     return () => clearTimeout(timer)
   }, [])
 
@@ -446,6 +482,14 @@ export default function MobileHome() {
       setFilteredResults([])
     }
   }, [searchTerm, activeTab, budget, passengers, cars, hotels, places])
+
+  // Calculate distance when coordinates change
+  useEffect(() => {
+    if (pickupCoords.lat !== 0 && destinationCoords.lat !== 0) {
+      const dist = haversineDistance(pickupCoords, destinationCoords)
+      setDistance(Math.floor(dist,2))
+    }
+  }, [pickupCoords, destinationCoords])
 
   return (
     <div className="min-h-screen bg-background">
@@ -547,24 +591,14 @@ export default function MobileHome() {
                     </p>
                   </div>
 
-                  <MapContainer
-                    center={mapCenter}
-                    zoom={13}
-                    className="h-64 w-full rounded-xl border-2 border-blue-200 shadow-md"
-                    style={{ zIndex: 1 }}
-                  >
-                    <TileLayer
-                      attribution="&copy; OpenStreetMap contributors"
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    <LocationMarker
-                      pickupCoords={pickupCoords}
-                      destinationCoords={destinationCoords}
-                      onPickupChange={handlePickupChange}
-                      onDestinationChange={handleDestinationChange}
-                      selectionMode={selectionMode}
-                    />
-                  </MapContainer>
+                  <LocationMarker
+                    pickupCoords={pickupCoords}
+                    destinationCoords={destinationCoords}
+                    onPickupChange={handlePickupChange}
+                    onDestinationChange={handleDestinationChange}
+                    selectionMode={selectionMode}
+                    mapCenter={mapCenter}
+                  />
 
                   {/* Map Legend */}
                   <div className="flex items-center justify-center space-x-4 mt-2 text-xs">
@@ -629,7 +663,7 @@ export default function MobileHome() {
                   <span className="text-orange-600 font-bold text-lg">₹{calculateFare()}</span>
                 </div>
                 <p className="text-xs text-gray-500">
-                  {transportOptions.find(t => t.id === selectedTransport)?.name} • Approximate cost
+                  {/* {transportOptions.find(t => t.id === selectedTransport)?.name} */} {distance}km • Approximate distance 
                 </p>
               </motion.div>
             )}
@@ -683,6 +717,11 @@ export default function MobileHome() {
             </motion.div>
           )}
         </div>
+      </div>
+
+      {/* Ad Carousel below instant ride booking */}
+      <div className="md:px-4 px-2 py-4">
+        <AdCarousel />
       </div>
 
       {/* Rest of your existing code remains the same... */}
@@ -774,7 +813,7 @@ export default function MobileHome() {
  {/* <div className="fixed">
   <InstallPWA />
  </div> */}
-      <AnimatePresence>
+    {/*   <AnimatePresence>
         {searchTerm && filteredResults.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -824,7 +863,7 @@ export default function MobileHome() {
           </motion.div>
         )}
       </AnimatePresence>
-
+ */}
       <div className="md:px-4 px-2 py-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">Popular Car Rentals</h2>
@@ -887,7 +926,7 @@ export default function MobileHome() {
                     </div>
                     <div className="flex items-center justify-center">
                       <Link href={`/booking?car=${car._id}`}>
-                        <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
+                        <button className="px-4 mb-1 md:py-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
                           Book Now
                         </button>
                       </Link>
@@ -971,7 +1010,7 @@ export default function MobileHome() {
                       </div>
                       <div className="flex items-center justify-center">
                         <Link href={`/booking?hotel=${hotel._id}`}>
-                          <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
+                          <button className="px-4 mb-1 md:py-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
                             Book Now
                           </button>
                         </Link>
@@ -1033,9 +1072,9 @@ export default function MobileHome() {
                   </div>
                   <div className="flex items-center justify-center">
                     <Link href={`/places/${places[0]?._id}`}>
-                      <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base w-full">
-                        Learn More
-                      </button>
+                      <button className="px-4 mb-1 md:py-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
+                            Learn More
+                          </button>
                     </Link>
                   </div>
                 </div>
@@ -1071,9 +1110,10 @@ export default function MobileHome() {
                     <p className="text-xs text-muted-foreground md:mb-4 mb-1 line-clamp-2">{place.description}</p>
                     <div className="flex items-center justify-center">
                       <Link href={`/places/${place._id}`}>
-                        <button className="px-2 mb-1 md:py-3 py-0.5 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base w-full">
-                          Learn More
-                        </button>
+                       
+                        <button className="px-4 mb-1 md:py-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
+                             Learn More
+                          </button>
                       </Link>
                     </div>
                   </div>

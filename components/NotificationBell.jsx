@@ -35,15 +35,18 @@ export default function NotificationBell() {
 
   const loadNotifications = async () => {
     if (!user?._id) return
-    
+
     try {
       setIsLoading(true)
-     // const response = await getUserNotifications(user._id)
-console.log('notificaitons', user.notifications);
+      // Fetch fresh notifications from server
+      const response = await getUserNotifications(user._id)
+      console.log('notifications from server', response.data.notifications);
 
-      setNotifications(user?.notifications?.reverse() || [])
+      setNotifications(response.data.notifications?.reverse() || [])
     } catch (error) {
       console.error("Error loading notifications:", error)
+      // Fallback to user.notifications if API fails
+      setNotifications(user?.notifications?.reverse() || [])
       toast({
         title: "Error",
         description: "Failed to load notifications",

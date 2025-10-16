@@ -3,10 +3,10 @@ import Link from "next/link"
 
 export default function About() {
   const stats = [
-    { icon: <FaUsers />, number: "10,000+", label: "Happy Travelers" },
-    { icon: <FaCar />, number: "500+", label: "Cars Available" },
-    { icon: <FaHotel />, number: "200+", label: "Partner Hotels" },
-    { icon: <FaAward />, number: "5", label: "Years Experience" },
+    { icon: <FaUsers />, number: "400+", label: "Happy Customers" },
+    { icon: <FaCar />, number: "50+", label: "Daily Bookings" },
+    { icon: <FaHotel />, number: "20+", label: "Partner Hotels" },
+    { icon: <FaAward />, number: "1", label: "Year Experience" },
   ]
 
   const values = [
@@ -38,35 +38,39 @@ export default function About() {
 
   const team = [
     {
-      name: "Rajesh Sharma",
+      name: "Farukh Patel",
       position: "Founder & CEO",
-      image: "/placeholder.svg?height=200&width=200",
-      description: "A devoted follower of Lord Mahakal with 15+ years in travel industry.",
-    },
-    {
-      name: "Priya Gupta",
-      position: "Operations Manager",
       image: "/placeholder.svg?height=200&width=200",
       description: "Expert in hospitality management ensuring smooth travel experiences.",
     },
     {
-      name: "Amit Patel",
-      position: "Tour Guide Coordinator",
+      name: "Momin Patel",
+      position: "Co-Founder",
       image: "/placeholder.svg?height=200&width=200",
-      description: "Local expert with deep knowledge of Ujjain temples and traditions.",
+      description: "Passionate about creating memorable travel experiences for pilgrims.",
+    },
+    {
+      name: "Aamin Patel",
+      position: "Co-Founder",
+      image: "/placeholder.svg?height=200&width=200",
+      description: "Dedicated to providing exceptional customer service and support.",
     },
   ]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
-
+      {/* SEO Meta Tags would be added in the Head component in your layout */}
+      
       {/* Hero Section */}
-      <section className="relative py-20  bg-gradient-to-r from-green-600 to-blue-600  text-white">
+      <section className="relative py-20 bg-gradient-to-r from-green-600 to-blue-600 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">About Ujjain Travel</h1>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6">About Safar Sathi</h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
             Your trusted companion for exploring the sacred city of Ujjain, where spirituality meets exceptional service
           </p>
+          <div className="mt-6 text-lg">
+            <p>Registered under: <strong>AMF Enterprises</strong></p>
+          </div>
         </div>
       </section>
 
@@ -93,43 +97,44 @@ export default function About() {
               <h2 className="text-4xl font-bold text-gray-800 mb-6">Our Story</h2>
               <div className="space-y-6 text-gray-700 leading-relaxed">
                 <p>
-                  Founded in 2019 by a group of devoted pilgrims, Ujjain Travel was born from a deep understanding of
-                  the spiritual significance of Ujjain and the challenges faced by travelers visiting this sacred city.
+                  Founded in 2023 by Farukh Patel, Safar Sathi (registered under AMF Enterprises) was born from a deep 
+                  understanding of the spiritual significance of Ujjain and the transportation challenges faced by travelers 
+                  visiting this sacred city.
                 </p>
                 <p>
-                  Our founder, Rajesh Sharma, after multiple visits to Mahakaleshwar Temple, realized the need for a
-                  reliable, respectful, and comprehensive travel service that understands the spiritual nature of the
-                  journey to Ujjain.
+                  Our founder, Farukh Patel, after taking multiple rides in Ujjain, realized the need for a reliable, 
+                  respectful, and comprehensive travel service that understands the spiritual nature of the journey to Ujjain 
+                  while providing comfortable and affordable transportation solutions.
                 </p>
                 <p>
-                  Today, we have served over 10,000 pilgrims and travelers, helping them experience the divine energy of
-                  Ujjain while ensuring their comfort, safety, and spiritual fulfillment.
+                  Today, we have served over 400+ pilgrims and travelers, helping them experience the divine energy of
+                  Ujjain while ensuring their comfort, safety, and spiritual fulfillment through our reliable cab services.
                 </p>
                 <p>
                   We believe that every journey to Ujjain is sacred, and we are honored to be part of your spiritual
-                  experience.
+                  experience as your trusted "Safar Sathi" (Travel Companion).
                 </p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <img
                 src="/tower.jpeg"
-                alt="Mahakaleshwar Temple"
+                alt="Mahakaleshwar Temple Ujjain"
                 className="rounded-3xl shadow-lg"
               />
               <img
                 src="/mahakal5.jpeg"
-                alt="Ujjain Ghat"
+                alt="Ujjain Ghat Spiritual Journey"
                 className="rounded-3xl shadow-lg mt-8"
               />
               <img
                 src="/abt1.jpeg"
-                alt="Temple Rituals"
+                alt="Ujjain Temple Rituals"
                 className="rounded-3xl shadow-lg -mt-8"
               />
               <img
                 src="/ic1.png"
-                alt="Spiritual Journey"
+                alt="Safar Sathi Travel Services Ujjain"
                 className="rounded-3xl h-96 object-contain shadow-lg bg-gradient-to-b from-teal-100 via-sky-400 to-teal-400"
               />
             </div>
@@ -174,7 +179,7 @@ export default function About() {
               <div key={index} className="card p-8 text-center">
                 <img
                   src={member.image || "/placeholder.svg"}
-                  alt={member.name}
+                  alt={`${member.name} - ${member.position} at Safar Sathi`}
                   className="w-32 h-32 rounded-full mx-auto mb-6 object-cover"
                 />
                 <h3 className="text-xl font-bold text-gray-800 mb-2">{member.name}</h3>
@@ -191,9 +196,20 @@ export default function About() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-8">Our Mission</h2>
           <p className="text-xl md:text-2xl max-w-4xl mx-auto leading-relaxed mb-8">
-            To provide exceptional travel services that honor the spiritual significance of Ujjain while ensuring
+            To provide exceptional cab services that honor the spiritual significance of Ujjain while ensuring
             comfort, safety, and authentic experiences for every pilgrim and traveler.
           </p>
+          
+          {/* Contact Information */}
+          <div className="mb-8 p-6 bg-white bg-opacity-20 rounded-2xl max-w-2xl mx-auto">
+            <h3 className="text-2xl font-bold mb-4">Contact Us</h3>
+            <div className="text-xl font-semibold">
+              <p>Phone: +91 XXXXX XXXXX</p>
+              <p className="mt-2">Email: info@safarsathi.com</p>
+            </div>
+            <p className="mt-4 text-lg">We're available 24/7 to assist you with your travel needs</p>
+          </div>
+
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/contact"
@@ -210,7 +226,6 @@ export default function About() {
           </div>
         </div>
       </section>
-
     </div>
   )
 }

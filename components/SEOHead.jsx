@@ -1,11 +1,11 @@
 import Head from "next/head"
 
 export default function SEOHead({
-  title = "Ujjain Travel - Sacred City Explorer",
-  description = "Explore the sacred city of Ujjain with our comprehensive travel services. Book cars, hotels, and discover holy temples with expert guidance.",
-  keywords = "ujjain travel, mahakaleshwar temple, ujjain hotels, car rental ujjain, ujjain tourism, kumbh mela, jyotirlinga, madhya pradesh travel",
+  title = "Safar Sathi - Your Travel Companion",
+  description = "Discover amazing destinations across India with Safar Sathi. Book cars, hotels, and explore places with expert guidance.",
+  keywords = "safar sathi, travel, hotels, car rental, tourism, india travel",
   image = "/placeholder.svg?height=630&width=1200",
-  url = "https://ujjaintravel.com",
+  url = "https://safarsathi.com",
 }) {
   return (
     <Head>

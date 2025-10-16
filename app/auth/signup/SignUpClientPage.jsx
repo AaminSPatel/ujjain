@@ -24,7 +24,7 @@ export default function SignUpClientPage() {
     password: "",
     confirmPassword: "",
     role: "user",
-    referralCode: "",
+    referrer: "",
     // Driver specific fields
     address: "",
     driverLicense: {
@@ -46,7 +46,7 @@ export default function SignUpClientPage() {
   useEffect(() => {
     const refCode = searchParams.get("ref")
     if (refCode) {
-      setFormData((prev) => ({ ...prev, referralCode: refCode }))
+      setFormData((prev) => ({ ...prev, referrer: refCode }))
     }
   }, [searchParams])
 
@@ -139,8 +139,9 @@ export default function SignUpClientPage() {
       email: formData.email,
       mobile: formData.mobile,
       password: formData.password,
+      passwordConfirm: formData.confirmPassword,
       role: userType,
-      referralCode: formData.referralCode,
+      referrer: formData.referrer,
       ...(userType === "driver" && {
         address: formData.address,
         driverLicense: formData.driverLicense,
@@ -149,15 +150,15 @@ export default function SignUpClientPage() {
     }
  try {
    // Simulate API call
-    signUp(signupData)
+    await signUp(signupData)
     setTimeout(() => {
       setIsLoading(false)
       console.log("Sign up attempt:", signupData)
-      alert(`${userType === "driver" ? "Driver" : "User"} account created successfully!`)
+      alert(`${userType === "driver" ? "Driver" : userType === "hotel_manager" ? "Hotel Manager" : "User"} account created successfully!`)
     }, 2000)
  } catch (error) {
   console.log(error);
-  
+
  }
    
   }
@@ -237,7 +238,7 @@ export default function SignUpClientPage() {
                   <User className="h-8 w-8 text-orange-500" />
                   <div className="text-left">
                     <div className="font-semibold">Customer Registration</div>
-                    <div className="text-sm text-muted-foreground">Book rides and explore Ujjain</div>
+                    <div className="text-sm text-muted-foreground">Book rides and tours</div>
                   </div>
                 </Button>
               </motion.div>
@@ -255,6 +256,23 @@ export default function SignUpClientPage() {
                   <div className="text-left">
                     <div className="font-semibold">Driver Registration</div>
                     <div className="text-sm text-muted-foreground">Join as a driver and earn money</div>
+                  </div>
+                </Button>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  onClick={() => setUserType("hotel_manager")}
+                  className="w-full h-20 flex flex-col items-center justify-center gap-2 py-4"
+                  variant="outline"
+                >
+                  <MapPin className="h-8 w-8 text-orange-500" />
+                  <div className="text-left">
+                    <div className="font-semibold">Hotel Manager Registration</div>
+                    <div className="text-sm text-muted-foreground">Register as hotel owner.</div>
                   </div>
                 </Button>
               </motion.div>
@@ -314,11 +332,13 @@ export default function SignUpClientPage() {
               </div>
             </div>
             <CardTitle className="text-2xl font-bold">
-              {userType === "driver" ? "Driver Registration" : "Customer Registration"}
+              {userType === "driver" ? "Driver Registration" : userType === "hotel_manager" ? "Hotel Manager Registration" : "Customer Registration"}
             </CardTitle>
             <CardDescription>
-              {userType === "driver" 
-                ? "Join our driver community and start earning" 
+              {userType === "driver"
+                ? "Join our driver community and start earning"
+                : userType === "hotel_manager"
+                ? "Register as hotel manager and manage your properties"
                 : "Create your account to book rides in Ujjain"}
             </CardDescription>
           </CardHeader>
@@ -568,20 +588,20 @@ export default function SignUpClientPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+                <Label htmlFor="referrer">Referral Code (Optional)</Label>
                 <div className="relative">
                   <Input
-                    id="referralCode"
-                    name="referralCode"
+                    id="referrer"
+                    name="referrer"
                     type="text"
                     placeholder="Enter referral code"
-                    value={formData.referralCode}
+                    value={formData.referrer}
                     onChange={handleInputChange}
                     className="h-11 pl-12"
                   />
                   <Gift className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-orange-500" />
                 </div>
-                {formData.referralCode && (
+                {formData.referrer && (
                   <p className="text-sm text-green-600">🎉 You'll earn bonus points with this referral!</p>
                 )}
               </div>
@@ -605,7 +625,7 @@ export default function SignUpClientPage() {
                 /* disabled={isLoading} */
                 className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold"
               >
-                {isLoading ? "Creating Account..." : `Create ${userType === "driver" ? "Driver" : "Customer"} Account`}
+                {isLoading ? "Creating Account..." : `Create ${userType === "driver" ? "Driver" : userType === "hotel_manager" ? "Hotel Manager" : "Customer"} Account`}
               </Button>
             </form>
 

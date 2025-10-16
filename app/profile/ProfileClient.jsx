@@ -177,6 +177,14 @@ export default function ProfileClient() {
                     </div>
                   </Link>
                 )}
+                {userData.role === "hotel_manager" && (
+                  <Link href='/hotel-manage'>
+                    <div className="flex items-center bg-orange-600 py-1 px-2 rounded-2xl space-x-2">
+                      <Crown className="h-4 w-4" />
+                      <span>Hotel Manage</span>
+                    </div>
+                  </Link>
+                )}
                 <div className="flex items-center space-x-2">
                   <Mail className="h-4 w-4" />
                   <span>{userData.email}</span>
@@ -300,12 +308,12 @@ export default function ProfileClient() {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium">{booking.service.name || booking.service.model ||booking.service?.serviceName }</p>
+                          <p className="font-medium">{booking?.service?.name || booking.service?.model ||booking.service?.serviceName }</p>
                           <p className="text-sm text-gray-500">{formatDate(booking.createdAt)}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">₹{booking.payment.amount}</p>
+                        <p className="font-medium">₹{booking.payment?.amount}</p>
                         <Badge variant={booking.status === "confirmed" ? "default" : "secondary"}>
                           {booking.status}
                         </Badge>
@@ -321,7 +329,7 @@ export default function ProfileClient() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {userData.notifications?.slice(0, 3).map((notification) => (
-                    <div key={notification.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <div key={notification._id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                       <Bell className="h-5 w-5 text-blue-600 mt-0.5" />
                       <div className="flex-1">
                         <p className="font-medium">{notification.title}</p>
@@ -356,12 +364,12 @@ export default function ProfileClient() {
                         <div>
                           <h3 className="font-semibold">{booking?.service?.name || booking?.service?.model || booking?.service?.serviceName }</h3>
                           <p className="text-gray-500">
-                            {booking.serviceType} • {formatDate(booking.createdAt)}
+                            {booking?.serviceType} • {formatDate(booking?.createdAt)}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xl font-bold">₹{booking.payment.amount}</p>
+                        <p className="text-xl font-bold">₹{booking?.payment?.amount}</p>
                         <Badge
                           variant={
                             booking.status === "confirmed"
