@@ -20,8 +20,6 @@ import { MdPlace, MdHotel, MdMyLocation, MdMoped, MdElectricRickshaw } from "rea
 import { BiTab } from "react-icons/bi"
 import {
   GoogleMap,
-  LoadScript,
-  Autocomplete,
   Marker,
 } from "@react-google-maps/api"
 import { useUjjain } from "../context/UjjainContext"
@@ -207,7 +205,7 @@ const transportOptions = [
   },
   {
     id: "68e3627f58138fe47e4e56fe",
-    name: "Auto Rickshaw",
+    name: "E-Rickshaw",
     icon: <MdElectricRickshaw className="text-2xl" />,
     baseFare: 30,
     perKm: 10,
@@ -724,146 +722,7 @@ export default function MobileHome() {
         <AdCarousel />
       </div>
 
-      {/* Rest of your existing code remains the same... */}
-    {/*   <div className="flex justify-around mt-4 border-b border-border">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium transition-colors ${
-              activeTab === tab.id ? "text-orange-500 border-b-2 border-orange-500" : "text-muted-foreground"
-            }`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </div>
- */}
-      {/* <div className="p-4">
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center space-x-2 text-sm text-muted-foreground"
-        >
-          <FaFilter />
-          <span>Filters</span>
-          <FaChevronDown className={`transition-transform ${showFilters ? "rotate-180" : ""}`} />
-        </button>
-
-        {showFilters && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mt-4 space-y-4 overflow-hidden"
-          >
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Budget Range: ₹{budget[0]} - ₹{budget[1]}
-              </label>
-              <div className="space-y-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="100"
-                  value={budget[0]}
-                  onChange={(e) => setBudget([Number.parseInt(e.target.value), budget[1]])}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="100"
-                  value={budget[1]}
-                  onChange={(e) => setBudget([budget[0], Number.parseInt(e.target.value)])}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>₹0</span>
-                <span>₹10,000</span>
-              </div>
-            </div>
-
-            {activeTab === "cars" && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Passengers</label>
-                <div className="flex space-x-2">
-                  {["2", "4", "6", "Any"].map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => setPassengers(option === "Any" ? "" : option)}
-                      className={`flex-1 py-2 rounded-lg border transition-colors ${
-                        passengers === (option === "Any" ? "" : option)
-                          ? "bg-orange-500 text-white border-orange-500"
-                          : "bg-card border-border text-muted-foreground"
-                      }`}
-                    >
-                      {option === "Any" ? "Any" : `${option}+`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </div> */}
- {/* <div className="fixed">
-  <InstallPWA />
- </div> */}
-    {/*   <AnimatePresence>
-        {searchTerm && filteredResults.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="px-4 py-6 max-w-6xl mx-auto"
-          >
-            <h2 className="text-2xl font-bold mb-6 text-foreground">Search Results</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredResults.map((item) => (
-                <motion.div
-                  key={`${item.type}-${item._id}`}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-card rounded-xl p-4 shadow-sm border border-border hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start space-x-4">
-                    <img
-                      src={item.image?.url || item.images?.[0]?.url || "/placeholder.svg"}
-                      alt={item.model || item.name || item.title}
-                      className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-card-foreground truncate">
-                        {item.model || item.name || item.title}
-                      </h3>
-                      <div className="flex items-center mt-1">
-                        <FaStar className="text-orange-500 text-sm mr-1" />
-                        <span className="text-sm text-muted-foreground">{getAverageRating(item?.reviews)}</span>
-                        <span className="mx-2 text-muted-foreground">•</span>
-                        <span className="text-sm text-muted-foreground capitalize">{item.type}</span>
-                      </div>
-                      {(item.price || item.pricePerDay || item.entryFee) && (
-                        <div className="text-orange-600 font-bold mt-2">
-                          <FaRupeeSign className="inline mr-1 text-xs" />
-                          {parseNumber(item.pricePerDay ?? item.price ?? item.entryFee)}
-                        </div>
-                      )}
-                      {item.description && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
- */}
+     
       <div className="md:px-4 px-2 py-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">Popular Car Rentals</h2>
@@ -1042,7 +901,7 @@ export default function MobileHome() {
             Array.from({ length: 6 }).map((_, index) => <LoadingCard key={index} />)
           ) : (
             <>
-              <div className="bg-card md:hidden md:rounded-xl flex max-w-[100%] rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow">
+              <div className="bg-card md:hidden md:rounded-xl flex max-w-[100%] rounded-md shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow">
                 <img
                   src={places[0]?.images?.[0]?.url || places[0]?.image?.url || "/placeholder.svg" || "/placeholder.svg"}
                   alt={places[0]?.title}
@@ -1083,7 +942,7 @@ export default function MobileHome() {
                 <motion.div
                   key={place?._id}
                   variants={itemVariants}
-                  className="bg-card w-[31%] md:w-auto md:rounded-xl rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
+                  className="bg-card w-[31%] md:w-auto md:rounded-xl rounded-md shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
                 >
                   <img
                     src={place?.images?.[0]?.url || place?.image?.url || "/placeholder.svg" || "/placeholder.svg"}
@@ -1212,7 +1071,7 @@ export default function MobileHome() {
             <FaPhone className="text-lg md:text-2xl animate-pulse mr-2 md:mr-3" />
             <div>
               <div className="text-sm md:text-lg font-semibold">24/7 Help Available</div>
-              <div className="text-white/90 text-xs md:text-base">Call: +91-9876543210</div>
+              <div className="text-white/90 text-xs md:text-base">Call: +91-{brand.mobile}</div>
             </div>
           </div>
           <div className="flex items-center">

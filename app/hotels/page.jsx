@@ -36,8 +36,8 @@ useEffect(()=>{
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
 
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-r from-green-600 to-blue-600 text-white">
-        <div className="container mx-auto px-4 text-center">
+      <section className="relative  text-white bg-cover" style={{backgroundImage:`url('./bg2.png')`}}>
+        <div className="container mx-auto px-2 py-12 text-center bg-gradient-to-t from-slate-900/40 to-slate-900/40">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">Premium Hotels in Ujjain</h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
             Stay close to sacred temples with our handpicked hotels offering comfort, convenience, and spiritual

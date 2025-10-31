@@ -223,8 +223,8 @@ export default function LogisticsClient() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-green-600 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+     <section className="relative  text-white bg-cover" style={{backgroundImage:`url('./bg3.png')`}}>
+        <div className="container mx-auto px-2 py-12 text-center bg-gradient-to-t from-slate-900/40 to-slate-900/40">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}

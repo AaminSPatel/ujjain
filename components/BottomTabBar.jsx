@@ -1,10 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { FaHome, FaCar, FaHotel, FaMapMarkerAlt, FaPhone, FaTruck } from "react-icons/fa"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FaHome,
+  FaCar,
+  FaHotel,
+  FaTruck,
+  FaCalendarAlt,
+} from "react-icons/fa";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useUjjain } from "./context/UjjainContext";
 
 export default function PwaBottomTabBar() {
   const [isPWA, setIsPWA] = useState(false);
@@ -13,9 +20,11 @@ export default function PwaBottomTabBar() {
     const checkPWA = () => {
       try {
         const isStandalone =
-          window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
+          window.matchMedia &&
+          window.matchMedia("(display-mode: standalone)").matches;
         const isFullscreen =
-          window.matchMedia && window.matchMedia("(display-mode: fullscreen)").matches;
+          window.matchMedia &&
+          window.matchMedia("(display-mode: fullscreen)").matches;
         const isNavigatorStandalone = window.navigator.standalone === true;
 
         setIsPWA(isStandalone || isFullscreen || isNavigatorStandalone);
@@ -26,7 +35,6 @@ export default function PwaBottomTabBar() {
 
     checkPWA();
 
-    // Recheck on relevant events
     window.addEventListener("appinstalled", checkPWA);
     window.addEventListener("resize", checkPWA);
     window.addEventListener("visibilitychange", checkPWA);
@@ -42,29 +50,48 @@ export default function PwaBottomTabBar() {
   return <BottomTabBar />;
 }
 
- function BottomTabBar() {
-  const [isVisible, setIsVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
-  const pathname = usePathname()
+function BottomTabBar() {
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useUjjain();
 
   const tabs = [
     { icon: FaHome, label: "Home", href: "/" },
     { icon: FaCar, label: "Cars", href: "/cars" },
     { icon: FaHotel, label: "Hotels", href: "/hotels" },
-    { icon: FaMapMarkerAlt, label: "Places", href: "/places" },
-    { icon: FaTruck, label: "Logisticks", href: "/logistics" },
-  ]
+    { icon: FaCalendarAlt, label: "Bookings", action: "bookings" },
+    { icon: FaTruck, label: "Logistics", href: "/logistics" },
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY
-      setIsVisible(currentScrollY < lastScrollY || currentScrollY < 100)
-      setLastScrollY(currentScrollY)
-    }
+      const currentScrollY = window.scrollY;
+      setIsVisible(currentScrollY < lastScrollY || currentScrollY < 100);
+      setLastScrollY(currentScrollY);
+    };
 
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [lastScrollY])
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
+  // ✅ Function to handle role-based navigation
+  const handleBookingsClick = () => {
+    if (!user) return; // Not logged in, do nothing or show login
+
+    const role = user?.role?.toLowerCase();
+
+    if (role === "hotel_manager") {
+      router.push("/hotel-manage");
+    } else if (role === "driver") {
+      router.push("/driver");
+    } else if (role === "admin" || role === "user") {
+      router.push("/active-booking");
+    } else {
+      router.push("/active-booking"); // fallback
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -79,8 +106,55 @@ export default function PwaBottomTabBar() {
           <div className="bg-white/95 backdrop-blur-lg border-t border-gray-200 px-2 py-2">
             <div className="flex justify-around items-center">
               {tabs.map((tab, index) => {
-                const isActive = pathname === tab.href
-                const Icon = tab.icon
+                const isActive = pathname === tab.href;
+                const Icon = tab.icon;
+
+                if (tab.action === "bookings") {
+                  return (
+                    <button
+                      key={index}
+                      onClick={handleBookingsClick}
+                      className="relative"
+                      disabled={!user}
+                    >
+                      <motion.div
+                        whileTap={{ scale: 0.9 }}
+                        className={`flex flex-col w-12 items-center justify-center p-2 rounded-2xl transition-all duration-300 ${
+                          isActive ? "bg-orange-100" : "hover:bg-gray-100"
+                        } ${!user ? "opacity-50" : ""}`}
+                      >
+                        <motion.div
+                          animate={{
+                            scale: isActive ? 1.2 : 1,
+                            color: isActive ? "#f97316" : "#6b7280",
+                          }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        >
+                          <Icon className="text-xl" />
+                        </motion.div>
+                        <motion.span
+                          animate={{
+                            fontSize: isActive ? "10px" : "9px",
+                            color: isActive ? "#f97316" : "#6b7280",
+                            fontWeight: isActive ? "600" : "400",
+                          }}
+                          className="mt-1"
+                        >
+                          {tab.label}
+                        </motion.span>
+
+                        {isActive && (
+                          <motion.div
+                            layoutId="activeTab"
+                            className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full"
+                            initial={false}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        )}
+                      </motion.div>
+                    </button>
+                  );
+                }
 
                 return (
                   <Link key={index} href={tab.href} className="relative">
@@ -120,12 +194,12 @@ export default function PwaBottomTabBar() {
                       )}
                     </motion.div>
                   </Link>
-                )
+                );
               })}
             </div>
           </div>
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

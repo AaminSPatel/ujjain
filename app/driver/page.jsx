@@ -1,6 +1,7 @@
  "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -13,12 +14,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, ResponsiveContainer, BarChart, Bar } from "recharts"
-import { Star, Trophy, Car, CreditCard, Wallet2, Ticket, CalendarDays, MapPin, MessageSquare, Clock, CheckCircle, XCircle, Eye, Navigation } from "lucide-react"
+import { Star, Trophy, Car, CreditCard, Wallet2, Ticket, CalendarDays, MapPin, MessageSquare, Clock, CheckCircle, XCircle, Eye, Navigation, Route } from "lucide-react"
 import Image from "next/image"
 import { useUjjain } from '@/components/context/UjjainContext';
 import { useEffect } from "react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { BookingService, ReviewService } from '@/components/apiService'
 
 // NOTE: Replace sample data with your API/context data.
@@ -41,9 +43,13 @@ const reviewsSample = [
 ]
 
 export default function DriverPanelPage() {
+  const router = useRouter()
   const [tab, setTab] = useState("overview")
+  const [bookingSubTab, setBookingSubTab] = useState("normal")
+  const [myBookingSubTab, setMyBookingSubTab] = useState("normal")
   const [driver, setDriver] = useState({})
   const [bookings, setBookings] = useState([])
+  const [myBookings, setMyBookings] = useState([])
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(false)
   const {user, formatDate} = useUjjain()
@@ -56,6 +62,7 @@ setDriver(user)
 
   useEffect(() => {
     fetchBookings()
+    fetchMyBookings()
   }, [])
 
   useEffect(() => {
@@ -72,6 +79,17 @@ setDriver(user)
       setBookings(data.bookings || [])
     } catch (error) {
       console.error('Error fetching bookings:', error)
+    }
+  }
+
+  const fetchMyBookings = async () => {
+    try {
+      console.log('Fetching my bookings...')
+      const data = await BookingService.getDriverAssignedBookings()
+      console.log('My bookings data:', data)
+      setMyBookings(data.bookings || [])
+    } catch (error) {
+      console.error('Error fetching my bookings:', error)
     }
   }
 
@@ -96,15 +114,53 @@ setDriver(user)
     }
   }
 
-  const updateBookingStatus = async (bookingId, status) => {
+  const updateBookingStatus = async (bookingId, status, booking = null) => {
     setLoading(true)
     try {
-      await BookingService.driverUpdateStatus(bookingId, status)
-      fetchBookings() // Refresh bookings
+      if (status === 'in_progress' && booking) {
+        // Get current driver location
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async (position) => {
+            const driverLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+
+            // Update booking status with driver location
+            await BookingService.driverUpdateStatus(bookingId, 'in_progress', {
+              driverLocation: {
+                coordinates: driverLocation,
+                lastUpdated: new Date(),
+              },
+            });
+
+            fetchBookings(); // Refresh bookings
+
+            // Redirect to active booking page immediately
+            router.push(`/active-booking/${bookingId}?role=driver`);
+          }, async (error) => {
+            console.error('Error getting location:', error);
+            // Still update status without location
+            await BookingService.driverUpdateStatus(bookingId, 'in_progress');
+            fetchBookings();
+            // Redirect to active booking page immediately
+            router.push(`/active-booking/${bookingId}?role=driver`);
+          });
+        } else {
+          // Fallback without location
+          await BookingService.driverUpdateStatus(bookingId, status);
+          fetchBookings();
+          // Redirect to active booking page immediately
+          router.push(`/active-booking/${bookingId}?role=driver`);
+        }
+      } else {
+        await BookingService.driverUpdateStatus(bookingId, status);
+        fetchBookings(); // Refresh bookings
+      }
     } catch (error) {
-      console.error('Error updating booking status:', error)
+      console.error('Error updating booking status:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -112,6 +168,20 @@ setDriver(user)
     const eligible = Math.max(driver?.wallet?.balance - 500, 0)
     return eligible
   }, [driver?.wallet?.balance])
+
+  // Check if driver has more than one incomplete booking
+  const hasMultipleIncompleteBookings = useMemo(() => {
+    const incompleteStatuses = ['accepted', 'in_progress', 'picked']
+    const incompleteBookings = myBookings.filter(booking =>
+      incompleteStatuses.includes(booking.status) && booking.assignedDriver === driver._id
+    )
+    return incompleteBookings.length > 1
+  }, [myBookings, driver._id])
+
+  // Check if driver is verified
+  const isDriverVerified = useMemo(() => {
+    return driver?.isVerified === true
+  }, [driver?.isVerified])
 
   return (
     <main className="p-4 md:p-6">
@@ -144,11 +214,12 @@ setDriver(user)
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="w-full justify-start overflow-x-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="bookings">Available Bookings</TabsTrigger>
+            <TabsTrigger value="my-bookings">My Bookings</TabsTrigger>
           {/*   <TabsTrigger value="wallet">Wallet</TabsTrigger> */}
             <TabsTrigger value="reviews">Ratings & Reviews</TabsTrigger>
             <TabsTrigger value="vehicle">Vehicle</TabsTrigger>
-            <TabsTrigger value="tokens">Tokens</TabsTrigger>
+            {/* <TabsTrigger value="tokens">Tokens</TabsTrigger> */}
           </TabsList>
 
           {/* Overview */}
@@ -207,6 +278,12 @@ setDriver(user)
               <CardHeader className="space-y-1">
                 <CardTitle>Available Bookings</CardTitle>
                 <CardDescription>Accept and manage car bookings</CardDescription>
+                <Tabs value={bookingSubTab} onValueChange={setBookingSubTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="normal">Normal Bookings</TabsTrigger>
+                    <TabsTrigger value="instant">Instant Bookings</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </CardHeader>
               <CardContent className="space-y-4">
                 {bookings.length === 0 ? (
@@ -215,7 +292,7 @@ setDriver(user)
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {bookings.filter((item)=> item.serviceType==='Car').map((booking) => (
+                    {bookings.filter((item)=> item.serviceType==='Car' && item.bookingType === bookingSubTab).map((booking) => (
                       <div key={booking._id} className="rounded-lg border p-3 md:p-4">
                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                           <div className="space-y-1">
@@ -224,6 +301,24 @@ setDriver(user)
                                 {booking.status.toUpperCase()}
                               </Badge>
                               <span className="text-sm text-muted-foreground">#{booking._id.slice(-6)}</span>
+                              <div className="w-full flex items-center justify-end ">
+                               {
+                                (driver._id === booking.assignedDriver && (booking.status === 'in_progress' || booking.status === 'picked' || booking.status === 'accepted' || booking.status === 'completed' )) &&
+                                   ( <button onClick={() => {
+                                    if(booking.status === 'accepted'){
+                                      updateBookingStatus(booking._id, 'in_progress', booking);
+                                    }
+                                    // Navigate to active booking page with driver role
+                                    if(driver._id === booking.assignedDriver && (booking.status === 'in_progress' || booking.status === 'picked' || booking.status === 'accepted' || booking.status === 'completed' ))
+                                    router.push(`/active-booking/${booking._id}?role=driver`);
+                                  }}
+                                  className="flex items-center px-2 py-1 rounded-xl bg-slate-500 text-white">
+                                    <Route className="h-4 w-4 mr-2" />
+                                    Track Now
+                                  </button>)
+                                  }
+                               
+                              </div>
                             </div>
                             <div className="text-sm md:text-base">
                               {booking.serviceType} • {booking.duration} hrs • {booking.distance} km
@@ -237,14 +332,54 @@ setDriver(user)
                           </div>
                           <div className="flex items-center gap-2">
                             {(!booking.isAssignedToMe && (booking.status === 'pending' || booking.status === 'confirmed')) ? (
-                              <Button
-                                size="sm"
-                                onClick={() => acceptBooking(booking._id)}
-                                disabled={loading}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Accept
-                              </Button>
+                              isDriverVerified ? (
+                                hasMultipleIncompleteBookings ? (
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        disabled={true}
+                                        variant="outline"
+                                      >
+                                        <CheckCircle className="h-4 w-4 mr-1" />
+                                        Accept
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                      <div className="text-sm">
+                                        You cannot accept new bookings while having more than one incomplete booking.
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => acceptBooking(booking._id)}
+                                    disabled={loading}
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Accept
+                                  </Button>
+                                )
+                              ) : (
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      disabled={true}
+                                      variant="outline"
+                                    >
+                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                      Accept
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent>
+                                    <div className="text-sm">
+                                      You need to be verified to accept bookings.
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+                              )
                             ) : (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -252,15 +387,27 @@ setDriver(user)
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                  <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'in-progress')}>
+                              <DropdownMenuContent>
+                                  <DropdownMenuItem onClick={() => {
+                                    updateBookingStatus(booking._id, 'in_progress', booking);
+                                    // Navigate to active booking page with driver role
+                                    router.push(`/active-booking/${booking._id}?role=driver`);
+                                  }}>
                                     <Clock className="h-4 w-4 mr-2" />
                                     Start Ride
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'completed')}>
-                                    <CheckCircle className="h-4 w-4 mr-2" />
-                                    Complete
-                                  </DropdownMenuItem>
+                                  {booking.status === 'in_progress' && (
+                                    <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'picked')}>
+                                      <CheckCircle className="h-4 w-4 mr-2" />
+                                      Mark as Picked
+                                    </DropdownMenuItem>
+                                  )}
+                                  {booking.status === 'picked' && (
+                                    <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'completed')}>
+                                      <CheckCircle className="h-4 w-4 mr-2" />
+                                      Complete
+                                    </DropdownMenuItem>
+                                  )}
                                   <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'cancelled')}>
                                     <XCircle className="h-4 w-4 mr-2" />
                                     Cancel
@@ -278,10 +425,10 @@ setDriver(user)
                               <Navigation className="h-4 w-4 mr-1" />
                               Navigate
                             </Button>
-                            <Button size="sm" variant="outline">
+                            {/* <Button size="sm" variant="outline">
                               <MessageSquare className="h-4 w-4 mr-1" />
                               Contact
-                            </Button>
+                            </Button> */}
                           </div>
                         </div>
                       </div>
@@ -292,56 +439,124 @@ setDriver(user)
             </Card>
           </TabsContent>
 
-           {/* Wallet */}
-       {/*   <TabsContent value="wallet" className="mt-4 space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Balance</CardTitle>
-                  <CardDescription>Available to withdraw</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="text-3xl font-bold">₹{driver?.wallet?.balance?.toLocaleString()}</div>
-                  <Button className="w-full">Withdraw</Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Pending</CardTitle>
-                  <CardDescription>Processing</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="text-3xl font-bold">₹{driver?.wallet?.pending?.toLocaleString()}</div>
-                  <Button className="w-full bg-transparent" variant="outline">
-                    View Payouts
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Earnings Trend</CardTitle>
-                  <CardDescription>Recent</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer
-                    config={{ earnings: { label: "Earnings", color: "hsl(var(--chart-1))" } }}
-                    className="h-[160px]"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={earningsData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Line type="monotone" dataKey="earnings" stroke="var(--color-earnings)" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </div>
+          {/* My Bookings */}
+          <TabsContent value="my-bookings" className="mt-4 space-y-4">
+            <Card>
+              <CardHeader className="space-y-1">
+                <CardTitle>My Bookings</CardTitle>
+                <CardDescription>Bookings assigned to you</CardDescription>
+                <Tabs value={myBookingSubTab} onValueChange={setMyBookingSubTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="normal">Normal Bookings</TabsTrigger>
+                    <TabsTrigger value="instant">Instant Bookings</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {myBookings.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No bookings assigned to you yet.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {myBookings.filter((item)=> item.serviceType==='Car' && item?.bookingType === myBookingSubTab).map((booking) => (
+                      <div key={booking._id} className="rounded-lg border p-3 md:p-4">
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={booking.status === 'pending' ? 'secondary' : 'default'}>
+                                {booking.status.toUpperCase()}
+                              </Badge>
+                              <span className="text-sm text-muted-foreground">#{booking._id.slice(-6)}</span>
+                              <div className="w-full flex items-center justify-end ">
+                               {
+                                (driver._id === booking.assignedDriver && (booking.status === 'in_progress' || booking.status === 'picked' || booking.status === 'accepted' || booking.status === 'completed' )) &&
+                                   ( <button onClick={() => {
+                                    if(booking.status === 'accepted'){
+                                      updateBookingStatus(booking._id, 'in_progress', booking);
+                                    }
+                                    // Navigate to active booking page with driver role
+                                    if(driver._id === booking.assignedDriver && (booking.status === 'in_progress' || booking.status === 'picked' || booking.status === 'accepted' || booking.status === 'completed' ))
+                                    router.push(`/active-booking/${booking._id}?role=driver`);
+                                  }}
+                                  className="flex items-center px-2 py-1 rounded-xl bg-slate-500 text-white">
+                                    <Route className="h-4 w-4 mr-2" />
+                                    Track Now
+                                  </button>)
+                                  }
+
+                              </div>
+                            </div>
+                            <div className="text-sm md:text-base">
+                              {booking.serviceType} • {booking.duration} hrs • {booking.distance} km
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              <CalendarDays className="mr-1 inline-block h-3.5 w-3.5" />
+                              {formatDate(booking.createdAt)} • <MapPin className="mr-1 inline-block h-3.5 w-3.5" />
+                              Pickup: {booking.pickupLocation?.address || 'N/A'}
+                            </div>
+                            <div className="text-sm font-medium">₹{booking?.payment?.amount}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                {booking.status === 'accepted' && (
+                                  <DropdownMenuItem onClick={() => {
+                                    updateBookingStatus(booking._id, 'in_progress', booking);
+                                    // Navigate to active booking page with driver role
+                                    router.push(`/active-booking/${booking._id}?role=driver`);
+                                  }}>
+                                    <Clock className="h-4 w-4 mr-2" />
+                                    Start Ride
+                                  </DropdownMenuItem>
+                                )}
+                                {booking.status === 'in_progress' && (
+                                  <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'picked')}>
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Mark as Picked
+                                  </DropdownMenuItem>
+                                )}
+                                {booking.status === 'picked' && (
+                                  <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'completed')}>
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Complete
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onClick={() => updateBookingStatus(booking._id, 'cancelled')}>
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Cancel
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button size="sm" variant="secondary" onClick={() => {
+                              if (booking.pickupLocation?.coordinates) {
+                                const { lat, lng } = booking.pickupLocation.coordinates;
+                                const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                                window.open(url, '_blank');
+                              }
+                            }}>
+                              <Navigation className="h-4 w-4 mr-1" />
+                              Navigate
+                            </Button>
+                           {/*  <Button size="sm" variant="outline">
+                              <MessageSquare className="h-4 w-4 mr-1" />
+                              Contact
+                            </Button> */}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
- */}
+
           {/* Ratings & Reviews */}
           <TabsContent value="reviews" className="mt-4 space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

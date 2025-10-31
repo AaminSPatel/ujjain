@@ -88,7 +88,10 @@ export const BookingService = {
       },
       status: 'pending',
       isPaid: false,
-      isCancelled: false
+      isCancelled: false,
+      bookingType: bookingData.bookingType,
+      isInstantBooking: bookingData.isInstantBooking,
+      transportType: bookingData.transportType
     };
 
     console.log('Sending transformed data to backend:', transformedData);
@@ -135,8 +138,10 @@ export const BookingService = {
   },
 
   // Legacy method for backward compatibility
-  updateBookingStatus: async (id, status) => {
-    return (await api.put(`/bookings/${id}`, { status })).data;
+  updateBookingStatus: async (id, status, otp = null) => {
+    const data = { status };
+    if (otp) data.otp = otp;
+    return (await api.put(`/bookings/${id}`, data)).data;
   },
 
   // Get bookings by service type and service IDs (for hotel managers)
@@ -154,8 +159,9 @@ export const BookingService = {
     return (await api.post(`/bookings/${bookingId}/driver-accept`)).data;
   },
 
-  driverUpdateStatus: async (bookingId, status) => {
-    return (await api.put(`/bookings/${bookingId}/driver-status`, { status })).data;
+  driverUpdateStatus: async (bookingId, status, additionalData = {}) => {
+    const data = { status, ...additionalData };
+    return (await api.put(`/bookings/${bookingId}/driver-status`, data)).data;
   },
 
   driverShareLocation: async (bookingId, latitude, longitude) => {
@@ -166,9 +172,25 @@ export const BookingService = {
     return (await api.get('/bookings/driver/bookings')).data;
   },
 
+  getDriverAssignedBookings: async () => {
+    return (await api.get('/bookings/driver/my-bookings')).data;
+  },
+
   // Live tracking for passengers
   getLiveTracking: async (bookingId) => {
     return (await api.get(`/bookings/${bookingId}/live-tracking`)).data;
+  },
+
+  // Update driver location
+  updateDriverLocation: async (bookingId, driverLocation) => {
+    console.log('api service driver location',driverLocation);
+
+    return (await api.put(`/bookings/${bookingId}/driver-location`, {lat: driverLocation.lat,lng: driverLocation.lng })).data;
+  },
+
+  // Update booking locations
+  updateBookingLocations: async (bookingId, locationData) => {
+    return (await api.put(`/bookings/${bookingId}/locations`, locationData)).data;
   }
 };
 
@@ -180,7 +202,9 @@ export const UserService = {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
-    return response.data;
+    //console.log('api service',response);
+    
+    return response;
   },
 
   signIn: async (credentials) => {

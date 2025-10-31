@@ -29,11 +29,12 @@ export default function HotelManagePage() {
   const [localLoading, setLocalLoading] = useState(false)
 
   useEffect(() => {
-    if (hotels.length > 0) {
-      setAllHotels(hotels)
+    if (hotels.length > 0 && user) {
+      const userHotels = hotels.filter(hotel => hotel.owner === user._id)
+      setAllHotels(userHotels)
       setLocalLoading(false)
     }
-  }, [hotels])
+  }, [hotels, user])
 
   useEffect(() => {
     const filtered = allHotels.filter(
@@ -127,7 +128,7 @@ export default function HotelManagePage() {
           <p className="text-muted-foreground">Manage your hotels and view bookings</p>
         </div>
         <Button onClick={() => setIsFormOpen(true)} disabled={contextLoading}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="h-4 w-4" />
           Add Hotel
         </Button>
       </div>

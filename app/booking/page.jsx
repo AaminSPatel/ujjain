@@ -73,23 +73,29 @@ const transportOptions = [
 ]
 
 function BookingContent() {
-  const { addBooking, cars, hotels, logistics, user } = useUjjain()
+  const {brand, addBooking, cars, hotels, logistics, user } = useUjjain()
   const searchParams = useSearchParams()
   const [bookingType, setBookingType] = useState("Car")
   const [step, setStep] = useState(1)
+  const totalSteps = 4
+  const [maxRooms, setMaxRooms] = useState(5)
+  const [maxPassengers, setMaxPassengers] = useState(8)
+
   const [bookingId, setBookingId] = useState(null)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [isPaymentCompleted, setIsPaymentCompleted] = useState(false)
   const [pickup, setPickup] = useState("")
   const [destination, setDestination] = useState("")
   const [isInstantBooking, setIsInstantBooking] = useState(false)
   const [selectedTransport, setSelectedTransport] = useState("cab")
   const [selectedVehicleId, setSelectedVehicleId] = useState("")
-  
+  const [selectedRoom, setSelectedRoom] = useState(null)
+
   const [bookingData, setBookingData] = useState(() => {
     // Set default dates
     const today = new Date().toISOString().split('T')[0];
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
+
     return {
       serviceType: "Car",
       service: "",
@@ -118,7 +124,7 @@ function BookingContent() {
       },
       specialRequests: "",
       payment: {
-        method: "razorpay",
+        method: "cash_on_drop",
         amount: 0,
         status: "pending"
       },
@@ -274,6 +280,11 @@ function BookingContent() {
       }))
       setStep(2)
     }
+
+    // Set selected room if roomId is provided
+    if (roomId && !isInstantBooking) {
+      setSelectedRoom(roomId)
+    }
   }, [searchParams, isInstantBooking])
 
   useEffect(() => {
@@ -282,9 +293,9 @@ function BookingContent() {
       setAvailableServices([])
       const transport = transportOptions.find(t => t.id === selectedTransport)
 
-      // Calculate dynamic price based on distance for instant bookings
-      let calculatedPrice = bookingData.payment.amount // Default from URL or initial
-      if (transport && bookingData.pickupLocation.coordinates.lat && bookingData.pickupLocation.coordinates.lng &&
+      // Use fare from URL if available, otherwise calculate based on distance
+      let calculatedPrice = bookingData.payment.amount > 0 ? bookingData.payment.amount : 0
+      if (calculatedPrice === 0 && transport && bookingData.pickupLocation.coordinates.lat && bookingData.pickupLocation.coordinates.lng &&
           bookingData.dropoffLocation.coordinates.lat && bookingData.dropoffLocation.coordinates.lng) {
         const distance = haversineDistance(
           bookingData.pickupLocation.coordinates,
@@ -346,9 +357,9 @@ function BookingContent() {
         const service = hotels.find(hotel => hotel._id === bookingData.service)
         if (service) {
           setSelectedService(service)
-          // Calculate hotel price based on days
+          // Calculate hotel price based on days and rooms
           const days = Math.max(1, Math.ceil((new Date(bookingData.endDate) - new Date(bookingData.startDate)) / (1000 * 60 * 60 * 24)))
-          const price = (service.pricePerNight || service.price || 0) * days
+          const price = (service.pricePerNight || service.price || 0) * days * bookingData.rooms
           setBookingData(prev => ({
             ...prev,
             payment: {
@@ -387,7 +398,7 @@ function BookingContent() {
         }
       }
     }
-  }, [bookingType, cars, hotels, logistics, bookingData.service, isInstantBooking, selectedTransport, selectedVehicleId, bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates, bookingData.startDate, bookingData.endDate])
+  }, [bookingType, cars, hotels, logistics, bookingData.service, isInstantBooking, selectedTransport, selectedVehicleId, bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates, bookingData.startDate, bookingData.endDate, bookingData.rooms])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -460,7 +471,7 @@ function BookingContent() {
       }
 
       // Update user profile with personal information
-      try {
+     /*  try {
         const { UserService } = await import('@/components/apiService')
         await UserService.updateProfile({
           fullName: bookingData.personalInfo.fullname,
@@ -472,7 +483,7 @@ function BookingContent() {
       } catch (profileError) {
         console.error('Failed to update user profile:', profileError)
         // Continue with booking even if profile update fails
-      }
+      } */
 
       // Prepare booking data according to your schema (without personal info)
       const bookingPayload = {
@@ -512,15 +523,21 @@ function BookingContent() {
 
         // Instant booking flag
         isInstantBooking: isInstantBooking,
+        bookingType: isInstantBooking ? 'instant' : 'normal',
         transportType: isInstantBooking ? selectedTransport : undefined
       }
 
-      console.log('Submitting booking data:', bookingPayload)
+     // console.log('Submitting booking data:', bookingPayload)
 
       const result = await addBooking(bookingPayload)
       if (result && result._id) {
         setBookingId(result._id)
-        setStep(4) // Go to payment step
+        // If online payment, handle payment, else go to confirmation
+        if (bookingData.payment.method === "razorpay") {
+          await handleRazorpayPayment(result._id)
+        } else {
+          setStep(5) // Go to confirmation
+        }
       } else {
         console.error('Booking creation failed')
        // alert('Failed to create booking. Please try again.')
@@ -683,7 +700,7 @@ function BookingContent() {
             </p>
             <p className="text-blue-600">
               ₹{bookingData.payment.amount}
-              {isInstantBooking ? "" : `/${bookingType === "Hotel" ? "night" : bookingType === "Logistics" ? "trip" : "day"}`}
+              {isInstantBooking ? "" : bookingType === "Hotel" ? " total" : `/${bookingType === "Logistics" ? "trip" : "day"}`}
             </p>
             {isInstantBooking && (
               <p className="text-blue-600 text-sm mt-1">
@@ -853,6 +870,8 @@ function BookingContent() {
         </div>
       </div>
 
+
+
       <div className="flex justify-between">
         {!isInstantBooking && (
           <button
@@ -875,61 +894,61 @@ function BookingContent() {
   const renderStep3 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4">Personal Information</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-4">Booking Summary</h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-            <input
-              type="text"
-              name="personalInfo.fullname"
-              value={bookingData.personalInfo.fullname}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="Enter your full name"
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-6 ">
+     
+        {/* Payment Method Selection */}
+        <div className="bg-white rounded-3xl p-6 border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Choose Payment Method</h3>
+          <div className="space-y-3">
+            <label className="flex items-center p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-orange-300 transition-colors">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="cash"
+                checked={bookingData.payment.method === "cash"}
+                onChange={(e) => setBookingData(prev => ({
+                  ...prev,
+                  payment: { ...prev.payment, method: e.target.value }
+                }))}
+                className="text-orange-500 focus:ring-orange-500"
+              />
+              <div className="ml-3 flex items-center">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-green-600 font-bold">₹</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">Cash Payment</p>
+                  <p className="text-sm text-gray-600">Pay directly to the driver</p>
+                </div>
+              </div>
+            </label>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-            <input
-              type="email"
-              name="personalInfo.email"
-              value={bookingData.personalInfo.email}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="your@email.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number *</label>
-            <input
-              type="tel"
-              name="personalInfo.mobile"
-              value={bookingData.personalInfo.mobile}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="+91 9876543210"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
-            <input
-              type="text"
-              name="personalInfo.address"
-              value={bookingData.personalInfo.address}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="Your address"
-            />
+           
+            <label className="flex items-center p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-orange-300 transition-colors">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="razorpay"
+                checked={bookingData.payment.method === "razorpay"}
+                onChange={(e) => setBookingData(prev => ({
+                  ...prev,
+                  payment: { ...prev.payment, method: e.target.value }
+                }))}
+                className="text-orange-500 focus:ring-orange-500"
+              />
+              <div className="ml-3 flex items-center">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-blue-600 font-bold">💳</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">Online Payment</p>
+                  <p className="text-sm text-gray-600">Secure payment via Razorpay</p>
+                </div>
+              </div>
+            </label>
           </div>
         </div>
 
@@ -994,7 +1013,7 @@ function BookingContent() {
     </motion.div>
   )
 
-  const handleRazorpayPayment = async () => {
+  const handleRazorpayPayment = async (booking_id) => {
     try {
       setIsProcessingPayment(true)
 
@@ -1014,8 +1033,8 @@ function BookingContent() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
-          bookingId: bookingId,
-          amount: bookingData.payment.amount * 100, // Convert to paisa
+          bookingId: booking_id,
+          amount: bookingData.payment.amount , // Convert to paisa
         }),
       })
 
@@ -1037,16 +1056,16 @@ function BookingContent() {
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'Safar Sathi',
-        description: `Payment for ${isInstantBooking ? 'Transport' : bookingData.serviceType} Booking`,
-        order_id: orderData.id,
+        description: `Payment for ${isInstantBooking ? `Instant ${bookingData?.service?.name || bookingData?.service?.model || bookingData?.service?.serviceName}` : bookingData.serviceType + ' : '+ bookingData?.service?.name || bookingData?.service?.model || bookingData?.service?.serviceName} Booking`,
+        order_id: orderData.orderId,
         handler: async function (response) {
           // Handle successful payment
-          console.log('Razorpay success response:', response);
+        //  console.log('Razorpay success response:', response);
 
           // Validate that we have the payment_id (required field)
           if (!response.razorpay_payment_id) {
-            console.error('Missing required Razorpay payment_id:', response);
-            alert('Payment response incomplete. Please contact support.');
+          //  console.error('Missing required Razorpay payment_id:', response);
+          //  alert('Payment response incomplete. Please contact support.');
             setIsProcessingPayment(false);
             return;
           }
@@ -1059,31 +1078,33 @@ function BookingContent() {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
               },
               body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id || null,
+                razorpay_order_id: response.razorpay_order_id || orderData.orderId || null,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature || null,
-                bookingId: bookingId,
+                bookingId: bookingId || booking_id,
+                method:'razorpay'
               }),
             });
 
-            console.log('Verify payment response status:', verifyResponse.status);
+           // console.log('Verify payment response status:', verifyResponse.status);
 
             if (verifyResponse.ok) {
               const verifyData = await verifyResponse.json();
-              console.log('Payment verification successful:', verifyData);
+            //  console.log('Payment verification successful:', verifyData);
+              setIsPaymentCompleted(true);
               setStep(5); // Go to confirmation
             } else {
               const errorData = await verifyResponse.json();
-              console.error('Payment verification failed:', errorData);
+            //  console.error('Payment verification failed:', errorData);
 
               // Check for authentication errors in verification
               if (verifyResponse.status === 401) {
-                alert('Your session has expired. Please sign in again.');
+            //    alert('Your session has expired. Please sign in again.');
                 window.location.href = '/auth/signin';
                 return;
               }
 
-              alert(`Payment verification failed: ${errorData.error || 'Please contact support.'}`);
+             // alert(`Payment verification failed: ${errorData.error || 'Please contact support.'}`);
             }
           } catch (error) {
             console.error('Payment verification error:', error);
@@ -1186,7 +1207,7 @@ function BookingContent() {
             </div>
           )}
 
-          {bookingData.payment.method === "credit_card" && (
+     {/*      {bookingData.payment.method === "credit_card" && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Card Number *</label>
@@ -1265,7 +1286,7 @@ function BookingContent() {
               </p>
             </div>
           )}
-
+ */}
           {bookingData.payment.method === "cash" && (
             <div className="text-center py-8">
               <p className="text-gray-600">Cash payment will be collected at the time of service</p>
@@ -1385,7 +1406,7 @@ function BookingContent() {
           Book Another Service
         </button>
         <a
-          href="tel:+919876543210"
+          href={`tel:+91${brand.mobile}`}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-50 transition-colors duration-300"
         >
           Call Support
@@ -1403,7 +1424,7 @@ function BookingContent() {
       />
 
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-r from-orange-600 to-blue-600 text-white">
+      <section className="py-16 bg-gradient-to-r from-orange-600 to-blue-600 text-white bg-cover" style={{backgroundImage:`url('./bg4.png')`}}>
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             {isInstantBooking ? "Instant Transport Booking" : "Book Your Journey"}
@@ -1443,13 +1464,13 @@ function BookingContent() {
           <div className="flex justify-center mt-4">
             <div className="text-center">
               <div className="text-sm text-gray-600">
-                Step {step} of 5:{" "}
+                Step {step} of {totalSteps}:{" "}
                 {step === 1
                   ? "Choose Service"
                   : step === 2
                     ? isInstantBooking ? "Transport Details" : "Select Dates"
                     : step === 3
-                      ? "Personal Info"
+                      ? "Booking Summary"
                       : step === 4
                         ? "Payment"
                         : "Confirmation"}
@@ -1484,10 +1505,10 @@ function BookingContent() {
               href="tel:+919876543210"
               className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-colors duration-300"
             >
-              Call: +91-9876543210
+              Call: +91-{brand.mobile}
             </a>
             <a
-              href="https://wa.me/919876543210"
+              href={`https://wa.me/${brand.mobile}`}
               className="border-2 border-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-blue-600 transition-colors duration-300"
             >
               WhatsApp Support

@@ -4,16 +4,18 @@ import { useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Star, Phone, User } from "lucide-react"
+import { Menu, X, Star, Phone, User, Icon } from "lucide-react"
 import { useUjjain } from "./context/UjjainContext"
 import { useEffect } from "react"
 import NotificationBell from "./NotificationBell" // Import the notification component
+
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const { user ,brand} = useUjjain()
-  
+
+
   useEffect(() => {
     if (user) {
       setIsLoggedIn(true)
@@ -106,6 +108,30 @@ export default function Header() {
                   {item.name}
                 </Link>
               ))}
+              {/* <Link
+                  
+                  className="text-gray-700 hover:text-amber-500 transition-colors duration-200 font-medium px-2 py-1"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Active Bookings
+                </Link> */}
+            {/*    {user && <Link href="/active-booking">
+                        <motion.div
+                          whileTap={{ scale: 0.9 }}
+                          className={`flex flex-col w-32 text-2xl items-center justify-center p-4 rounded-2xl transition-all duration-300 hover:bg-gray-100 ${!user ? "opacity-90" : ""}`}
+                        >
+                          <motion.span
+                            animate={{
+                              fontSize: "9px",
+                              color: "#6b7280",
+                              fontWeight: "400",
+                            }}
+                            className="mt-1"
+                          >
+                            Active Bookings
+                          </motion.span>
+                        </motion.div>
+                      </Link>} */}
             </nav>
           </motion.div>
         )}

@@ -98,8 +98,8 @@ export default function Cars() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative py-20 bg-black text-white overflow-hidden">
-        <div className="absolute inset-0  bg-gradient-to-r from-green-600 to-blue-600 text-white"></div>
+      <section className="relative py-10 bg-black text-white overflow-hidden bg-cover" style={{backgroundImage:`url('./bg1.png')`}}>
+        <div className="absolute inset-0  bg-gradient-to-t from-gray-800/90 to-sky-600/30 backdrop-opacity-20 text-white"></div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <motion.h1
             className="text-5xl md:text-6xl font-bold mb-6"
@@ -148,33 +148,36 @@ export default function Cars() {
       {/* Search and Filter Section */}
       <section className="py-8 bg-white border-b">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-col lg:flex-row gap-2 sm:gap-4 items-center justify-between">
             {/* Search Bar */}
-            <div className="relative flex-1 max-w-md">
+           <div className="flex gap-2">
+  <div className="relative flex-1 max-w-md">
               <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search cars by name or features..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all duration-300"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all duration-300"
               />
             </div>
 
             {/* Filter Toggle Button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+              className="flex items-center space-x-1 bg-amber-500 hover:bg-amber-600 text-white px-2 py-2 rounded-xl font-semibold transition-all duration-300"
             >
-              <FaFilter />
+             {/*  <FaFilter /> */}
               <span>Filters</span>
               <motion.div animate={{ rotate: showFilters ? 180 : 0 }} transition={{ duration: 0.3 }}>
                 <FaChevronDown />
               </motion.div>
             </button>
+           </div>
+          
 
             {/* Results Count */}
-            <div className="text-gray-600 font-medium">{filteredCars.length} cars found</div>
+            <div className="text-gray-600 font-medium flex ">{filteredCars.length} cars found</div>
           </div>
 
           {/* Expandable Filters */}
@@ -289,9 +292,9 @@ export default function Cars() {
               <motion.button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 ${
+                className={`px-3 py-2 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 ${
                   selectedCategory === category.id
-                    ? "bg-amber-500 text-white shadow-lg"
+                    ? "bg-amber-500 text-black shadow-lg"
                     : "bg-gray-100 text-gray-700 hover:bg-orange-100"
                 }`}
                 whileHover={{ scale: 1.05 }}

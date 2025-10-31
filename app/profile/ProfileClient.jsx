@@ -38,7 +38,7 @@ import {
 import Link from "next/link"
 import { useUjjain } from "@/components/context/UjjainContext"
 import  UserUpdateModal  from "@/components/forms/UserUpdateModal"
-import { FaWhatsapp } from "react-icons/fa"
+import { FaRoute, FaWhatsapp } from "react-icons/fa"
 
 
 export default function ProfileClient() {
@@ -130,7 +130,7 @@ export default function ProfileClient() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-amber-700 via-amber-600 to-yellow-950 rounded-xl p-8 mb-8 text-white"
+          className="bg-gradient-to-r from-gray-700 via-slate-600 to-slate-800 rounded-xl p-8 mb-8 text-white"
         >
           <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
             <div className="relative">
@@ -145,9 +145,9 @@ export default function ProfileClient() {
               </Avatar>
               <Button
                 size="sm"
-                className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0 bg-white text-gray-900 hover:bg-gray-100"
+                className="hidden absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0 bg-white text-gray-900 hover:bg-gray-100"
               >
-                <Camera className="h-4 w-4" />
+                <Camera className=" h-4 w-4" />
               </Button>
             </div>
 
@@ -381,6 +381,13 @@ export default function ProfileClient() {
                         >
                           {booking.status} {/* {booking.payment.status} */}
                         </Badge>
+                        {['accepted', 'arrived', 'in_progress','picked'].includes(booking.status) && (
+                          <Link href={`/active-booking/${booking._id}?role=${userData.role}`}>
+                            <Button size="sm" className="mt-2 bg-gray-800 hover:bg-slate-600 text-white mx-1">
+                            <FaRoute/> Track Booking
+                            </Button>
+                          </Link>
+                        )}
                       </div>
                     </div>
                   )) || <p className="text-gray-500">No bookings found</p>}

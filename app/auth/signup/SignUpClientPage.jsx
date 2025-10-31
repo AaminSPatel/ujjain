@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -14,9 +14,12 @@ import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function SignUpClientPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [userType, setUserType] = useState(null) // null, "user", or "driver"
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -37,11 +40,18 @@ export default function SignUpClientPage() {
       year: "",
       color: "",
       licensePlate: ""
+    },
+    // Hotel manager specific fields
+    hotelInfo: {
+      name: "",
+      address: "",
+      contactNumber: "",
+      description: ""
     }
   })
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
-  const {signUp,brand} = useUjjain();
+  const {signUp, brand, error: apiError, clearError} = useUjjain();
   // Auto-fill referral code from URL params
   useEffect(() => {
     const refCode = searchParams.get("ref")
@@ -118,6 +128,33 @@ export default function SignUpClientPage() {
       }
     }
 
+    // Hotel manager specific validations
+    if (userType === "hotel_manager") {
+      if (!formData.hotelInfo.name.trim()) {
+        newErrors.hotelName = "Hotel name is required"
+      } else if (formData.hotelInfo.name.trim().length < 2) {
+        newErrors.hotelName = "Hotel name must be at least 2 characters"
+      }
+
+      if (!formData.hotelInfo.address.trim()) {
+        newErrors.hotelAddress = "Hotel address is required"
+      } else if (formData.hotelInfo.address.trim().length < 10) {
+        newErrors.hotelAddress = "Hotel address must be at least 10 characters"
+      }
+
+      if (!formData.hotelInfo.contactNumber.trim()) {
+        newErrors.hotelContactNumber = "Hotel contact number is required"
+      } else if (!/^[6-9]\d{9}$/.test(formData.hotelInfo.contactNumber)) {
+        newErrors.hotelContactNumber = "Please enter a valid 10-digit contact number"
+      }
+
+      if (!formData.hotelInfo.description.trim()) {
+        newErrors.hotelDescription = "Hotel description is required"
+      } else if (formData.hotelInfo.description.trim().length < 20) {
+        newErrors.hotelDescription = "Hotel description must be at least 20 characters"
+      }
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -132,6 +169,7 @@ export default function SignUpClientPage() {
     }
 
     setIsLoading(true)
+    setErrors({}) // Clear any previous errors
 
     // Prepare data based on user type
     const signupData = {
@@ -146,27 +184,33 @@ export default function SignUpClientPage() {
         address: formData.address,
         driverLicense: formData.driverLicense,
         vehicleInfo: formData.vehicleInfo
+      }),
+      ...(userType === "hotel_manager" && {
+        hotelInfo: formData.hotelInfo
       })
     }
- try {
-   // Simulate API call
-    await signUp(signupData)
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log("Sign up attempt:", signupData)
-      alert(`${userType === "driver" ? "Driver" : userType === "hotel_manager" ? "Hotel Manager" : "User"} account created successfully!`)
-    }, 2000)
- } catch (error) {
-  console.log(error);
 
- }
-   
+    try {
+      await signUp(signupData)
+      setSuccessMessage(`${userType === "driver" ? "Driver" : userType === "hotel_manager" ? "Hotel Manager" : "User"} account created successfully!`)
+      setShowSuccess(true)
+      setTimeout(() => {
+        router.push("/")
+      }, 3000)
+    } catch (error) {
+      console.log('Sign up failed', error);
+      // Extract error message
+      const errorMessage = error.response?.data?.message || error.message || 'Sign up failed. Please try again.';
+      setErrors({ general: errorMessage });
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    
-    if (name.startsWith('driverLicense.') || name.startsWith('vehicleInfo.')) {
+
+    if (name.startsWith('driverLicense.') || name.startsWith('vehicleInfo.') || name.startsWith('hotelInfo.')) {
       const [parent, child] = name.split('.')
       setFormData(prev => ({
         ...prev,
@@ -212,15 +256,15 @@ export default function SignUpClientPage() {
 
           <Card className="shadow-xl border-0">
             <CardHeader className="text-center pb-6">
-              <div className="flex justify-center mb-4">
-                <div className="flex items-center space-x-2">
-                  <Star className="h-8 w-8 text-orange-500" />
-                  <div>
-                    <h1 className="text-xl font-bold text-gray-900">{brand.name}</h1>
-                    <p className="text-xs text-gray-600">{brand.description}</p>
-                  </div>
+            <div className="flex justify-center mb-4">
+              <div className="flex items-center space-x-2">
+                <img src={brand.image} alt="Logo" className="h-8 w-8" />
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">{brand.name}</h1>
+                  <p className="text-xs text-gray-600">{brand.description}</p>
                 </div>
               </div>
+            </div>
               <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
               <CardDescription>Choose your account type to get started</CardDescription>
             </CardHeader>
@@ -292,6 +336,61 @@ export default function SignUpClientPage() {
     )
   }
 
+  // Render success message
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
+          <Card className="shadow-xl border-0">
+            <CardContent className="text-center py-12">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="mb-6"
+              >
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </motion.div>
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-2xl font-bold text-gray-900 mb-2"
+              >
+                Account Created Successfully!
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="text-gray-600 mb-6"
+              >
+                {successMessage}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="text-sm text-gray-500"
+              >
+                Redirecting to home page...
+              </motion.p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    )
+  }
+
   // Render the appropriate form based on selection
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -324,10 +423,10 @@ export default function SignUpClientPage() {
           <CardHeader className="text-center pb-6">
             <div className="flex justify-center mb-4">
               <div className="flex items-center space-x-2">
-                <Star className="h-8 w-8 text-orange-500" />
+                <img src={brand.image} alt="Logo" className="h-12 w-12 rounded-full" />
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Ujjain Travel</h1>
-                  <p className="text-xs text-gray-600">Sacred City Explorer</p>
+                  <h1 className="text-xl font-bold text-gray-900">{brand.name}</h1>
+                  <p className="text-xs text-gray-600">{brand.description}</p>
                 </div>
               </div>
             </div>
@@ -345,6 +444,11 @@ export default function SignUpClientPage() {
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {errors.general && (
+                <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 border border-red-400 rounded-md">
+                  {errors.general}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
                 <div className="relative">
@@ -535,6 +639,79 @@ export default function SignUpClientPage() {
                       />
                     </div>
                     {errors.vehicleLicensePlate && <p className="text-sm text-red-500">{errors.vehicleLicensePlate}</p>}
+                  </div>
+                </>
+              )}
+
+              {/* Hotel Manager Specific Fields */}
+              {userType === "hotel_manager" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="hotelInfo.name">Hotel Name</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="hotelInfo.name"
+                        name="hotelInfo.name"
+                        type="text"
+                        placeholder="Enter your hotel name"
+                        value={formData.hotelInfo.name}
+                        onChange={handleInputChange}
+                        className={`pl-10 h-11 ${errors.hotelName ? "border-red-500" : ""}`}
+                        required
+                      />
+                    </div>
+                    {errors.hotelName && <p className="text-sm text-red-500">{errors.hotelName}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="hotelInfo.address">Hotel Address</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="hotelInfo.address"
+                        name="hotelInfo.address"
+                        type="text"
+                        placeholder="Enter your hotel complete address"
+                        value={formData.hotelInfo.address}
+                        onChange={handleInputChange}
+                        className={`pl-10 h-11 ${errors.hotelAddress ? "border-red-500" : ""}`}
+                        required
+                      />
+                    </div>
+                    {errors.hotelAddress && <p className="text-sm text-red-500">{errors.hotelAddress}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="hotelInfo.contactNumber">Hotel Contact Number</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="hotelInfo.contactNumber"
+                        name="hotelInfo.contactNumber"
+                        type="tel"
+                        placeholder="Enter hotel contact number"
+                        value={formData.hotelInfo.contactNumber}
+                        onChange={handleInputChange}
+                        className={`pl-10 h-11 ${errors.hotelContactNumber ? "border-red-500" : ""}`}
+                        required
+                      />
+                    </div>
+                    {errors.hotelContactNumber && <p className="text-sm text-red-500">{errors.hotelContactNumber}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="hotelInfo.description">Hotel Description</Label>
+                    <textarea
+                      id="hotelInfo.description"
+                      name="hotelInfo.description"
+                      placeholder="Describe your hotel (facilities, amenities, etc.)"
+                      value={formData.hotelInfo.description}
+                      onChange={handleInputChange}
+                      className={`w-full h-24 p-3 border border-gray-300 rounded-md resize-none ${errors.hotelDescription ? "border-red-500" : ""}`}
+                      required
+                    />
+                    {errors.hotelDescription && <p className="text-sm text-red-500">{errors.hotelDescription}</p>}
                   </div>
                 </>
               )}

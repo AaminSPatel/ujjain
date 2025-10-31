@@ -1,5 +1,5 @@
  "use client";
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import {
   PlaceService,
   ReviewService,
@@ -43,7 +43,16 @@ export const UjjainProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL 
+    process.env.NEXT_PUBLIC_API_URL
+
+  // Location tracking state
+  const [locationTracking, setLocationTracking] = useState({
+    isActive: false,
+    bookingId: null,
+    watchId: null,
+    lastLocation: null,
+    lastUpdateTime: null,
+  });
 
      const brand = {
     name: "Safar Sathi",
@@ -112,10 +121,13 @@ export const UjjainProvider = ({ children }) => {
   const signUp = async (userData) => {
     try {
       setLoading(true);
+     //console.log('ujjain context');
       setError('');
       const response = await UserService.signUp(userData);
+      //console.log('ujjain context',response);
       setUser(response.data.user);
       return response;
+      
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Sign up failed';
       setError(errorMsg);
@@ -306,125 +318,6 @@ const markAllAsRead = async (userId) => {
   const clearError = () => setError('');
 
 
- 
-  /* 
-  const hotels = [
-    {
-      id: 1,
-      name: "Hotel Mahakal Palace",
-      category: "luxury",
-      image: "/placeholder.svg?height=250&width=400",
-      rating: 4.8,
-      reviews: 342,
-      price: 3500,
-      originalPrice: 4200,
-      location: "Near Mahakaleshwar Temple",
-      distance: "0.2 km from temple",
-      amenities: ["Free WiFi", "AC", "Restaurant", "Room Service", "Parking"],
-      features: ["Temple View", "Premium Rooms", "24/7 Service"],
-      description:
-        "Luxury hotel with stunning temple views and premium amenities for a comfortable stay.",
-      availability: "Available",
-      roomTypes: ["Deluxe", "Suite", "Premium"],
-    },
-    {
-      id: 2,
-      name: "Ujjain Heritage Resort",
-      category: "heritage",
-      image: "/placeholder.svg?height=250&width=400",
-      rating: 4.7,
-      reviews: 289,
-      price: 2800,
-      originalPrice: 3500,
-      location: "Ram Ghat Road",
-      distance: "0.5 km from Mahakaleshwar",
-      amenities: ["Free WiFi", "AC", "Restaurant", "Swimming Pool", "Spa"],
-      features: ["Heritage Architecture", "Cultural Programs", "Garden View"],
-      description:
-        "Experience traditional hospitality in this beautifully designed heritage property.",
-      availability: "Available",
-      roomTypes: ["Heritage Room", "Royal Suite"],
-    },
-    {
-      id: 3,
-      name: "Budget Inn Ujjain",
-      category: "budget",
-      image: "/placeholder.svg?height=250&width=400",
-      rating: 4.3,
-      reviews: 156,
-      price: 1200,
-      originalPrice: 1500,
-      location: "Station Road",
-      distance: "1.2 km from temple",
-      amenities: ["Free WiFi", "AC", "Restaurant", "Parking"],
-      features: ["Clean Rooms", "Budget Friendly", "Good Location"],
-      description:
-        "Comfortable and affordable accommodation perfect for budget-conscious travelers.",
-      availability: "Available",
-      roomTypes: ["Standard", "Deluxe"],
-    },
-    {
-      id: 4,
-      name: "Royal Residency",
-      category: "mid-range",
-      image: "/placeholder.svg?height=250&width=400",
-      rating: 4.6,
-      reviews: 198,
-      price: 2200,
-      originalPrice: 2800,
-      location: "Kal Bhairav Road",
-      distance: "0.8 km from temple",
-      amenities: ["Free WiFi", "AC", "Restaurant", "Room Service", "Laundry"],
-      features: ["Spacious Rooms", "Modern Amenities", "Great Service"],
-      description:
-        "Well-appointed mid-range hotel offering excellent value for money.",
-      availability: "Available",
-      roomTypes: ["Standard", "Deluxe", "Executive"],
-    },
-    {
-      id: 5,
-      name: "Shipra Grand",
-      category: "luxury",
-      image: "/placeholder.svg?height=250&width=400",
-      rating: 4.9,
-      reviews: 267,
-      price: 4200,
-      originalPrice: 5000,
-      location: "Shipra River Front",
-      distance: "1.0 km from temple",
-      amenities: [
-        "Free WiFi",
-        "AC",
-        "Restaurant",
-        "Swimming Pool",
-        "Spa",
-        "Gym",
-      ],
-      features: ["River View", "Luxury Suites", "Fine Dining"],
-      description:
-        "Premium luxury hotel with breathtaking river views and world-class amenities.",
-      availability: "Limited",
-      roomTypes: ["Deluxe", "River View Suite", "Presidential Suite"],
-    },
-    {
-      id: 6,
-      name: "Temple View Lodge",
-      category: "budget",
-      image: "/placeholder.svg?height=250&width=400",
-      rating: 4.2,
-      reviews: 134,
-      price: 900,
-      originalPrice: 1200,
-      location: "Temple Street",
-      distance: "0.1 km from temple",
-      amenities: ["Free WiFi", "AC", "Restaurant"],
-      features: ["Temple View", "Walking Distance", "Basic Comfort"],
-      description:
-        "Simple and clean accommodation right next to the temple for convenient darshan.",
-      availability: "Available",
-      roomTypes: ["Standard", "AC Room"],
-    },
-  ]; */
 
   const serviceData = {
     "temple-tour-packages": {
@@ -720,6 +613,18 @@ const markAllAsRead = async (userId) => {
     }
   };
 
+  const updateBookingStatus = async (id, status, otp = null) => {
+    try {
+      const result = await BookingService.updateBookingStatus(id, status, otp);
+      console.log('Booking status updated:', result);
+      fetchBookings(); // Refresh bookings list
+      return result;
+    } catch (err) {
+      console.error("Error updating booking status:", err);
+      throw err;
+    }
+  };
+
   const removeBooking = async (id) => {
     try {
       const result = await BookingService.delete(id);
@@ -795,6 +700,79 @@ const markAllAsRead = async (userId) => {
       return result;
     } catch (err) {
       console.error("Error sharing location as driver:", err);
+      throw err;
+    }
+  };
+
+  // Location tracking functions
+  const startLocationTracking = (bookingId) => {
+    if (!navigator.geolocation) {
+      console.error('Geolocation is not supported');
+      return false;
+    }
+
+    if (locationTracking.isActive) {
+      stopLocationTracking();
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        // Update location tracking state
+        setLocationTracking(prev => ({
+          ...prev,
+          lastLocation: location,
+          lastUpdateTime: Date.now(),
+        }));
+
+        // Send location update to server
+        updateDriverLocation(bookingId, location);
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000,
+      }
+    );
+
+    setLocationTracking(prev => ({
+      ...prev,
+      isActive: true,
+      bookingId,
+      watchId,
+    }));
+
+    return true;
+  };
+
+  const stopLocationTracking = () => {
+    if (locationTracking.watchId) {
+      navigator.geolocation.clearWatch(locationTracking.watchId);
+    }
+
+    setLocationTracking({
+      isActive: false,
+      bookingId: null,
+      watchId: null,
+      lastLocation: null,
+      lastUpdateTime: null,
+    });
+  };
+
+  const updateDriverLocation = async (bookingId, location) => {
+    try {
+      const result = await BookingService.updateDriverLocation(bookingId, location);
+      console.log('Driver location updated:', result);
+      return result;
+    } catch (err) {
+      console.error("Error updating driver location:", err);
       throw err;
     }
   };
@@ -1049,14 +1027,24 @@ const updateReview = async () => {
     setFavorites((prev) => prev.filter((fav) => fav.id !== itemId));
   };
 
-  const addReview = (review) => {
-    const newReview = {
-      ...review,
-      id: Date.now(),
-      createdAt: new Date().toISOString(),
-    };
-    setReviews((prev) => [newReview, ...prev]);
-    return newReview;
+  const addReview = async (reviewData) => {
+    try {
+      // Create review via API
+      const result = await ReviewService.create(reviewData);
+
+      // Add to local state if successful
+      const newReview = {
+        ...result.review,
+        id: result.review._id,
+        createdAt: result.review.createdAt || new Date().toISOString(),
+      };
+      setReviews((prev) => [newReview, ...prev]);
+
+      return result;
+    } catch (error) {
+      console.error('Error creating review:', error);
+      throw error;
+    }
   };
 
   const installApp = async () => {
@@ -1069,153 +1057,45 @@ const updateReview = async () => {
     }
   };
 
-/*   const apiCall = async (endpoint, method, data) => {
-    try {
-      const url = `${API_BASE_URL}${endpoint}`;
-      const options = {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      };
-
-      if (
-        data &&
-        (method === "POST" || method === "PUT" || method === "PATCH")
-      ) {
-        options.body = JSON.stringify(data);
-      }
-
-      // Mock API responses for demo
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
-
-      // Mock data based on endpoint
-      if (endpoint === "/cars" && method === "GET") {
-        return {
-          data: [
-            {
-              _id: "1",
-              model: "Toyota Innova",
-              type: "SUV",
-              pricePerDay: 2500,
-              available: true,
-              features: ["AC", "GPS", "Music System"],
-              images: ["/placeholder.svg?height=200&width=300"],
-            },
-            {
-              _id: "2",
-              model: "Maruti Swift",
-              type: "Hatchback",
-              pricePerDay: 1500,
-              available: false,
-              features: ["AC", "Music System"],
-              images: ["/placeholder.svg?height=200&width=300"],
-            },
-          ],
-        };
-      }
-
-      if (endpoint === "/places" && method === "GET") {
-        return {
-          data: [
-            {
-              _id: "1",
-              name: "Mahakaleshwar Temple",
-              category: "Religious",
-              location: "Ujjain, MP",
-              rating: 4.8,
-              isActive: true,
-              description: "Famous Jyotirlinga temple",
-            },
-            {
-              _id: "2",
-              name: "Kal Bhairav Temple",
-              category: "Religious",
-              location: "Ujjain, MP",
-              rating: 4.5,
-              isActive: true,
-              description: "Ancient temple dedicated to Kal Bhairav",
-            },
-          ],
-        };
-      }
-
-      if (endpoint === "/bookings" && method === "GET") {
-        return {
-          data: [
-            {
-              _id: "1",
-              bookingId: "UJ001",
-              customerName: "Rahul Sharma",
-              customerEmail: "rahul@example.com",
-              carModel: "Toyota Innova",
-              startDate: "2024-01-15",
-              endDate: "2024-01-18",
-              totalAmount: 7500,
-              status: "confirmed",
-            },
-            {
-              _id: "2",
-              bookingId: "UJ002",
-              customerName: "Priya Patel",
-              customerEmail: "priya@example.com",
-              carModel: "Maruti Swift",
-              startDate: "2024-01-20",
-              endDate: "2024-01-22",
-              totalAmount: 3000,
-              status: "pending",
-            },
-          ],
-        };
-      }
-
-      if (endpoint === "/blogs" && method === "GET") {
-        return {
-          data: [
-            {
-              _id: "1",
-              title: "Top 10 Places to Visit in Ujjain",
-              author: "Admin",
-              content:
-                "Ujjain is a beautiful city with rich cultural heritage...",
-              tags: ["travel", "ujjain", "temples"],
-              published: true,
-              createdAt: "2024-01-10",
-            },
-            {
-              _id: "2",
-              title: "Best Time to Visit Ujjain",
-              author: "Admin",
-              content:
-                "The best time to visit Ujjain is during winter months...",
-              tags: ["travel", "weather", "tips"],
-              published: false,
-              createdAt: "2024-01-05",
-            },
-          ],
-        };
-      }
-
-      // Default success response for other operations
-      return { success: true, data: data };
-    } catch (error) {
-      throw error;
-    }
-  }; */
   const getUserById = (userId) => {
   if (!userId || !users || !Array.isArray(users)) {
     return null;
   }
 
   const cleanUserId = userId.trim();
-  
+
   return users.find(u => {
-    return u._id === cleanUserId || 
-           u.id === cleanUserId || 
+    return u._id === cleanUserId ||
+           u.id === cleanUserId ||
            (u._id && u._id.toString() === cleanUserId);
   }) || null;
 };
+
+  // Update Booking Locations
+  const updateBookingLocations = async (bookingId, pickupLocation, dropoffLocation) => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const response = await BookingService.updateBookingLocations(bookingId, {
+        pickupLocation,
+        dropoffLocation
+      });
+
+      console.log('Booking locations updated:', response);
+      // Refresh bookings list
+      fetchBookings();
+      fetchMyBookings();
+
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to update booking locations';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 function formatDate(dateString) {
   const date = new Date(dateString);
@@ -1248,6 +1128,8 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     changeBookingStatus,
     cancelBooking,
     updatePaymentStatus,
+    updateBookingStatus,
+    updateBookingLocations,
     removeBooking,
     getBookingById,
     getBookingsByUser,
@@ -1256,6 +1138,11 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     driverAcceptBooking,
     driverUpdateStatus,
     driverShareLocation,
+    // Location tracking functions
+    startLocationTracking,
+    stopLocationTracking,
+    updateDriverLocation,
+    locationTracking,
     contacts,
     fetchContacts,
     addContact,

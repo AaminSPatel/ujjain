@@ -1,7 +1,10 @@
+'use client'
 import { FaUsers, FaAward, FaCar, FaHotel, FaMapMarkerAlt, FaClock, FaHeart, FaShieldAlt } from "react-icons/fa"
 import Link from "next/link"
+import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function About() {
+  const {brand} = useUjjain()
   const stats = [
     { icon: <FaUsers />, number: "400+", label: "Happy Customers" },
     { icon: <FaCar />, number: "50+", label: "Daily Bookings" },
@@ -40,19 +43,19 @@ export default function About() {
     {
       name: "Farukh Patel",
       position: "Founder & CEO",
-      image: "/placeholder.svg?height=200&width=200",
+      image: "/faruk.png",
       description: "Expert in hospitality management ensuring smooth travel experiences.",
     },
     {
       name: "Momin Patel",
       position: "Co-Founder",
-      image: "/placeholder.svg?height=200&width=200",
+      image: "/momin.jpg",
       description: "Passionate about creating memorable travel experiences for pilgrims.",
     },
     {
       name: "Aamin Patel",
       position: "Co-Founder",
-      image: "/placeholder.svg?height=200&width=200",
+      image: "/aamin.jpg",
       description: "Dedicated to providing exceptional customer service and support.",
     },
   ]
@@ -62,8 +65,8 @@ export default function About() {
       {/* SEO Meta Tags would be added in the Head component in your layout */}
       
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-r from-green-600 to-blue-600 text-white">
-        <div className="container mx-auto px-4 text-center">
+      <section className="relative  text-white bg-cover" style={{backgroundImage:`url('./bg5.png')`}}>
+        <div className="container mx-auto px-2 py-12 text-center bg-gradient-to-t from-slate-900/40 to-slate-900/40">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">About Safar Sathi</h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
             Your trusted companion for exploring the sacred city of Ujjain, where spirituality meets exceptional service
@@ -201,11 +204,11 @@ export default function About() {
           </p>
           
           {/* Contact Information */}
-          <div className="mb-8 p-6 bg-white bg-opacity-20 rounded-2xl max-w-2xl mx-auto">
+          <div className="mb-8 p-6 bg-gradient-to-r  from-slate-700  to-gray-900 bg-opacity-20 shadow-md shadow-slate-700 rounded-2xl max-w-2xl mx-auto">
             <h3 className="text-2xl font-bold mb-4">Contact Us</h3>
             <div className="text-xl font-semibold">
-              <p>Phone: +91 XXXXX XXXXX</p>
-              <p className="mt-2">Email: info@safarsathi.com</p>
+              <p>Phone: +91 {brand.mobile}</p>
+              <p className="mt-2">Email: {brand.email}</p>
             </div>
             <p className="mt-4 text-lg">We're available 24/7 to assist you with your travel needs</p>
           </div>
