@@ -13,6 +13,7 @@ import {
   AdService,
 } from "./../apiService.js";
 import safeStorage from "./../utils/safeStorage.js";
+
 const UjjainContext = createContext();
 
 export const useUjjain = () => {
@@ -24,7 +25,6 @@ export const useUjjain = () => {
 };
 
 export const UjjainProvider = ({ children }) => {
-  //const [user, setUser] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [places, setPlaces] = useState([]);
   const [cars, setCars] = useState([]);
@@ -43,8 +43,8 @@ export const UjjainProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL
+  const [isClient, setIsClient] = useState(false);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // Location tracking state
   const [locationTracking, setLocationTracking] = useState({
@@ -83,6 +83,12 @@ export const UjjainProvider = ({ children }) => {
 };
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
     // Check for stored token on mount (client-side only)
     const storedToken = safeStorage.get("token");
     const storedUser = safeStorage.get("user");
@@ -92,10 +98,12 @@ export const UjjainProvider = ({ children }) => {
       setToken(storedToken);
       setUser(storedUser);
     }
-  }, []);
+  }, [isClient]);
 
  // Check if user is authenticated on app load
   useEffect(() => {
+    if (!isClient) return;
+
     const checkAuth = async () => {
       const token = safeStorage.get('token');
       if (token) {
@@ -112,7 +120,7 @@ export const UjjainProvider = ({ children }) => {
     };
 
     checkAuth();
-  }, []);
+  }, [isClient]);
 
   // Sign up function
   const signUp = async (userData) => {
@@ -944,6 +952,8 @@ const updateReview = async () => {
 
   // USE EFFECTS - Fetch initial data
   useEffect(() => {
+    if (!isClient) return;
+
     fetchPlaces();
     fetchCars();
     fetchBlogs();
@@ -953,10 +963,12 @@ const updateReview = async () => {
     fetchLogistics();
     fetchAds();
     fetchUsers()
-  }, []);
+  }, [isClient]);
 
   // PWA Install Prompt
   useEffect(() => {
+    if (!isClient) return;
+
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setInstallPrompt(e);
@@ -979,10 +991,12 @@ const updateReview = async () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [isClient]);
 
   // Load data from localStorage
   useEffect(() => {
+    if (!isClient) return;
+
     const savedFavorites = safeStorage.get("safar-sathi-favorites");
     const savedBookings = safeStorage.get("safar-sathi-bookings");
     const savedReviews = safeStorage.get("safar-sathi-reviews");
@@ -992,20 +1006,23 @@ const updateReview = async () => {
     if (savedBookings) setBookings(savedBookings);
     if (savedReviews) setReviews(savedReviews);
     if (userLocal) setUser(userLocal);
-  }, []);
+  }, [isClient]);
 
   // Save to localStorage
   useEffect(() => {
+    if (!isClient) return;
     safeStorage.set("safar-sathi-favorites", favorites);
-  }, [favorites]);
+  }, [favorites, isClient]);
 
   useEffect(() => {
+    if (!isClient) return;
     safeStorage.set("safar-sathi-bookings", bookings);
-  }, [bookings]);
+  }, [bookings, isClient]);
 
   useEffect(() => {
+    if (!isClient) return;
     safeStorage.set("safar-sathi-reviews", reviews);
-  }, [reviews]);
+  }, [reviews, isClient]);
   const addToFavorites = (item) => {
     setFavorites((prev) => [...prev.filter((fav) => fav.id !== item.id), item]);
   };

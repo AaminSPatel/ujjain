@@ -40,8 +40,8 @@ export default function RootLayout({ children }) {
           {children}
           <InstallPWA />
           <Footer />
-        </ClientLayout>
         <BottomTabBar />
+        </ClientLayout>
       </body>
     </html>
   )

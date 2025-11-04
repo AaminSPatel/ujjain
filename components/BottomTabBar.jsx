@@ -14,39 +14,28 @@ import { usePathname, useRouter } from "next/navigation";
 import { useUjjain } from "./context/UjjainContext";
 
 export default function PwaBottomTabBar() {
-  const [isPWA, setIsPWA] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkPWA = () => {
+    const checkMobile = () => {
       try {
-        const isStandalone =
-          window.matchMedia &&
-          window.matchMedia("(display-mode: standalone)").matches;
-        const isFullscreen =
-          window.matchMedia &&
-          window.matchMedia("(display-mode: fullscreen)").matches;
-        const isNavigatorStandalone = window.navigator.standalone === true;
-
-        setIsPWA(isStandalone || isFullscreen || isNavigatorStandalone);
+        const isMobileDevice = window.innerWidth < 768; // md breakpoint
+        setIsMobile(isMobileDevice);
       } catch {
-        setIsPWA(false);
+        setIsMobile(false);
       }
     };
 
-    checkPWA();
+    checkMobile();
 
-    window.addEventListener("appinstalled", checkPWA);
-    window.addEventListener("resize", checkPWA);
-    window.addEventListener("visibilitychange", checkPWA);
+    window.addEventListener("resize", checkMobile);
 
     return () => {
-      window.removeEventListener("appinstalled", checkPWA);
-      window.removeEventListener("resize", checkPWA);
-      window.removeEventListener("visibilitychange", checkPWA);
+      window.removeEventListener("resize", checkMobile);
     };
   }, []);
 
-  if (!isPWA) return null;
+  if (!isMobile) return null;
   return <BottomTabBar />;
 }
 
@@ -60,8 +49,8 @@ function BottomTabBar() {
   const tabs = [
     { icon: FaHome, label: "Home", href: "/" },
     { icon: FaCar, label: "Cars", href: "/cars" },
-    { icon: FaHotel, label: "Hotels", href: "/hotels" },
     { icon: FaCalendarAlt, label: "Bookings", action: "bookings" },
+    { icon: FaHotel, label: "Hotels", href: "/hotels" },
     { icon: FaTruck, label: "Logistics", href: "/logistics" },
   ];
 
@@ -120,7 +109,7 @@ function BottomTabBar() {
                       <motion.div
                         whileTap={{ scale: 0.9 }}
                         className={`flex flex-col w-12 items-center justify-center p-2 rounded-2xl transition-all duration-300 ${
-                          isActive ? "bg-orange-100" : "hover:bg-gray-100"
+                          isActive ? "" : "hover:bg-gray-100"
                         } ${!user ? "opacity-50" : ""}`}
                       >
                         <motion.div
@@ -146,7 +135,7 @@ function BottomTabBar() {
                         {isActive && (
                           <motion.div
                             layoutId="activeTab"
-                            className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full"
+                            className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-7 h-1 bg-sky-500 rounded-full"
                             initial={false}
                             transition={{ type: "spring", stiffness: 500, damping: 30 }}
                           />
@@ -161,7 +150,7 @@ function BottomTabBar() {
                     <motion.div
                       whileTap={{ scale: 0.9 }}
                       className={`flex flex-col w-12 items-center justify-center p-2 rounded-2xl transition-all duration-300 ${
-                        isActive ? "bg-orange-100" : "hover:bg-gray-100"
+                        isActive ? "" : "hover:bg-gray-100"
                       }`}
                     >
                       <motion.div
@@ -187,7 +176,7 @@ function BottomTabBar() {
                       {isActive && (
                         <motion.div
                           layoutId="activeTab"
-                          className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full"
+                          className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-sky-500 rounded-full"
                           initial={false}
                           transition={{ type: "spring", stiffness: 500, damping: 30 }}
                         />

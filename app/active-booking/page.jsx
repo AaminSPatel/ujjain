@@ -45,7 +45,7 @@ export default function ActiveBookingPage() {
   const [cancellationReason, setCancellationReason] = useState("");
 
   useEffect(() => {
-    if (user && user.role !== 'driver') {
+    if (user && user.role !== 'driver' && user.bookings) {
       loadBookings();
     }
   }, [user, activeTab]);

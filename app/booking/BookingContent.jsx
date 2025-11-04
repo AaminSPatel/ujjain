@@ -1,8 +1,6 @@
 // app/booking/page.js
 'use client'
-
 import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
 
 // Loading component for Suspense fallback
 function BookingLoading() {
@@ -16,19 +14,12 @@ function BookingLoading() {
   )
 }
 
-// Main export with Suspense boundary
-function BookingPage() {
-  return (
-    <Suspense fallback={<BookingLoading />}>
-      <BookingContent />
-    </Suspense>
-  )
-}
-
 // Dynamic import with SSR disabled
 const BookingContent = dynamic(() => import('./BookingContent'), {
   ssr: false,
   loading: () => <BookingLoading />
 })
 
-export default BookingPage
+export default function BookingPage() {
+  return <BookingContent />
+}

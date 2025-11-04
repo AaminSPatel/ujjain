@@ -7,7 +7,7 @@ const safeStorage = {
         return item ? JSON.parse(item) : defaultValue;
       }
     } catch (error) {
-      console.warn('localStorage access denied, using default value');
+      console.warn('localStorage access denied, using default value',error);
     }
     return defaultValue;
   },
@@ -19,7 +19,7 @@ const safeStorage = {
         return true;
       }
     } catch (error) {
-      console.warn('localStorage access denied, value not saved');
+      console.warn('localStorage access denied, value not saved',error);
     }
     return false;
   },
@@ -31,7 +31,7 @@ const safeStorage = {
         return true;
       }
     } catch (error) {
-      console.warn('localStorage access denied, item not removed');
+      console.warn('localStorage access denied, item not removed', error);
     }
     return false;
   }
