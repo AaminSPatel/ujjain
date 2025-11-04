@@ -8,6 +8,7 @@ import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
 import dynamic from "next/dynamic";
 import { haversineDistance } from "@/components/utils/distance";
+import safeStorage from "@/components/utils/safeStorage";
 
 // Razorpay script loader
 const loadRazorpayScript = () => {
@@ -532,6 +533,14 @@ function BookingContent() {
       const result = await addBooking(bookingPayload)
       if (result && result._id) {
         setBookingId(result._id)
+
+        // Save booking data to localStorage
+        safeStorage.set('lastBooking', {
+          bookingId: result._id,
+          bookingData: bookingPayload,
+          timestamp: new Date().toISOString()
+        })
+
         // If online payment, handle payment, else go to confirmation
         if (bookingData.payment.method === "razorpay") {
           await handleRazorpayPayment(result._id)

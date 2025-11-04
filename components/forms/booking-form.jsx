@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { useUjjain } from "@/components/context/UjjainContext"
+import safeStorage from "../utils/safeStorage.js"
 
 export function BookingForm({ open, onOpenChange, booking, onSubmit, cars, hotels, logistics }) {
   const { addBooking } = useUjjain()
@@ -146,8 +147,8 @@ export function BookingForm({ open, onOpenChange, booking, onSubmit, cars, hotel
     try {
       console.log('Submitting booking form:', formData)
 
-      // Get current user from localStorage or context
-      const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+      // Get current user from safeStorage
+      const currentUser = JSON.parse(safeStorage.get("user") || '{}');
       const userId = currentUser._id
 
       if (!userId) {

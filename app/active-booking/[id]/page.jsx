@@ -26,6 +26,7 @@ import { useUjjain } from "@/components/context/UjjainContext";
 import SEOHead from "@/components/SEOHead";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import safeStorage from "@/components/utils/safeStorage";
 
 // Dynamic imports for components
 const ActiveBookingMap = dynamic(() => import("@/components/ActiveBookingMap"), {
@@ -182,7 +183,7 @@ function ActiveBookingContent() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${ safeStorage.get('token')}`,
           },
         });
 
@@ -198,14 +199,14 @@ function ActiveBookingContent() {
 
         if (roleParam === 'driver' && bookingData.assignedDriver?._id === user._id) {
           determinedRole = 'driver';
-        } else if (roleParam === 'passenger' && bookingData.user._id === user._id) {
-          determinedRole = 'passenger';
+        } else if ((roleParam === 'user' || roleParam === 'admin') && bookingData.user._id === user._id) {
+          determinedRole = roleParam;
         } else {
           // Fallback to automatic detection if role param doesn't match or is not provided
           if (bookingData.assignedDriver?._id === user._id) {
             determinedRole = 'driver';
           } else if (bookingData.user._id === user._id) {
-            determinedRole = 'passenger';
+            determinedRole = 'user';
           }
         }
 
@@ -234,7 +235,7 @@ function ActiveBookingContent() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${safeStorage.get('token')}`,
           },
         });
 

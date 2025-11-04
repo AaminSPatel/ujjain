@@ -1,4 +1,4 @@
- "use client";
+"use client";
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import {
   PlaceService,
@@ -12,6 +12,7 @@ import {
   LogisticsService,
   AdService,
 } from "./../apiService.js";
+import safeStorage from "./../utils/safeStorage.js";
 const UjjainContext = createContext();
 
 export const useUjjain = () => {
@@ -82,33 +83,29 @@ export const UjjainProvider = ({ children }) => {
 };
 
   useEffect(() => {
-    // Check for stored token on mount
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-  console.log('storedToken , storedUser',storedToken , JSON.parse(storedUser))
-    
-  if (storedToken && storedUser) {
+    // Check for stored token on mount (client-side only)
+    const storedToken = safeStorage.get("token");
+    const storedUser = safeStorage.get("user");
+
+    if (storedToken && storedUser) {
       console.log('login succesfull with token and user from local');
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    } 
+      setUser(storedUser);
+    }
   }, []);
 
  // Check if user is authenticated on app load
   useEffect(() => {
-   // console.log('token',localStorage.getItem('token'));
-    
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = safeStorage.get('token');
       if (token) {
         try {
           const userData = await UserService.getProfile();
           setUser(userData.data.user);
           console.log('login succesfull with token');
-          
         } catch (err) {
           console.error('Authentication check failed:', err);
-          //localStorage.removeItem('token');
+          safeStorage.remove('token');
         }
       }
       setLoading(false);
@@ -162,22 +159,15 @@ const signIn = async (credentials) => {
   // Logout function
   const logout = async () => {
     try {
-      //let token = localStorage.getItem('token');
-      
       setLoading(true);
- /*   if(token){
-    //console.log();
-    
-     await UserService.logout();
-   } */
+      await UserService.logout();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
       setUser(null);
       console.log('logout final');
-      
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      safeStorage.remove('token');
+      safeStorage.remove('user');
       setLoading(false);
     }
   };
@@ -186,12 +176,10 @@ const signIn = async (credentials) => {
   const updateProfile = async (updates) => {
     try {
       setLoading(true);
-      //console.log('sign in function',updates);
-
       setError('');
       const response = await UserService.updateProfile(updates);
       setUser(response.data.user);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      safeStorage.set('user', response.data.user);
       return response;
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Profile update failed';
@@ -213,7 +201,7 @@ const signIn = async (credentials) => {
       throw new Error(errorMsg);
     } finally {
       setUser(null);
-      localStorage.removeItem('token');
+      safeStorage.remove('token');
       setLoading(false);
     }
   };
@@ -238,7 +226,7 @@ const signIn = async (credentials) => {
   const fetchUsers = async () => {
     try {
       const data = await UserService.getAllUsers();
-      console.log(data.data.users, "users");
+     // console.log(data.data.users, "users");
       setUsers(data.data.users);
     } catch (err) {
       console.error("Error fetching users:", err);
@@ -246,21 +234,21 @@ const signIn = async (credentials) => {
   };
 
   const addUser = async (userData) => {
-    console.log('context userdata',  userData);
+   // console.log('context userdata',  userData);
     
     await UserService.createUser(userData);
     fetchUsers();
   };
 
   const updateUser = async (id, userData) => {
-    console.log('data at context', userData);
+   // console.log('data at context', userData);
     
     await UserService.updateUser(id, userData);
     fetchUsers();
   };
 
   const removeUser = async (id) => {
-    console.log('remove user context',id);
+  //  console.log('remove user context',id);
     
     await UserService.deleteUser(id);
     fetchUsers();
@@ -270,10 +258,10 @@ const signIn = async (credentials) => {
 // Add a notification to a user (admin only)
 const addUserNotification = async ( userId,notification) => {
   try {
-    console.log('notificaiton context',notification);
+    //console.log('notificaiton context',notification);
     
     const result = await UserService.addNotification(userId, notification);
-    console.log("Notification added:", result);
+    //console.log("Notification added:", result);
     setUser(result.data.user)
     
   } catch (error) {
@@ -285,7 +273,7 @@ const addUserNotification = async ( userId,notification) => {
 const getUserNotifications = async (userId) => {
   try {
     const result = await UserService.getNotifications(userId);
-    console.log("User notifications:", result);
+    //console.log("User notifications:", result);
     return result;
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -564,7 +552,7 @@ const markAllAsRead = async (userId) => {
         try {
           const updatedUser = await UserService.getProfile();
           setUser(updatedUser.data.user);
-          localStorage.setItem('user', JSON.stringify(updatedUser.data.user));
+          safeStorage.set('user', updatedUser.data.user);
         } catch (profileErr) {
           console.error("Error refetching user profile:", profileErr);
         }
@@ -995,29 +983,28 @@ const updateReview = async () => {
 
   // Load data from localStorage
   useEffect(() => {
-    const savedFavorites = localStorage.getItem("safar-sathi-favorites");
-    const savedBookings = localStorage.getItem("safar-sathi-bookings");
-    const savedReviews = localStorage.getItem("safar-sathi-reviews");
-    const userLocal = localStorage.getItem("user");
+    const savedFavorites = safeStorage.get("safar-sathi-favorites");
+    const savedBookings = safeStorage.get("safar-sathi-bookings");
+    const savedReviews = safeStorage.get("safar-sathi-reviews");
+    const userLocal = safeStorage.get("user");
 
-    if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
-    if (savedBookings) setBookings(JSON.parse(savedBookings));
-    if (savedReviews) setReviews(JSON.parse(savedReviews));
-        setUser(JSON.parse(userLocal));
-
+    if (savedFavorites) setFavorites(savedFavorites);
+    if (savedBookings) setBookings(savedBookings);
+    if (savedReviews) setReviews(savedReviews);
+    if (userLocal) setUser(userLocal);
   }, []);
 
   // Save to localStorage
   useEffect(() => {
-    localStorage.setItem("safar-sathi-favorites", JSON.stringify(favorites));
+    safeStorage.set("safar-sathi-favorites", favorites);
   }, [favorites]);
 
   useEffect(() => {
-    localStorage.setItem("safar-sathi-bookings", JSON.stringify(bookings));
+    safeStorage.set("safar-sathi-bookings", bookings);
   }, [bookings]);
 
   useEffect(() => {
-    localStorage.setItem("safar-sathi-reviews", JSON.stringify(reviews));
+    safeStorage.set("safar-sathi-reviews", reviews);
   }, [reviews]);
   const addToFavorites = (item) => {
     setFavorites((prev) => [...prev.filter((fav) => fav.id !== item.id), item]);

@@ -18,29 +18,31 @@ const center = {
   lng: 75.8577,
 }
 
-const libraries = ["places"]
+const libraries = []
 
 function LocationMarker({ value, onChange, map }) {
-  const handleMapClick = useCallback((event) => {
+  const handleMapClick = useCallback(async (event) => {
     const lat = event.latLng.lat()
     const lng = event.latLng.lng()
 
-    // Reverse geocode using Google Maps Geocoding API
-    const geocoder = new window.google.maps.Geocoder()
-    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      if (status === "OK" && results[0]) {
-        onChange({
-          address: results[0].formatted_address,
-          coordinates: { lat, lng },
-        })
-      } else {
-        console.error("Reverse geocoding failed:", status)
-        onChange({
-          address: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`,
-          coordinates: { lat, lng },
-        })
-      }
-    })
+    // Reverse geocode using Nominatim (OpenStreetMap) - no third-party cookies
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+      )
+      const data = await response.json()
+      const address = data.display_name || `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
+      onChange({
+        address,
+        coordinates: { lat, lng },
+      })
+    } catch (error) {
+      console.error("Reverse geocoding failed:", error)
+      onChange({
+        address: `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`,
+        coordinates: { lat, lng },
+      })
+    }
   }, [onChange])
 
   return (
@@ -81,7 +83,7 @@ export default function MapPicker({ label, value, onChange }) {
   const [loadingLocation, setLoadingLocation] = useState(false)
   const autocompleteRef = useRef(null)
 
-  const getCurrentLocation = () => {
+  const getCurrentLocation = async () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser")
       return
@@ -89,26 +91,28 @@ export default function MapPicker({ label, value, onChange }) {
 
     setLoadingLocation(true)
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude } = position.coords
 
-        // Reverse geocode the current location using Google Maps
-        const geocoder = new window.google.maps.Geocoder()
-        geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
-          if (status === "OK" && results[0]) {
-            onChange({
-              address: results[0].formatted_address,
-              coordinates: { lat: latitude, lng: longitude },
-            })
-          } else {
-            console.error("Reverse geocoding failed:", status)
-            onChange({
-              address: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`,
-              coordinates: { lat: latitude, lng: longitude },
-            })
-          }
-          setLoadingLocation(false)
-        })
+        // Reverse geocode the current location using Nominatim (OpenStreetMap) - no third-party cookies
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+          )
+          const data = await response.json()
+          const address = data.display_name || `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`
+          onChange({
+            address,
+            coordinates: { lat: latitude, lng: longitude },
+          })
+        } catch (error) {
+          console.error("Reverse geocoding failed:", error)
+          onChange({
+            address: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`,
+            coordinates: { lat: latitude, lng: longitude },
+          })
+        }
+        setLoadingLocation(false)
       },
       (error) => {
         console.error("Error getting location:", error)

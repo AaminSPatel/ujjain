@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import safeStorage from "./utils/safeStorage.js";
 
 export default function OTPModal({ booking, onVerify, onClose }) {
   const [otp, setOtp] = useState("");
@@ -28,7 +29,7 @@ export default function OTPModal({ booking, onVerify, onClose }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${safeStorage.get("token") || ""}`,
           },
         }
       );

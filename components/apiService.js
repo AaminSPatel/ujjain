@@ -1,4 +1,5 @@
 import axios from 'axios';
+import safeStorage from './utils/safeStorage.js';
 
 const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -13,8 +14,8 @@ const api = axios.create({
 // Add request interceptor to include auth token in every request
 api.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    const token = localStorage.getItem('token');
+    // Get token from safeStorage
+    const token = safeStorage.get('token');
 
     // If token exists, add it to the request headers
     if (token) {
@@ -24,6 +25,38 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token is invalid or expired
+      console.warn('Authentication failed (401). Clearing stored token and user data.');
+
+      // Clear stored token and user data
+      safeStorage.remove('token');
+      safeStorage.remove('user');
+
+      // Redirect to login page with a small delay to allow error handling
+      if (typeof window !== 'undefined') {
+        // Check if we're not already on the login page
+        if (!window.location.pathname.includes('/auth/') &&
+            !window.location.pathname.includes('/signin') &&
+            !window.location.pathname.includes('/login')) {
+          console.log('Redirecting to login due to authentication failure');
+          setTimeout(() => {
+            window.location.href = '/auth/signin';
+          }, 500);
+        }
+      }
+    }
+
     return Promise.reject(error);
   }
 );
@@ -200,10 +233,10 @@ export const UserService = {
   signUp: async (userData) => {
     const response = await api.post('/users/register', userData);
     if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+      safeStorage.set('token', response.data.token);
     }
     //console.log('api service',response);
-    
+
     return response;
   },
 
@@ -216,9 +249,9 @@ export const UserService = {
     const response = await api.post('/users/login', requestData);
 
     if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+      safeStorage.set('token', response.data.token);
       if (response.data.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        safeStorage.set('user', response.data.user);
       }
     }
 
@@ -235,7 +268,7 @@ export const UserService = {
 
   // Update user profile
   updateProfile: async (userData) => {
-    const token = localStorage.getItem('token');
+    const token = safeStorage.get('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
@@ -365,7 +398,7 @@ export const PlaceService = {
     });
     return (await axios.post(`${backendUrl}/places`, formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${safeStorage.get('token')}`,
       },
     })).data;
   },
@@ -380,7 +413,7 @@ export const PlaceService = {
     });
     return (await axios.put(`${backendUrl}/places/${id}`, formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${safeStorage.get('token')}`,
       },
     })).data;
   },
@@ -403,7 +436,7 @@ export const CarService = {
     });
     return (await axios.post(`${backendUrl}/cars`, formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${safeStorage.get('token')}`,
       },
     })).data;
   },
@@ -420,7 +453,7 @@ export const CarService = {
     });
     return (await axios.put(`${backendUrl}/cars/${id}`, formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${safeStorage.get('token')}`,
       },
     })).data;
   },
@@ -479,8 +512,8 @@ create: async (hotelData) => {
   
   return (await axios.post(`${backendUrl}/hotels`, formData, {
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      
+      'Authorization': `Bearer ${safeStorage.get('token')}`,
+
     },
   })).data;
 },
@@ -535,7 +568,7 @@ update: async (id, hotelData) => {
   // Add existing images as a separate field
   formData.append('existingImages', JSON.stringify(existingImages));
 
-  const token = localStorage.getItem('token');
+  const token = safeStorage.get('token');
   return (await axios.put(`${backendUrl}/hotels/${id}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -565,7 +598,7 @@ export const LogisticsService = {
     });
     return (await axios.post(`${backendUrl}/logistics`, formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${safeStorage.get('token')}`,
       },
     })).data;
   },
@@ -587,7 +620,7 @@ export const LogisticsService = {
     });
     return (await axios.put(`${backendUrl}/logistics/${id}`, formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${safeStorage.get('token')}`,
       },
     })).data;
   },
@@ -610,7 +643,7 @@ export const BlogService = {
     });
     return (await axios.post(`${backendUrl}/blogs`, formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${safeStorage.get('token')}`,
       },
     })).data;
   },
@@ -620,7 +653,7 @@ export const BlogService = {
 // ====================== REVIEWS ======================
 export const ReviewService = {
   create: async (reviewData) => {
-    const token = localStorage.getItem('token');
+    const token = safeStorage.get('token');
     const response = await axios.post(`${backendUrl}/reviews`, reviewData, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -639,7 +672,7 @@ export const ReviewService = {
     const params = new URLSearchParams(queryParams);
     const response = await axios.get(`${backendUrl}/reviews/user?${params}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${safeStorage.get('token')}`
       }
     });
     return response.data;
@@ -648,7 +681,7 @@ export const ReviewService = {
   update: async (id, reviewData) => {
     const response = await axios.put(`${backendUrl}/reviews/${id}`, reviewData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${safeStorage.get('token')}`
       }
     });
     return response.data;
@@ -657,7 +690,7 @@ export const ReviewService = {
   delete: async (id) => {
     const response = await axios.delete(`${backendUrl}/reviews/${id}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${safeStorage.get('token')}`
       }
     });
     return response.data;
@@ -666,7 +699,7 @@ export const ReviewService = {
   getAll: async () => {
     const response = await axios.get(`${backendUrl}/reviews`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${safeStorage.get('token')}`
       }
     });
     return response.data;
@@ -676,7 +709,7 @@ export const ReviewService = {
     const params = new URLSearchParams({ model: 'Driver' });
     const response = await axios.get(`${backendUrl}/reviews/${driverId}?${params}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${safeStorage.get('token')}`
       }
     });
     return response.data;
@@ -705,7 +738,7 @@ export const AdService = {
     }
     return (await axios.post(`${backendUrl}/ads`, formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${safeStorage.get('token')}`,
       },
     })).data;
   },
@@ -725,7 +758,7 @@ export const AdService = {
     }
     return (await axios.put(`${backendUrl}/ads/${id}`, formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${safeStorage.get('token')}`,
       },
     })).data;
   },

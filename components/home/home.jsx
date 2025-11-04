@@ -38,7 +38,7 @@ const center = {
   lng: 75.8577,
 }
 
-const libraries = ["places"]
+const libraries = []
 
 // Google Maps interaction component
 function LocationMarker({ pickupCoords, destinationCoords, onPickupChange, onDestinationChange, selectionMode, mapCenter }) {
@@ -259,59 +259,20 @@ export default function MobileHome() {
   const pickupInputRef = useRef(null)
   const destinationInputRef = useRef(null)
 
-  // Load Google Maps API
+  // Load Google Maps API (without Places library to avoid third-party cookies)
   useEffect(() => {
     const loadGoogleMaps = () => {
       if (!window.google) {
         const script = document.createElement("script")
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&loading=async`
         script.async = true
         script.defer = true
-        script.onload = initializeAutocomplete
         document.head.appendChild(script)
-      } else {
-        initializeAutocomplete()
       }
     }
 
     loadGoogleMaps()
   }, [])
-
-  const initializeAutocomplete = () => {
-    if (window.google && pickupInputRef.current && destinationInputRef.current) {
-      const pickupAutocomplete = new window.google.maps.places.Autocomplete(pickupInputRef.current, {
-        types: ["geocode", "establishment"],
-        componentRestrictions: { country: "in" },
-      })
-
-      const destinationAutocomplete = new window.google.maps.places.Autocomplete(destinationInputRef.current, {
-        types: ["geocode", "establishment"],
-        componentRestrictions: { country: "in" },
-      })
-
-      pickupAutocomplete.addListener("place_changed", () => {
-        const place = pickupAutocomplete.getPlace()
-        setCurrentLocation(place.formatted_address || "")
-        if (place.geometry) {
-          setPickupCoords({
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-          })
-        }
-      })
-
-      destinationAutocomplete.addListener("place_changed", () => {
-        const place = destinationAutocomplete.getPlace()
-        setDestination(place.formatted_address || "")
-        if (place.geometry) {
-          setDestinationCoords({
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-          })
-        }
-      })
-    }
-  }
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {

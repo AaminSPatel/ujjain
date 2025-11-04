@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes, FaCreditCard, FaMoneyBillWave, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import safeStorage from "./utils/safeStorage.js";
 
 export default function PaymentModal({ booking, onComplete, onClose }) {
   const [paymentMethod, setPaymentMethod] = useState("cash_at_drop");
@@ -22,7 +23,7 @@ export default function PaymentModal({ booking, onComplete, onClose }) {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${safeStorage.get("token") || ""}`,
           },
           body: JSON.stringify({
             paymentMethod: paymentMethod,
@@ -61,7 +62,7 @@ export default function PaymentModal({ booking, onComplete, onClose }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${safeStorage.get("token") || ""}`,
         },
         body: JSON.stringify({
           bookingId: booking._id,
@@ -91,7 +92,7 @@ console.log(orderData , 'response' , response);
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Authorization': `Bearer ${safeStorage.get("token") || ""}`,
               },
               body: JSON.stringify({
                razorpay_order_id: response.razorpay_order_id || orderData.orderId || booking.payment?.razorpayOrderId || null,

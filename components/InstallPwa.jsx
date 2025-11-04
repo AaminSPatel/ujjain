@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import safeStorage from './utils/safeStorage.js';
 
 export default function InstallPWA() {
   const [promptEvent, setPromptEvent] = useState(null);
@@ -19,7 +20,7 @@ export default function InstallPWA() {
 
     checkPWA();
 
-    const wasPromptClosed = localStorage.getItem('pwaPromptClosed') === 'true';
+    let wasPromptClosed = safeStorage.get('pwaPromptClosed') === 'true';
 
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
@@ -32,7 +33,7 @@ export default function InstallPWA() {
     const handleAppInstalled = () => {
       setPromptEvent(null);
       setIsVisible(false);
-      localStorage.setItem('pwaPromptClosed', 'true');
+      safeStorage.set('pwaPromptClosed', 'true');
       checkPWA();
     };
 
@@ -53,7 +54,7 @@ export default function InstallPWA() {
 
     if (outcome === 'accepted') {
       setIsVisible(false);
-      localStorage.setItem('pwaPromptClosed', 'true');
+      safeStorage.set('pwaPromptClosed', 'true');
     }
 
     setPromptEvent(null);
@@ -61,7 +62,7 @@ export default function InstallPWA() {
 
   const handleClose = () => {
     setIsVisible(false);
-    localStorage.setItem('pwaPromptClosed', 'true');
+    safeStorage.set('pwaPromptClosed', 'true');
   };
 
   if (isPWA || !promptEvent || !isVisible) return null;

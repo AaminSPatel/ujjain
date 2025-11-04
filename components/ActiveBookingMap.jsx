@@ -21,7 +21,7 @@ const center = {
   lng: 75.7849,
 };
 
-const libraries = ["places"];
+const libraries = [];
 
 export default function ActiveBookingMap({ booking, userRole, onLocationUpdate }) {
   const { isLoaded } = useJsApiLoader({
@@ -281,28 +281,21 @@ const driverCarIcon =
           return;
         }
 
-        // Use Google Maps Geocoding API to improve accuracy if available
-        if (window.google && window.google.maps && window.google.maps.Geocoder) {
-          try {
-            const geocoder = new window.google.maps.Geocoder();
-            const latLng = new window.google.maps.LatLng(location.lat, location.lng);
-
-            // Reverse geocode to get more accurate coordinates
-            await new Promise((resolve) => {
-              geocoder.geocode({ location: latLng }, (results, status) => {
-                if (status === 'OK' && results[0]) {
-                  const preciseLocation = results[0].geometry.location;
-                  location = {
-                    lat: preciseLocation.lat(),
-                    lng: preciseLocation.lng(),
-                  };
-                }
-                resolve();
-              });
-            });
-          } catch (error) {
-            console.warn("Geocoding failed, using raw GPS coordinates:", error);
+        // Use Nominatim for reverse geocoding to avoid third-party cookies
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${location.lat}&lon=${location.lng}&format=json`,
+          );
+          const data = await response.json();
+          if (data && data.lat && data.lon) {
+            // Use more precise coordinates from Nominatim if available
+            location = {
+              lat: parseFloat(data.lat),
+              lng: parseFloat(data.lon),
+            };
           }
+        } catch (error) {
+          console.warn("Nominatim geocoding failed, using raw GPS coordinates:", error);
         }
 
         // Validate coordinates after geocoding
