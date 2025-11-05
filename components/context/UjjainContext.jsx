@@ -633,15 +633,25 @@ const markAllAsRead = async (userId) => {
     }
   };
 
-  const getBookingById = async (id) => {
-    try {
-      const result = await BookingService.getById(id);
-      return result;
-    } catch (err) {
-      console.error("Error fetching booking by ID:", err);
-      throw err;
-    }
-  };
+  // In your UjjainContext
+const getBookingById = async (id) => {
+  try {
+    console.log('Context: Fetching booking with ID:', id);
+    console.log('Context: API URL:', `${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`);
+    
+    const result = await BookingService.getById(id);
+    console.log('Context: Booking fetch result:', result);
+    return result;
+  } catch (err) {
+    console.error("Context: Error fetching booking by ID:", err);
+    console.error("Context: Error details:", {
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+      data: err.response?.data
+    });
+    throw err;
+  }
+};
 
   const getBookingsByUser = async (userId, params = {}) => {
     try {

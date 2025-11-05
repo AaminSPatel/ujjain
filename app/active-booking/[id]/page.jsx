@@ -1,8 +1,8 @@
  "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { useParams, useRouter, useSearchParams  } from "next/navigation";
+//import { motion } from "framer-motion";
 import {
   FaMapMarkerAlt,
   FaPhone,
@@ -67,11 +67,36 @@ const ReviewModal = dynamic(() => import("@/components/ReviewModal"), {
 });
 
 function ActiveBookingContent() {
-  const { id } = useParams();
+   const params = useParams();
+  const id = params?.id;
+
+
   const router = useRouter();
+
+   // Add validation for the ID
+  useEffect(() => {
+    if (!id) {
+      console.error('No booking ID found in URL parameters');
+      setError('Invalid booking ID');
+      setLoading(false);
+      return;
+    }
+    
+    // Validate if it's a valid MongoDB ObjectId format
+    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+      console.error('Invalid booking ID format:', id);
+      setError('Invalid booking ID format');
+      setLoading(false);
+      return;
+    }
+  }, [id]);
+
+
   const { user, updateBookingStatus, driverUpdateStatus, addReview , brand,getBookingById} = useUjjain();
-  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-  const roleParam = searchParams.get('role'); // 'passenger' or 'driver'
+  const searchParams = useSearchParams(); // Use this instead
+  
+  // Get role from search params
+  const roleParam = searchParams?.get('role');
 
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -176,49 +201,47 @@ function ActiveBookingContent() {
   };
 
   // Fetch booking details
-  useEffect(() => {
-    const fetchBooking = async () => {
-      if (!id || !user) return;
+useEffect(() => {
+  const fetchBooking = async () => {
+    if (!id || !user) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const response = await getBookingById(id);
+    try {
+      console.log('Fetching booking with ID:', id); // Debug log
+      
+      const response = await getBookingById(id);
+      console.log('Booking API response:', response); // Debug log
 
-        const bookingData = response;
-        setBooking(bookingData);
-
-        // Determine user role - prioritize URL parameter, fallback to automatic detection
-        let determinedRole = null;
-
-        if (roleParam === 'driver' && bookingData.assignedDriver?._id === user._id) {
-          determinedRole = 'driver';
-        } else if ((roleParam === 'user' || roleParam === 'admin') && bookingData.user._id === user._id) {
-          determinedRole = roleParam;
-        } else {
-          // Fallback to automatic detection if role param doesn't match or is not provided
-          if (bookingData.assignedDriver?._id === user._id) {
-            determinedRole = 'driver';
-          } else if (bookingData.user._id === user._id) {
-            determinedRole = 'user';
-          }
-        }
-
-        if (!determinedRole) {
-          throw new Error('Unauthorized access to booking');
-        }
-
-        setUserRole(determinedRole);
-
-      } catch (error) {
-        console.error('Error fetching booking:', error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
+      if (!response) {
+        throw new Error('No booking data received');
       }
-    };
 
-    fetchBooking();
-  }, [id, user]);
+      const bookingData = response;
+      setBooking(bookingData);
 
+      // Rest of your role determination logic...
+      
+    } catch (error) {
+      console.error('Error fetching booking:', error);
+      // More specific error handling
+      if (error.response?.status === 404) {
+        setError('Booking not found');
+      } else if (error.response?.status === 403) {
+        setError('You do not have permission to view this booking');
+      } else if (error.response?.status === 401) {
+        setError('Please log in to view this booking');
+      } else {
+        setError(error.message || 'Failed to load booking details');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchBooking();
+}, [id, user]);
   // Polling for real-time updates
   useEffect(() => {
     if (!booking || !userRole || !id) return;

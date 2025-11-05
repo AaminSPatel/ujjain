@@ -4,9 +4,9 @@ const nextConfig = {
     position:'bottom-right',
   },
   // Disable development features that might access localStorage
-  compiler: {
+  /* compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
-  },
+  }, */
 };
 
 // Conditionally apply PWA only in production
