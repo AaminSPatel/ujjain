@@ -69,7 +69,7 @@ const ReviewModal = dynamic(() => import("@/components/ReviewModal"), {
 function ActiveBookingContent() {
   const { id } = useParams();
   const router = useRouter();
-  const { user, updateBookingStatus, driverUpdateStatus, addReview , brand} = useUjjain();
+  const { user, updateBookingStatus, driverUpdateStatus, addReview , brand,getBookingById} = useUjjain();
   const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
   const roleParam = searchParams.get('role'); // 'passenger' or 'driver'
 
@@ -128,7 +128,7 @@ function ActiveBookingContent() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${ safeStorage.get('token')}`,
         },
         body: JSON.stringify({ otp }),
       });
@@ -181,17 +181,9 @@ function ActiveBookingContent() {
       if (!id || !user) return;
 
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${ safeStorage.get('token')}`,
-          },
-        });
+        const response = await getBookingById(id);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch booking details');
-        }
-
-        const bookingData = await response.json();
+        const bookingData = response;
         setBooking(bookingData);
 
         // Determine user role - prioritize URL parameter, fallback to automatic detection
@@ -229,22 +221,18 @@ function ActiveBookingContent() {
 
   // Polling for real-time updates
   useEffect(() => {
-    if (!booking || !userRole) return;
+    if (!booking || !userRole || !id) return;
 
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${safeStorage.get('token')}`,
-          },
-        });
+        const response = await getBookingById(id);
 
-        if (response.ok) {
-          const updatedBooking = await response.json();
+        if (response) {
+          const updatedBooking = response;
           setBooking(updatedBooking);
 
           // Show OTP modal for passengers when pickupOtp is newly available (not already shown)
-          if (userRole === 'passenger' && updatedBooking.pickupOtp && !showOTPDisplayModal) {
+          if ((userRole === 'user' || userRole === 'admin')  && updatedBooking.pickupOtp && !showOTPDisplayModal) {
             const otpGeneratedAt = new Date(updatedBooking.pickupOtp.generatedAt).getTime();
             const lastShown = lastShownOtpTimestamp || 0;
 

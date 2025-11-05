@@ -59,7 +59,7 @@ export default function ActiveBookingPage() {
       // For passengers: fetch bookings based on active tab
       if (activeTab === 'active') {
         // Active tab: show active bookings (in_progress, picked, completed, accepted)
-        const passengerData = user.bookings.filter((booking)=> booking.status === 'picked' ||booking.status === 'accepted' ||booking.status === 'in_progress' ||booking.status === 'completed' );
+        const passengerData = user.bookings.filter((booking)=> booking.status === 'picked' ||booking.status === 'accepted' ||booking.status === 'in_progress' ||booking.status ===  'pending' );
         allBookings = passengerData;
       } else if (activeTab === 'manage') {
         // Manage tab: show all recent bookings (limit to recent ones)
@@ -91,12 +91,12 @@ export default function ActiveBookingPage() {
 
     const stats = {
       total: bookings.length,
-      active: bookings.filter(b => ['in_progress', 'picked', 'accepted'].includes(b.status)).length,
+      active: bookings.filter(b => ['pending','in_progress', 'picked', 'accepted'].includes(b.status)).length,
       completed: bookings.filter(b => b.status === 'completed').length,
       cancelled: bookings.filter(b => b.status === 'cancelled').length,
       totalSpent: bookings
-        .filter(b => b.status === 'completed')
-        .reduce((sum, b) => sum + (b.pricing?.totalPrice || b.pricing?.basePrice || 0), 0)
+        .filter(b => b.payment.status === 'completed')
+        .reduce((sum, b) => sum + (b.payment?.amount || b.payment?.amount || 0), 0)
     };
     setStats(stats);
   };
@@ -175,7 +175,7 @@ export default function ActiveBookingPage() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Active Bookings</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Bookings</h1>
           <p className="text-gray-600">Manage your current and active bookings</p>
         </div>
 
@@ -224,7 +224,7 @@ export default function ActiveBookingPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="active">Active Bookings</TabsTrigger>
-            <TabsTrigger value="manage">Manage Bookings</TabsTrigger>
+            <TabsTrigger value="manage">All Bookings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="active" className="mt-6">

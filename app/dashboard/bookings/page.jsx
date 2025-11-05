@@ -111,9 +111,9 @@ export default function BookingsPage() {
     return null;
   };
 
-  useEffect(() => {
+  /* useEffect(() => {
     loadBookings();
-  }, []);
+  }, []); */
 
   useEffect(() => {
     // Update local state when context bookings change
