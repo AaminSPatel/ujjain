@@ -18,7 +18,7 @@ const center = {
   lng: 75.8577,
 }
 
-const libraries = []
+const libraries = ['places']
 
 function LocationMarker({ value, onChange, map }) {
   const handleMapClick = useCallback(async (event) => {
