@@ -65,168 +65,405 @@ api.interceptors.response.use(
 export const BookingService = {
   // Get all bookings (admin only)
   getAll: async (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    const url = queryString ? `/bookings?${queryString}` : '/bookings';
-    return (await api.get(url)).data;
+    try {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `/bookings?${queryString}` : '/bookings';
+      console.log('🔍 GET All Bookings URL:', url);
+      
+      const response = await api.get(url);
+      console.log('✅ BookingService.getAll() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.getAll() ERROR:', error);
+      throw error;
+    }
   },
 
   // Get single booking by ID
   getById: async (id) => {
-    return (await api.get(`/bookings/${id}`)).data;
+    try {
+      console.log('🔍 BookingService.getById() called with ID:', id);
+      console.log('🌐 Full API URL:', `${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`);
+      
+      const response = await api.get(`/bookings/${id}`);
+      
+      console.log('✅ BookingService.getById() SUCCESS:', {
+        status: response.status,
+        data: response.data
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.getById() ERROR:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url
+      });
+      throw error;
+    }
   },
 
   // Get bookings by user ID
   getByUser: async (userId, params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    const url = queryString
-      ? `/bookings/user/${userId}?${queryString}`
-      : `/bookings/user/${userId}`;
-    return (await api.get(url)).data;
+    try {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString
+        ? `/bookings/user/${userId}?${queryString}`
+        : `/bookings/user/${userId}`;
+      console.log('🔍 GET User Bookings URL:', url);
+      
+      const response = await api.get(url);
+      console.log('✅ BookingService.getByUser() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.getByUser() ERROR:', error);
+      throw error;
+    }
   },
 
   // Get current user's bookings
   getMyBookings: async (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    const url = queryString ? `/bookings/user/me?${queryString}` : '/bookings/user/me';
-    return (await api.get(url)).data;
+    try {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `/bookings/user/me?${queryString}` : '/bookings/user/me';
+      console.log('🔍 GET My Bookings URL:', url);
+      
+      const response = await api.get(url);
+      console.log('✅ BookingService.getMyBookings() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.getMyBookings() ERROR:', error);
+      throw error;
+    }
   },
 
   // Create new booking
   create: async (bookingData) => {
-    //console.log('Creating booking with data:', bookingData);
-
-    // Transform frontend data to match backend schema
-    const transformedData = {
-      serviceType: bookingData.serviceType,
-      service: bookingData.service,
-      room: bookingData.room, // Add room field for hotel bookings
-      startDate: bookingData.startDate,
-      endDate: bookingData.endDate,
-      passengers: bookingData.passengers || bookingData.guests,
-      rooms: bookingData.serviceType==='Hotel'? bookingData.rooms || 1 : null,
-      email: bookingData.email,
-      mobile: bookingData.mobile,
-      fullname: bookingData.fullname,
-      address: bookingData.address,
-      car_id: bookingData.car_id,
-      dates: bookingData.dates,
-      pickupLocation: bookingData.pickupLocation,
-      dropoffLocation: bookingData.dropoffLocation,
-      specialRequests: bookingData.specialRequests,
-      pricing: bookingData.pricing,
-      payment: {
-        amount: bookingData.payment?.amount || bookingData.pricing?.totalPrice || 0,
-        method: bookingData.payment?.method || 'cash',
-        status: 'pending'
-      },
-      status: 'pending',
-      isPaid: false,
-      isCancelled: false,
-      bookingType: bookingData.bookingType,
-      isInstantBooking: bookingData.isInstantBooking,
-      transportType: bookingData.transportType
-    };
-
-    console.log('Sending transformed data to backend:', transformedData);
-
     try {
+      console.log('🔍 BookingService.create() called with data:', bookingData);
+
+      // Transform frontend data to match backend schema
+      const transformedData = {
+        serviceType: bookingData.serviceType,
+        service: bookingData.service,
+        room: bookingData.room,
+        startDate: bookingData.startDate,
+        endDate: bookingData.endDate,
+        passengers: bookingData.passengers || bookingData.guests,
+        rooms: bookingData.serviceType === 'Hotel' ? bookingData.rooms || 1 : null,
+        email: bookingData.email,
+        mobile: bookingData.mobile,
+        fullname: bookingData.fullname,
+        address: bookingData.address,
+        car_id: bookingData.car_id,
+        dates: bookingData.dates,
+        pickupLocation: bookingData.pickupLocation,
+        dropoffLocation: bookingData.dropoffLocation,
+        specialRequests: bookingData.specialRequests,
+        pricing: bookingData.pricing,
+        payment: {
+          amount: bookingData.payment?.amount || bookingData.pricing?.totalPrice || 0,
+          method: bookingData.payment?.method || 'cash',
+          status: 'pending'
+        },
+        status: 'pending',
+        isPaid: false,
+        isCancelled: false,
+        bookingType: bookingData.bookingType,
+        isInstantBooking: bookingData.isInstantBooking,
+        transportType: bookingData.transportType
+      };
+
+      console.log('📦 Sending transformed data to backend:', transformedData);
+
       const response = await api.post('/bookings', transformedData);
-      console.log('Booking creation response:', response.data);
+      console.log('✅ BookingService.create() SUCCESS:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Booking creation error:', error);
+      console.error('❌ BookingService.create() ERROR:', error);
       throw error;
     }
   },
 
   // Update booking status (admin only)
   updateStatus: async (id, status, cancellationReason = null) => {
-    const data = { status };
-    if (cancellationReason) {
-      data.cancellationReason = cancellationReason;
+    try {
+      console.log('🔍 BookingService.updateStatus() called:', { id, status, cancellationReason });
+      
+      const data = { status };
+      if (cancellationReason) {
+        data.cancellationReason = cancellationReason;
+      }
+      
+      const response = await api.put(`/bookings/${id}/status`, data);
+      console.log('✅ BookingService.updateStatus() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.updateStatus() ERROR:', error);
+      throw error;
     }
-    return (await api.put(`/bookings/${id}/status`, data)).data;
   },
 
   // Cancel booking
   cancelBooking: async (id, cancellationReason = null) => {
-    const data = {};
-    if (cancellationReason) {
-      data.cancellationReason = cancellationReason;
+    try {
+      console.log('🔍 BookingService.cancelBooking() called:', { id, cancellationReason });
+      
+      const data = {};
+      if (cancellationReason) {
+        data.cancellationReason = cancellationReason;
+      }
+      
+      const response = await api.put(`/bookings/${id}/cancel`, data);
+      console.log('✅ BookingService.cancelBooking() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.cancelBooking() ERROR:', error);
+      throw error;
     }
-    return (await api.put(`/bookings/${id}/cancel`, data)).data;
   },
 
   // Update payment status (admin only)
   updatePaymentStatus: async (id, paymentStatus, transactionId = null, paymentDate = null) => {
-    const data = { paymentStatus };
-    if (transactionId) data.transactionId = transactionId;
-    if (paymentDate) data.paymentDate = paymentDate;
-    return (await api.put(`/bookings/${id}/payment`, data)).data;
+    try {
+      console.log('🔍 BookingService.updatePaymentStatus() called:', { id, paymentStatus, transactionId, paymentDate });
+      
+      const data = { paymentStatus };
+      if (transactionId) data.transactionId = transactionId;
+      if (paymentDate) data.paymentDate = paymentDate;
+      
+      const response = await api.put(`/bookings/${id}/payment`, data);
+      console.log('✅ BookingService.updatePaymentStatus() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.updatePaymentStatus() ERROR:', error);
+      throw error;
+    }
   },
 
   // Delete booking (admin only)
   delete: async (id) => {
-    return (await api.delete(`/bookings/${id}`)).data;
+    try {
+      console.log('🔍 BookingService.delete() called with ID:', id);
+      
+      const response = await api.delete(`/bookings/${id}`);
+      console.log('✅ BookingService.delete() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.delete() ERROR:', error);
+      throw error;
+    }
   },
 
   // Legacy method for backward compatibility
   updateBookingStatus: async (id, status, otp = null) => {
-    const data = { status };
-    if (otp) data.otp = otp;
-    return (await api.put(`/bookings/${id}`, data)).data;
+    try {
+      console.log('🔍 BookingService.updateBookingStatus() called:', { id, status, otp });
+      
+      const data = { status };
+      if (otp) data.otp = otp;
+      
+      const response = await api.put(`/bookings/${id}`, data);
+      console.log('✅ BookingService.updateBookingStatus() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.updateBookingStatus() ERROR:', error);
+      throw error;
+    }
   },
 
   // Get bookings by service type and service IDs (for hotel managers)
   getBookingsByService: async (serviceType, serviceIds) => {
-    const queryString = new URLSearchParams({ serviceType, serviceIds: serviceIds.join(',') }).toString();
-    return (await api.get(`/bookings/service?${queryString}`)).data;
+    try {
+      console.log('🔍 BookingService.getBookingsByService() called:', { serviceType, serviceIds });
+      
+      const queryString = new URLSearchParams({ serviceType, serviceIds: serviceIds.join(',') }).toString();
+      const response = await api.get(`/bookings/service?${queryString}`);
+      console.log('✅ BookingService.getBookingsByService() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.getBookingsByService() ERROR:', error);
+      throw error;
+    }
   },
 
   // Driver routes
   assignBookingToDriver: async (bookingId, driverId) => {
-    return (await api.post(`/bookings/${bookingId}/assign-driver`, { driverId })).data;
+    try {
+      console.log('🔍 BookingService.assignBookingToDriver() called:', { bookingId, driverId });
+      
+      const response = await api.post(`/bookings/${bookingId}/assign-driver`, { driverId });
+      console.log('✅ BookingService.assignBookingToDriver() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.assignBookingToDriver() ERROR:', error);
+      throw error;
+    }
   },
 
   driverAcceptBooking: async (bookingId) => {
-    return (await api.post(`/bookings/${bookingId}/driver-accept`)).data;
+    try {
+      console.log('🔍 BookingService.driverAcceptBooking() called with bookingId:', bookingId);
+      
+      const response = await api.post(`/bookings/${bookingId}/driver-accept`);
+      console.log('✅ BookingService.driverAcceptBooking() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.driverAcceptBooking() ERROR:', error);
+      throw error;
+    }
   },
 
   driverUpdateStatus: async (bookingId, status, additionalData = {}) => {
-    const data = { status, ...additionalData };
-    return (await api.put(`/bookings/${bookingId}/driver-status`, data)).data;
+    try {
+      console.log('🔍 BookingService.driverUpdateStatus() called:', { bookingId, status, additionalData });
+      
+      const data = { status, ...additionalData };
+      const response = await api.put(`/bookings/${bookingId}/driver-status`, data);
+      console.log('✅ BookingService.driverUpdateStatus() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.driverUpdateStatus() ERROR:', error);
+      throw error;
+    }
   },
 
   driverShareLocation: async (bookingId, latitude, longitude) => {
-    return (await api.post(`/bookings/${bookingId}/driver-location`, { latitude, longitude })).data;
+    try {
+      console.log('🔍 BookingService.driverShareLocation() called:', { bookingId, latitude, longitude });
+      
+      const response = await api.post(`/bookings/${bookingId}/driver-location`, { latitude, longitude });
+      console.log('✅ BookingService.driverShareLocation() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.driverShareLocation() ERROR:', error);
+      throw error;
+    }
   },
 
   getDriverBookings: async () => {
-    return (await api.get('/bookings/driver/bookings')).data;
+    try {
+      console.log('🔍 BookingService.getDriverBookings() called');
+      
+      const response = await api.get('/bookings/driver/bookings');
+      console.log('✅ BookingService.getDriverBookings() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.getDriverBookings() ERROR:', error);
+      throw error;
+    }
   },
 
   getDriverAssignedBookings: async () => {
-    return (await api.get('/bookings/driver/my-bookings')).data;
+    try {
+      console.log('🔍 BookingService.getDriverAssignedBookings() called');
+      
+      const response = await api.get('/bookings/driver/my-bookings');
+      console.log('✅ BookingService.getDriverAssignedBookings() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.getDriverAssignedBookings() ERROR:', error);
+      throw error;
+    }
   },
 
   // Live tracking for passengers
   getLiveTracking: async (bookingId) => {
-    return (await api.get(`/bookings/${bookingId}/live-tracking`)).data;
+    try {
+      console.log('🔍 BookingService.getLiveTracking() called with bookingId:', bookingId);
+      
+      const response = await api.get(`/bookings/${bookingId}/live-tracking`);
+      console.log('✅ BookingService.getLiveTracking() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.getLiveTracking() ERROR:', error);
+      throw error;
+    }
   },
 
   // Update driver location
   updateDriverLocation: async (bookingId, driverLocation) => {
-    console.log('api service driver location',driverLocation);
-
-    return (await api.put(`/bookings/${bookingId}/driver-location`, {lat: driverLocation.lat,lng: driverLocation.lng })).data;
+    try {
+      console.log('🔍 BookingService.updateDriverLocation() called:', { bookingId, driverLocation });
+      
+      const response = await api.put(`/bookings/${bookingId}/driver-location`, {
+        lat: driverLocation.lat,
+        lng: driverLocation.lng
+      });
+      console.log('✅ BookingService.updateDriverLocation() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.updateDriverLocation() ERROR:', error);
+      throw error;
+    }
   },
 
   // Update booking locations
   updateBookingLocations: async (bookingId, locationData) => {
-    return (await api.put(`/bookings/${bookingId}/locations`, locationData)).data;
+    try {
+      console.log('🔍 BookingService.updateBookingLocations() called:', { bookingId, locationData });
+      
+      const response = await api.put(`/bookings/${bookingId}/locations`, locationData);
+      console.log('✅ BookingService.updateBookingLocations() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.updateBookingLocations() ERROR:', error);
+      throw error;
+    }
+  },
+
+  // TEST FUNCTION: Direct API call to diagnose issues
+  testBookingAPI: async (bookingId) => {
+    try {
+      console.log('🧪 BookingService.testBookingAPI() called with ID:', bookingId);
+      
+      // Test 1: Check if API is reachable
+      const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`);
+      console.log('📡 API Health Check Status:', healthCheck.status);
+      
+      // Test 2: Try direct fetch with authentication
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      console.log('🔐 Token available:', !!token);
+      
+      const directResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      console.log('📡 Direct Fetch Result:', {
+        status: directResponse.status,
+        statusText: directResponse.statusText,
+        ok: directResponse.ok
+      });
+      
+      if (directResponse.ok) {
+        const data = await directResponse.json();
+        return { success: true, data, method: 'direct' };
+      } else {
+        const errorText = await directResponse.text();
+        return { 
+          success: false, 
+          error: errorText,
+          status: directResponse.status 
+        };
+      }
+      
+    } catch (error) {
+      console.error('❌ BookingService.testBookingAPI() ERROR:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
   }
 };
-
 // ====================== Users ======================
 export const UserService = {
   // Authentication
