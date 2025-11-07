@@ -434,7 +434,7 @@ export const BookingService = {
       
       // Test 1: Check if API is reachable
       const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`);
-    //  console.log('📡 API Health Check Status:', healthCheck.status);
+      console.log('📡 API Health Check Status:', healthCheck.status);
       
       // Test 2: Try direct fetch with authentication
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
