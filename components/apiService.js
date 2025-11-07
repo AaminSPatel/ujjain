@@ -64,7 +64,7 @@ api.interceptors.response.use(
 // ====================== BOOKINGS ======================
 export const BookingService = {
   // Get all bookings (admin only)
-  getAll: async (params = {}) => {
+  getAll: async () => {
     try {
       //const queryString = new URLSearchParams(params).toString();
       const url = '/bookings';

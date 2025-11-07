@@ -8,6 +8,7 @@ import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
 import dynamic from "next/dynamic";
 import { haversineDistance } from "@/components/utils/distance";
+import safeStorage from "@/components/utils/safeStorage";
 
 // Razorpay script loader
 const loadRazorpayScript = () => {
@@ -1030,7 +1031,7 @@ function BookingContent() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${safeStorage.get('token')}`,
         },
         body: JSON.stringify({
           bookingId: booking_id,
@@ -1075,7 +1076,7 @@ function BookingContent() {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Authorization': `Bearer ${safeStorage.get('token')}`,
               },
               body: JSON.stringify({
                 razorpay_order_id: response.razorpay_order_id || orderData.orderId || null,

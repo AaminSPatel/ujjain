@@ -376,7 +376,7 @@ useEffect(() => {
           {/* Right Column - Cards (Full width on mobile, 1/3 on desktop) */}
           <div className="w-full lg:w-1/3 space-y-6">
             {/* Status Card */}
-            <BookingStatusCard
+            {userRole && <BookingStatusCard
               booking={booking}
               userRole={userRole}
               onStatusUpdate={handleStatusUpdate}
@@ -386,7 +386,7 @@ useEffect(() => {
               onShowReviewModal={() => setShowReviewModal(true)}
               compact={true}
             />
-
+ }
             {/* Role-based Content */}
             {userRole !== 'driver' ? (
               <>
