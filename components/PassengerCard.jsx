@@ -87,7 +87,7 @@ const PassengerCard = ({
           </div>
           <div className="flex-1">
             <div className="flex items-center space-x-2">
-              <p className="font-semibold text-gray-800">{passenger.fullName}</p>
+              <p className="font-semibold text-gray-800">Passanger : {passenger.fullName}</p>
               <span className={`text-xs font-medium ${passengerStatus.color}`}>
                 {passengerStatus.text}
               </span>
@@ -138,7 +138,7 @@ const PassengerCard = ({
               )}
             </div>
             <div>
-              <h3 className="text-xl font-bold">{passenger.fullName}</h3>
+              <h3 className="text-xl font-bold"> <span className="font-extrabold text-xl text-yellow-300">Passanger :</span>: {passenger.fullName}</h3>
               <div className="flex items-center space-x-2 mt-1">
                 <FaPhone className="text-white/80" />
                 <span className="font-semibold">{passenger.mobile}</span>

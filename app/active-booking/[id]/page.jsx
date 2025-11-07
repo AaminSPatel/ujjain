@@ -210,7 +210,7 @@ useEffect(() => {
 
     try {
       console.log('Fetching booking with ID:', id); // Debug log
-      
+      setUserRole(user.role)
       const response = await getBookingById(id);
       console.log('Booking API response:', response); // Debug log
 
@@ -400,7 +400,22 @@ useEffect(() => {
                   compact={true}
                 />
 
-                {/* Emergency and Support Buttons for Passengers */}
+              
+              </>
+            ) : (
+              // Passenger View
+              <PassengerCard
+                passenger={booking.user}
+                booking={booking}
+                onCallPassenger={(mobile) => window.open(`tel:${mobile}`, '_self')}
+                onStatusUpdate={handleStatusUpdate}
+                updatingStatus={updatingStatus}
+                onShowPaymentModal={() => setShowPaymentModal(true)}
+                onShowReviewModal={() => setShowReviewModal(true)}
+                compact={false}
+              />
+            )}
+              {/* Emergency and Support Buttons for Passengers */}
                 <div className="bg-white rounded-2xl shadow-lg p-4 space-y-3">
                   <button
                     onClick={() => window.open('tel:112', '_self')}
@@ -417,20 +432,6 @@ useEffect(() => {
                     Support
                   </button>
                 </div>
-              </>
-            ) : (
-              // Passenger View
-              <PassengerCard
-                passenger={booking.user}
-                booking={booking}
-                onCallPassenger={(mobile) => window.open(`tel:${mobile}`, '_self')}
-                onStatusUpdate={handleStatusUpdate}
-                updatingStatus={updatingStatus}
-                onShowPaymentModal={() => setShowPaymentModal(true)}
-                onShowReviewModal={() => setShowReviewModal(true)}
-                compact={true}
-              />
-            )}
           </div>
         </div>
       </div>

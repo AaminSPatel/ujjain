@@ -66,8 +66,8 @@ export const BookingService = {
   // Get all bookings (admin only)
   getAll: async (params = {}) => {
     try {
-      const queryString = new URLSearchParams(params).toString();
-      const url = queryString ? `/bookings?${queryString}` : '/bookings';
+      //const queryString = new URLSearchParams(params).toString();
+      const url = '/bookings';
       console.log('🔍 GET All Bookings URL:', url);
       
       const response = await api.get(url);
