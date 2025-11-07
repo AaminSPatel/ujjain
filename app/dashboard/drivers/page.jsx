@@ -12,8 +12,11 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts"
-import { List, Grid2x2, Star, Wallet2, Car, Send, Bell, CalendarDays } from "lucide-react"
+import { List, Grid2x2, Star, Wallet2, Car, Send, Bell, CalendarDays, Edit, Trash2 } from "lucide-react"
 import { useUjjain } from "@/components/context/UjjainContext"
+import { useToast } from "@/hooks/use-toast"
+import { UserForm } from "@/components/forms/user-form"
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog"
 
 export default function AdminDriversPage() {
   const [view, setView] = useState("grid")
@@ -25,7 +28,13 @@ const [bookingId, setBookingId] = useState("")
 const [bookingDetails, setBookingDetails] = useState(null)
 const [selectedDriverId, setSelectedDriverId] = useState("")
 
-const {users} = useUjjain()
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingDriver, setEditingDriver] = useState(null)
+  const [deletingDriver, setDeletingDriver] = useState(null)
+  const [localLoading, setLocalLoading] = useState(false)
+
+  const { users, removeUser, updateUser } = useUjjain()
+  const { toast } = useToast()
 // Mock function to fetch booking details - replace with your actual API call
 const fetchBookingDetails = async () => {
   if (!bookingId) return
@@ -142,12 +151,63 @@ if(users.length){
   const filteredDrivers = useMemo(() => {
     const q = query.toLowerCase()
     return drivers.filter(
-      (d) => 
-        d.fullName?.toLowerCase().includes(q) || 
-        d._id?.toLowerCase().includes(q) || 
+      (d) =>
+        d.fullName?.toLowerCase().includes(q) ||
+        d._id?.toLowerCase().includes(q) ||
         d.address?.city?.toLowerCase().includes(q)
     )
   }, [query, drivers])
+
+  // Handler functions
+  const handleEditDriver = (driver) => {
+    setEditingDriver(driver)
+    setIsFormOpen(true)
+  }
+
+  const handleDeleteDriver = (driver) => {
+    setDeletingDriver(driver)
+  }
+
+  const handleFormSubmit = async (formData) => {
+    try {
+      setLocalLoading(true)
+      await updateUser(editingDriver._id, formData)
+      toast({
+        title: "Success",
+        description: "Driver updated successfully",
+      })
+      setIsFormOpen(false)
+      setEditingDriver(null)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update driver",
+        variant: "destructive",
+      })
+    } finally {
+      setLocalLoading(false)
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setLocalLoading(true)
+      await removeUser(deletingDriver._id)
+      toast({
+        title: "Success",
+        description: "Driver deleted successfully",
+      })
+      setDeletingDriver(null)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete driver",
+        variant: "destructive",
+      })
+    } finally {
+      setLocalLoading(false)
+    }
+  }
 
   return (
     <main className=" md:p-6 sm:w-auto w-80">
@@ -259,7 +319,12 @@ if(users.length){
                     <Button size="sm" variant="outline">
                       Bookings
                     </Button>
-                    <Button size="sm">Message</Button>
+                    <Button size="sm" onClick={() => handleEditDriver(driver)}>
+                      <Edit className="mr-2 h-4 w-4" /> Edit
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDeleteDriver(driver)}>
+                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -311,7 +376,12 @@ if(users.length){
                             <Button size="sm" variant="outline">
                               Bookings
                             </Button>
-                            <Button size="sm">Message</Button>
+                            <Button size="sm" onClick={() => handleEditDriver(driver)}>
+                              <Edit className="mr-2 h-4 w-4" /> Edit
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteDriver(driver)}>
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -541,6 +611,26 @@ if(users.length){
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Modals */}
+        <UserForm
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          user={editingDriver}
+          onSubmit={handleFormSubmit}
+          isLoading={localLoading}
+        />
+
+        {deletingDriver && (
+          <DeleteConfirmDialog
+            isOpen={!!deletingDriver}
+            onClose={() => setDeletingDriver(null)}
+            onConfirm={handleDeleteConfirm}
+            title="Delete Driver"
+            description={`Are you sure you want to delete ${deletingDriver?.fullName}? This action cannot be undone.`}
+            loading={localLoading}
+          />
+        )}
       </div>
     </main>
   )

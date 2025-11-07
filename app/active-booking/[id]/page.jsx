@@ -92,7 +92,7 @@ function ActiveBookingContent() {
   }, [id]);
 
 
-  const { user, updateBookingStatus, driverUpdateStatus, addReview , brand,getBookingById} = useUjjain();
+  const { user, updateBookingStatus, driverUpdateStatus, driverCancelAcceptedBooking, addReview , brand,getBookingById} = useUjjain();
   const searchParams = useSearchParams(); // Use this instead
   
   // Get role from search params
@@ -120,7 +120,11 @@ function ActiveBookingContent() {
       let result;
       if (userRole === 'driver') {
         // Use driver-specific update for drivers
-        result = await driverUpdateStatus(booking._id, newStatus);
+        if (newStatus === 'driver_cancel_accepted') {
+          result = await driverCancelAcceptedBooking(booking._id);
+        } else {
+          result = await driverUpdateStatus(booking._id, newStatus);
+        }
       } else {
         // Use general update for passengers and admins
         result = await updateBookingStatus(booking._id, newStatus, otp);
@@ -163,7 +167,9 @@ function ActiveBookingContent() {
       }
 
       const result = await response.json();
-      setBooking(result.booking);
+     // console.log('result', result);
+      
+      setBooking(result.data);
       setShowOTPModal(false);
      // alert('Pickup verified successfully!');
     } catch (error) {
@@ -209,10 +215,10 @@ useEffect(() => {
     }
 
     try {
-      console.log('Fetching booking with ID:', id); // Debug log
+     // console.log('Fetching booking with ID:', id); // Debug log
       setUserRole(user.role)
       const response = await getBookingById(id);
-      console.log('Booking API response:', response); // Debug log
+    //  console.log('Booking API response:', response); // Debug log
 
       if (!response) {
         throw new Error('No booking data received');

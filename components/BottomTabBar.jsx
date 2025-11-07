@@ -132,14 +132,15 @@ function BottomTabBar() {
                           {tab.label}
                         </motion.span>
 
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeTab"
-                            className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-7 h-1 bg-sky-500 rounded-full"
-                            initial={false}
-                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                          />
-                        )}
+                        
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeTab"
+                          className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-sky-500 rounded-full"
+                          initial={false}
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        />
+                      )}
                       </motion.div>
                     </button>
                   );

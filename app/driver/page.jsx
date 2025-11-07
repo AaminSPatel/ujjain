@@ -22,6 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { BookingService, ReviewService } from '@/components/apiService'
+import { FaCar, FaUserAlt } from "react-icons/fa"
 
 // NOTE: Replace sample data with your API/context data.
 // Keep IDs from your DB (cars/hotels/logistics) when wiring.
@@ -212,13 +213,13 @@ setDriver(user)
         </div>
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="w-full justify-start overflow-x-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="bookings">Available Bookings</TabsTrigger>
-            <TabsTrigger value="my-bookings">My Bookings</TabsTrigger>
+          <TabsList className="w-full justify-start overflow-x-auto h-12">
+            <TabsTrigger className="pb-2" value="overview">Overview</TabsTrigger>
+            <TabsTrigger className="pb-2" value="bookings">Available Bookings</TabsTrigger>
+            <TabsTrigger className="pb-2" value="my-bookings">My Bookings</TabsTrigger>
           {/*   <TabsTrigger value="wallet">Wallet</TabsTrigger> */}
-            <TabsTrigger value="reviews">Ratings & Reviews</TabsTrigger>
-            <TabsTrigger value="vehicle">Vehicle</TabsTrigger>
+            <TabsTrigger className="pb-2" value="reviews">Ratings & Reviews</TabsTrigger>
+            <TabsTrigger className="pb-2" value="vehicle">Vehicle</TabsTrigger>
             {/* <TabsTrigger value="tokens">Tokens</TabsTrigger> */}
           </TabsList>
 
@@ -305,9 +306,9 @@ setDriver(user)
                                {
                                 (driver._id === booking.assignedDriver && (booking.status === 'in_progress' || booking.status === 'picked' || booking.status === 'accepted' || booking.status === 'completed' )) &&
                                    ( <button onClick={() => {
-                                    if(booking.status === 'accepted'){
+                                   /*  if(booking.status === 'accepted'){
                                       updateBookingStatus(booking._id, 'in_progress', booking);
-                                    }
+                                    } */
                                     // Navigate to active booking page with driver role
                                     if(driver._id === booking.assignedDriver && (booking.status === 'in_progress' || booking.status === 'picked' || booking.status === 'accepted' || booking.status === 'completed' ))
                                     router.push(`/active-booking/${booking._id}?role=driver`);
@@ -320,8 +321,8 @@ setDriver(user)
                                
                               </div>
                             </div>
-                            <div className="text-sm md:text-base">
-                              {booking.serviceType} • {booking.duration} hrs • {booking.distance} km
+                            <div className="text-sm md:text-base flex items-center gap-1">
+                             <FaCar size={12}/> {booking.service.model}  {booking.user?.fullName} hrs • {booking.distance} km
                             </div>
                             <div className="text-xs text-muted-foreground">
                               <CalendarDays className="mr-1 inline-block h-3.5 w-3.5" />

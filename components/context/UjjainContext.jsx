@@ -546,13 +546,13 @@ const markAllAsRead = async (userId) => {
   const addBooking = async (bookingData) => {
     try {
       // Ensure user field is set correctly
-          console.log('data at context booking addBooking',bookingData );
+     //     console.log('data at context booking addBooking',bookingData );
 
       if (!bookingData.user && user && user._id) {
         bookingData.user = user._id;
       }
       const result = await BookingService.create(bookingData);
-      console.log('Booking created:', result);
+    //  console.log('Booking created:', result);
       fetchBookings(); // Refresh bookings list
 
       // Refetch user profile to get updated notifications
@@ -576,7 +576,7 @@ const markAllAsRead = async (userId) => {
   const changeBookingStatus = async (id, status, cancellationReason = null) => {
     try {
       const result = await BookingService.updateStatus(id, status, cancellationReason);
-      console.log('Booking status updated:', result);
+    //  console.log('Booking status updated:', result);
       fetchBookings(); // Refresh bookings list
       return result;
     } catch (err) {
@@ -588,7 +588,7 @@ const markAllAsRead = async (userId) => {
   const cancelBooking = async (id, cancellationReason = null) => {
     try {
       const result = await BookingService.cancelBooking(id, cancellationReason);
-      console.log('Booking cancelled:', result);
+    //  console.log('Booking cancelled:', result);
       fetchBookings(); // Refresh bookings list
       return result;
     } catch (err) {
@@ -600,7 +600,7 @@ const markAllAsRead = async (userId) => {
   const updatePaymentStatus = async (id, paymentStatus, transactionId = null, paymentDate = null) => {
     try {
       const result = await BookingService.updatePaymentStatus(id, paymentStatus, transactionId, paymentDate);
-      console.log('Payment status updated:', result);
+    //  console.log('Payment status updated:', result);
       fetchBookings(); // Refresh bookings list
       return result;
     } catch (err) {
@@ -612,7 +612,7 @@ const markAllAsRead = async (userId) => {
   const updateBookingStatus = async (id, status, otp = null) => {
     try {
       const result = await BookingService.updateBookingStatus(id, status, otp);
-      console.log('Booking status updated:', result);
+     // console.log('Booking status updated:', result);
       fetchBookings(); // Refresh bookings list
       return result;
     } catch (err) {
@@ -624,7 +624,7 @@ const markAllAsRead = async (userId) => {
   const removeBooking = async (id) => {
     try {
       const result = await BookingService.delete(id);
-      console.log('Booking deleted:', result);
+     // console.log('Booking deleted:', result);
       fetchBookings(); // Refresh bookings list
       return result;
     } catch (err) {
@@ -636,14 +636,14 @@ const markAllAsRead = async (userId) => {
   // In your UjjainContext
 const getBookingById = async (id) => {
   try {
-    console.log('Context: Fetching booking with ID:', id);
-    console.log('Context: API URL:', `${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`);
+   // console.log('Context: Fetching booking with ID:', id);
+   // console.log('Context: API URL:', `${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`);
     
     const result = await BookingService.getById(id);
-    console.log('Context: Booking fetch result:', result);
+   // console.log('Context: Booking fetch result:', result);
     return result;
   } catch (err) {
-    console.error("Context: Error fetching booking by ID:", err);
+    //console.error("Context: Error fetching booking by ID:", err);
     console.error("Context: Error details:", {
       status: err.response?.status,
       statusText: err.response?.statusText,
@@ -678,7 +678,7 @@ const getBookingById = async (id) => {
   const driverAcceptBooking = async (bookingId) => {
     try {
       const result = await BookingService.driverAcceptBooking(bookingId);
-      console.log('Driver accepted booking:', result);
+     // console.log('Driver accepted booking:', result);
       fetchDriverBookings(); // Refresh driver bookings
       return result;
     } catch (err) {
@@ -690,7 +690,7 @@ const getBookingById = async (id) => {
   const driverUpdateStatus = async (bookingId, status) => {
     try {
       const result = await BookingService.driverUpdateStatus(bookingId, status);
-      console.log('Driver updated booking status:', result);
+    //  console.log('Driver updated booking status:', result);
       fetchDriverBookings(); // Refresh driver bookings
       return result;
     } catch (err) {
@@ -699,10 +699,22 @@ const getBookingById = async (id) => {
     }
   };
 
+  const driverCancelAcceptedBooking = async (bookingId) => {
+    try {
+      const result = await BookingService.driverCancelAcceptedBooking(bookingId);
+      console.log('Driver cancelled accepted booking:', result);
+      fetchDriverBookings(); // Refresh driver bookings
+      return result;
+    } catch (err) {
+      console.error("Error cancelling accepted booking as driver:", err);
+      throw err;
+    }
+  };
+
   const driverShareLocation = async (bookingId, latitude, longitude) => {
     try {
       const result = await BookingService.driverShareLocation(bookingId, latitude, longitude);
-      console.log('Driver shared location:', result);
+    //  console.log('Driver shared location:', result);
       return result;
     } catch (err) {
       console.error("Error sharing location as driver:", err);
@@ -775,7 +787,7 @@ const getBookingById = async (id) => {
   const updateDriverLocation = async (bookingId, location) => {
     try {
       const result = await BookingService.updateDriverLocation(bookingId, location);
-      console.log('Driver location updated:', result);
+    //  console.log('Driver location updated:', result);
       return result;
     } catch (err) {
       console.error("Error updating driver location:", err);
@@ -799,7 +811,7 @@ const getBookingById = async (id) => {
   };
 
   const updateHotel = async (id, hotelData) => {
-    console.log('context me data',id, hotelData);
+  //  console.log('context me data',id, hotelData);
     
     await HotelService.update(id, hotelData);
     fetchHotels();
@@ -1151,6 +1163,7 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     fetchDriverBookings,
     driverAcceptBooking,
     driverUpdateStatus,
+    driverCancelAcceptedBooking,
     driverShareLocation,
     // Location tracking functions
     startLocationTracking,

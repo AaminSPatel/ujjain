@@ -68,10 +68,10 @@ export const BookingService = {
     try {
       //const queryString = new URLSearchParams(params).toString();
       const url = '/bookings';
-      console.log('🔍 GET All Bookings URL:', url);
+    //  console.log('🔍 GET All Bookings URL:', url);
       
       const response = await api.get(url);
-      console.log('✅ BookingService.getAll() SUCCESS');
+    //  console.log('✅ BookingService.getAll() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.getAll() ERROR:', error);
@@ -82,16 +82,16 @@ export const BookingService = {
   // Get single booking by ID
   getById: async (id) => {
     try {
-      console.log('🔍 BookingService.getById() called with ID:', id);
-      console.log('🌐 Full API URL:', `${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`);
+    //  console.log('🔍 BookingService.getById() called with ID:', id);
+    //  console.log('🌐 Full API URL:', `${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`);
       
       const response = await api.get(`/bookings/${id}`);
       
-      console.log('✅ BookingService.getById() SUCCESS:', {
+     /*  console.log('✅ BookingService.getById() SUCCESS:', {
         status: response.status,
         data: response.data
       });
-      
+       */
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.getById() ERROR:', {
@@ -112,10 +112,10 @@ export const BookingService = {
       const url = queryString
         ? `/bookings/user/${userId}?${queryString}`
         : `/bookings/user/${userId}`;
-      console.log('🔍 GET User Bookings URL:', url);
+      //console.log('🔍 GET User Bookings URL:', url);
       
       const response = await api.get(url);
-      console.log('✅ BookingService.getByUser() SUCCESS');
+      //console.log('✅ BookingService.getByUser() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.getByUser() ERROR:', error);
@@ -128,10 +128,10 @@ export const BookingService = {
     try {
       const queryString = new URLSearchParams(params).toString();
       const url = queryString ? `/bookings/user/me?${queryString}` : '/bookings/user/me';
-      console.log('🔍 GET My Bookings URL:', url);
+      //console.log('🔍 GET My Bookings URL:', url);
       
       const response = await api.get(url);
-      console.log('✅ BookingService.getMyBookings() SUCCESS');
+      //console.log('✅ BookingService.getMyBookings() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.getMyBookings() ERROR:', error);
@@ -142,7 +142,7 @@ export const BookingService = {
   // Create new booking
   create: async (bookingData) => {
     try {
-      console.log('🔍 BookingService.create() called with data:', bookingData);
+  //    console.log('🔍 BookingService.create() called with data:', bookingData);
 
       // Transform frontend data to match backend schema
       const transformedData = {
@@ -176,7 +176,7 @@ export const BookingService = {
         transportType: bookingData.transportType
       };
 
-      console.log('📦 Sending transformed data to backend:', transformedData);
+   //   console.log('📦 Sending transformed data to backend:', transformedData);
 
       const response = await api.post('/bookings', transformedData);
       console.log('✅ BookingService.create() SUCCESS:', response.data);
@@ -190,7 +190,7 @@ export const BookingService = {
   // Update booking status (admin only)
   updateStatus: async (id, status, cancellationReason = null) => {
     try {
-      console.log('🔍 BookingService.updateStatus() called:', { id, status, cancellationReason });
+     // console.log('🔍 BookingService.updateStatus() called:', { id, status, cancellationReason });
       
       const data = { status };
       if (cancellationReason) {
@@ -198,7 +198,7 @@ export const BookingService = {
       }
       
       const response = await api.put(`/bookings/${id}/status`, data);
-      console.log('✅ BookingService.updateStatus() SUCCESS');
+     // console.log('✅ BookingService.updateStatus() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.updateStatus() ERROR:', error);
@@ -209,15 +209,15 @@ export const BookingService = {
   // Cancel booking
   cancelBooking: async (id, cancellationReason = null) => {
     try {
-      console.log('🔍 BookingService.cancelBooking() called:', { id, cancellationReason });
-      
+     // console.log('🔍 BookingService.cancelBooking() called:', { id, cancellationReason });
+   //   
       const data = {};
       if (cancellationReason) {
         data.cancellationReason = cancellationReason;
       }
       
       const response = await api.put(`/bookings/${id}/cancel`, data);
-      console.log('✅ BookingService.cancelBooking() SUCCESS');
+    //  console.log('✅ BookingService.cancelBooking() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.cancelBooking() ERROR:', error);
@@ -228,14 +228,14 @@ export const BookingService = {
   // Update payment status (admin only)
   updatePaymentStatus: async (id, paymentStatus, transactionId = null, paymentDate = null) => {
     try {
-      console.log('🔍 BookingService.updatePaymentStatus() called:', { id, paymentStatus, transactionId, paymentDate });
+      //console.log('🔍 BookingService.updatePaymentStatus() called:', { id, paymentStatus, transactionId, paymentDate });
       
       const data = { paymentStatus };
       if (transactionId) data.transactionId = transactionId;
       if (paymentDate) data.paymentDate = paymentDate;
       
       const response = await api.put(`/bookings/${id}/payment`, data);
-      console.log('✅ BookingService.updatePaymentStatus() SUCCESS');
+     // console.log('✅ BookingService.updatePaymentStatus() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.updatePaymentStatus() ERROR:', error);
@@ -246,10 +246,10 @@ export const BookingService = {
   // Delete booking (admin only)
   delete: async (id) => {
     try {
-      console.log('🔍 BookingService.delete() called with ID:', id);
+    //  console.log('🔍 BookingService.delete() called with ID:', id);
       
       const response = await api.delete(`/bookings/${id}`);
-      console.log('✅ BookingService.delete() SUCCESS');
+    //  console.log('✅ BookingService.delete() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.delete() ERROR:', error);
@@ -260,13 +260,13 @@ export const BookingService = {
   // Legacy method for backward compatibility
   updateBookingStatus: async (id, status, otp = null) => {
     try {
-      console.log('🔍 BookingService.updateBookingStatus() called:', { id, status, otp });
+    //  console.log('🔍 BookingService.updateBookingStatus() called:', { id, status, otp });
       
       const data = { status };
       if (otp) data.otp = otp;
       
       const response = await api.put(`/bookings/${id}`, data);
-      console.log('✅ BookingService.updateBookingStatus() SUCCESS');
+     // console.log('✅ BookingService.updateBookingStatus() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.updateBookingStatus() ERROR:', error);
@@ -277,11 +277,11 @@ export const BookingService = {
   // Get bookings by service type and service IDs (for hotel managers)
   getBookingsByService: async (serviceType, serviceIds) => {
     try {
-      console.log('🔍 BookingService.getBookingsByService() called:', { serviceType, serviceIds });
+    //  console.log('🔍 BookingService.getBookingsByService() called:', { serviceType, serviceIds });
       
       const queryString = new URLSearchParams({ serviceType, serviceIds: serviceIds.join(',') }).toString();
       const response = await api.get(`/bookings/service?${queryString}`);
-      console.log('✅ BookingService.getBookingsByService() SUCCESS');
+    //  console.log('✅ BookingService.getBookingsByService() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.getBookingsByService() ERROR:', error);
@@ -292,10 +292,10 @@ export const BookingService = {
   // Driver routes
   assignBookingToDriver: async (bookingId, driverId) => {
     try {
-      console.log('🔍 BookingService.assignBookingToDriver() called:', { bookingId, driverId });
+    //  console.log('🔍 BookingService.assignBookingToDriver() called:', { bookingId, driverId });
       
       const response = await api.post(`/bookings/${bookingId}/assign-driver`, { driverId });
-      console.log('✅ BookingService.assignBookingToDriver() SUCCESS');
+    //  console.log('✅ BookingService.assignBookingToDriver() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.assignBookingToDriver() ERROR:', error);
@@ -305,10 +305,10 @@ export const BookingService = {
 
   driverAcceptBooking: async (bookingId) => {
     try {
-      console.log('🔍 BookingService.driverAcceptBooking() called with bookingId:', bookingId);
+    //  console.log('🔍 BookingService.driverAcceptBooking() called with bookingId:', bookingId);
       
       const response = await api.post(`/bookings/${bookingId}/driver-accept`);
-      console.log('✅ BookingService.driverAcceptBooking() SUCCESS');
+    //  console.log('✅ BookingService.driverAcceptBooking() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.driverAcceptBooking() ERROR:', error);
@@ -318,11 +318,11 @@ export const BookingService = {
 
   driverUpdateStatus: async (bookingId, status, additionalData = {}) => {
     try {
-      console.log('🔍 BookingService.driverUpdateStatus() called:', { bookingId, status, additionalData });
-      
+    //  console.log('🔍 BookingService.driverUpdateStatus() called:', { bookingId, status, additionalData });
+
       const data = { status, ...additionalData };
       const response = await api.put(`/bookings/${bookingId}/driver-status`, data);
-      console.log('✅ BookingService.driverUpdateStatus() SUCCESS');
+     // console.log('✅ BookingService.driverUpdateStatus() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.driverUpdateStatus() ERROR:', error);
@@ -330,12 +330,25 @@ export const BookingService = {
     }
   },
 
+  driverCancelAcceptedBooking: async (bookingId) => {
+    try {
+      console.log('🔍 BookingService.driverCancelAcceptedBooking() called with bookingId:', bookingId);
+
+      const response = await api.put(`/bookings/${bookingId}/driver-cancel-accepted`);
+      console.log('✅ BookingService.driverCancelAcceptedBooking() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.driverCancelAcceptedBooking() ERROR:', error);
+      throw error;
+    }
+  },
+
   driverShareLocation: async (bookingId, latitude, longitude) => {
     try {
-      console.log('🔍 BookingService.driverShareLocation() called:', { bookingId, latitude, longitude });
+   //   console.log('🔍 BookingService.driverShareLocation() called:', { bookingId, latitude, longitude });
       
       const response = await api.post(`/bookings/${bookingId}/driver-location`, { latitude, longitude });
-      console.log('✅ BookingService.driverShareLocation() SUCCESS');
+    //  console.log('✅ BookingService.driverShareLocation() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.driverShareLocation() ERROR:', error);
@@ -345,10 +358,10 @@ export const BookingService = {
 
   getDriverBookings: async () => {
     try {
-      console.log('🔍 BookingService.getDriverBookings() called');
+    //  console.log('🔍 BookingService.getDriverBookings() called');
       
       const response = await api.get('/bookings/driver/bookings');
-      console.log('✅ BookingService.getDriverBookings() SUCCESS');
+    //  console.log('✅ BookingService.getDriverBookings() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.getDriverBookings() ERROR:', error);
@@ -358,10 +371,10 @@ export const BookingService = {
 
   getDriverAssignedBookings: async () => {
     try {
-      console.log('🔍 BookingService.getDriverAssignedBookings() called');
+    //  console.log('🔍 BookingService.getDriverAssignedBookings() called');
       
       const response = await api.get('/bookings/driver/my-bookings');
-      console.log('✅ BookingService.getDriverAssignedBookings() SUCCESS');
+    //  console.log('✅ BookingService.getDriverAssignedBookings() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.getDriverAssignedBookings() ERROR:', error);
@@ -372,10 +385,10 @@ export const BookingService = {
   // Live tracking for passengers
   getLiveTracking: async (bookingId) => {
     try {
-      console.log('🔍 BookingService.getLiveTracking() called with bookingId:', bookingId);
+   //   console.log('🔍 BookingService.getLiveTracking() called with bookingId:', bookingId);
       
       const response = await api.get(`/bookings/${bookingId}/live-tracking`);
-      console.log('✅ BookingService.getLiveTracking() SUCCESS');
+   //   console.log('✅ BookingService.getLiveTracking() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.getLiveTracking() ERROR:', error);
@@ -386,13 +399,13 @@ export const BookingService = {
   // Update driver location
   updateDriverLocation: async (bookingId, driverLocation) => {
     try {
-      console.log('🔍 BookingService.updateDriverLocation() called:', { bookingId, driverLocation });
+    //  console.log('🔍 BookingService.updateDriverLocation() called:', { bookingId, driverLocation });
       
       const response = await api.put(`/bookings/${bookingId}/driver-location`, {
         lat: driverLocation.lat,
         lng: driverLocation.lng
       });
-      console.log('✅ BookingService.updateDriverLocation() SUCCESS');
+    //  console.log('✅ BookingService.updateDriverLocation() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.updateDriverLocation() ERROR:', error);
@@ -403,10 +416,10 @@ export const BookingService = {
   // Update booking locations
   updateBookingLocations: async (bookingId, locationData) => {
     try {
-      console.log('🔍 BookingService.updateBookingLocations() called:', { bookingId, locationData });
+    //  console.log('🔍 BookingService.updateBookingLocations() called:', { bookingId, locationData });
       
       const response = await api.put(`/bookings/${bookingId}/locations`, locationData);
-      console.log('✅ BookingService.updateBookingLocations() SUCCESS');
+    //  console.log('✅ BookingService.updateBookingLocations() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.updateBookingLocations() ERROR:', error);
@@ -417,15 +430,15 @@ export const BookingService = {
   // TEST FUNCTION: Direct API call to diagnose issues
   testBookingAPI: async (bookingId) => {
     try {
-      console.log('🧪 BookingService.testBookingAPI() called with ID:', bookingId);
+   //   console.log('🧪 BookingService.testBookingAPI() called with ID:', bookingId);
       
       // Test 1: Check if API is reachable
       const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`);
-      console.log('📡 API Health Check Status:', healthCheck.status);
+    //  console.log('📡 API Health Check Status:', healthCheck.status);
       
       // Test 2: Try direct fetch with authentication
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      console.log('🔐 Token available:', !!token);
+    //  console.log('🔐 Token available:', !!token);
       
       const directResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}`,
@@ -437,12 +450,12 @@ export const BookingService = {
         }
       );
       
-      console.log('📡 Direct Fetch Result:', {
+    /*   console.log('📡 Direct Fetch Result:', {
         status: directResponse.status,
         statusText: directResponse.statusText,
         ok: directResponse.ok
       });
-      
+       */
       if (directResponse.ok) {
         const data = await directResponse.json();
         return { success: true, data, method: 'direct' };

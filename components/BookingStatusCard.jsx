@@ -184,7 +184,12 @@ export default function BookingStatusCard({ booking, userRole, onShowOTPModal, o
           >
             Verify Pickup via OTP
           </button>
-
+<button
+              onClick={() => onStatusUpdate('driver_cancel_accepted')}
+              className="flex-1 w-full sm:flex-none text-center bg-red-600 hover:bg-red-700 active:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md"
+            >
+              Cancel Booking
+            </button>
 
         </motion.div>
 
