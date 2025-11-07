@@ -155,12 +155,20 @@ export default function BookingStatusCard({ booking, userRole, onShowOTPModal, o
           transition={{ duration: 0.2 }}
           className="mt-2 space-y-2"
         >
-          <button
-            onClick={() => onStatusUpdate('in_progress')}
-            className="w-full sm:w-auto text-center bg-green-600 hover:bg-green-700 active:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md"
-          >
-            Start Ride
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onStatusUpdate('in_progress')}
+              className="flex-1 sm:flex-none text-center bg-green-600 hover:bg-green-700 active:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md"
+            >
+              Start Ride
+            </button>
+            <button
+              onClick={() => onStatusUpdate('driver_cancel_accepted')}
+              className="flex-1 sm:flex-none text-center bg-red-600 hover:bg-red-700 active:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md"
+            >
+              Cancel Booking
+            </button>
+          </div>
         </motion.div>
       )}
       {userRole === "driver" && booking.status === "in_progress" && (
@@ -215,7 +223,7 @@ export default function BookingStatusCard({ booking, userRole, onShowOTPModal, o
       )}
 
       {/* Passenger Actions (Passenger only) */}
-      {userRole === "passenger" && (
+      {(userRole === "user" || userRole === "admin")  && (
         <motion.div
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
