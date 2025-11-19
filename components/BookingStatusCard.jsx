@@ -95,7 +95,7 @@ export default function BookingStatusCard({ booking, userRole, onShowOTPModal, o
           <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
             Booking ID:{" "}
             <span className="text-gray-600 dark:text-gray-400">
-              {booking._id?.slice(-6) || "N/A"}
+              {booking?.uniqueId || "N/A"}
             </span>
           </h2>
         </div>
@@ -176,17 +176,17 @@ export default function BookingStatusCard({ booking, userRole, onShowOTPModal, o
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="mt-2 space-y-2"
+          className="mt-2 space-y-2 sm:space-x-3"
         >
           <button
             onClick={onShowOTPModal}
-            className="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 active:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md"
+            className="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 ctive:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md"
           >
             Verify Pickup via OTP
           </button>
 <button
               onClick={() => onStatusUpdate('driver_cancel_accepted')}
-              className="flex-1 w-full sm:flex-none text-center bg-red-600 hover:bg-red-700 active:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md"
+              className="flex-1 w-full sm:w-auto sm:flex-none text-center bg-red-600 hover:bg-red-700 active:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md"
             >
               Cancel Booking
             </button>
@@ -235,7 +235,7 @@ export default function BookingStatusCard({ booking, userRole, onShowOTPModal, o
           transition={{ duration: 0.2 }}
           className="mt-2 space-y-2"
         >
-          {booking.payment?.status === "pending" && onShowPaymentModal && (
+          {(booking?.status === "picked" || booking?.status === "completed" ) && booking.payment?.status === "pending" && onShowPaymentModal && (
             <button
               onClick={onShowPaymentModal}
               className="w-full sm:w-auto text-center bg-orange-600 hover:bg-orange-700 active:scale-[0.98] transition-all text-white font-semibold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md"

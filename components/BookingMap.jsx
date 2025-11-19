@@ -3,14 +3,14 @@
 import { useState, useCallback, useRef } from "react";
 import {
   GoogleMap,
-  LoadScript,
+  useJsApiLoader,
   Autocomplete,
   DirectionsRenderer,
 } from "@react-google-maps/api";
 
 const containerStyle = {
   width: "100%",
-  height: "400px",
+  height: "300px",
 };
 
 const center = {
@@ -18,10 +18,17 @@ const center = {
   lng: 75.7849,
 };
 
+const libraries = [];
+
 export default function BookingMap({
   bookingData,
   setBookingData,
 }) {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries,
+  });
+
   const [map, setMap] = useState(null);
   const [directions, setDirections] = useState(null);
 
@@ -82,35 +89,41 @@ export default function BookingMap({
     );
   };
 
-  return (
-    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} libraries={[]}>
-      <div className="space-y-3">
-        <Autocomplete onLoad={(ref) => (pickupRef.current = ref)} onPlaceChanged={() => handlePlaceChanged("pickup")}>
-          <input
-            type="text"
-            placeholder="Enter pickup location"
-            className="w-full p-3 border border-gray-300 rounded"
-          />
-        </Autocomplete>
-
-        <Autocomplete onLoad={(ref) => (dropoffRef.current = ref)} onPlaceChanged={() => handlePlaceChanged("dropoff")}>
-          <input
-            type="text"
-            placeholder="Enter drop-off location"
-            className="w-full p-3 border border-gray-300 rounded"
-          />
-        </Autocomplete>
-
-        <GoogleMap
-          mapContainerStyle={containerStyle}
-          center={center}
-          zoom={12}
-          onLoad={onLoad}
-          onUnmount={onUnmount}
-        >
-          {directions && <DirectionsRenderer directions={directions} />}
-        </GoogleMap>
+  if (!isLoaded) {
+    return (
+      <div className="w-full h-60 md:h-64 lg:h-96 bg-gray-200 rounded-2xl flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
       </div>
-    </LoadScript>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <Autocomplete onLoad={(ref) => (pickupRef.current = ref)} onPlaceChanged={() => handlePlaceChanged("pickup")}>
+        <input
+          type="text"
+          placeholder="Enter pickup location"
+          className="w-full p-3 border border-gray-300 rounded"
+        />
+      </Autocomplete>
+
+      <Autocomplete onLoad={(ref) => (dropoffRef.current = ref)} onPlaceChanged={() => handlePlaceChanged("dropoff")}>
+        <input
+          type="text"
+          placeholder="Enter drop-off location"
+          className="w-full p-3 border border-gray-300 rounded"
+        />
+      </Autocomplete>
+
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={center}
+        zoom={12}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+      >
+        {directions && <DirectionsRenderer directions={directions} />}
+      </GoogleMap>
+    </div>
   );
 }

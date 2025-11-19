@@ -114,6 +114,7 @@ function ActiveBookingContent() {
   // Status update handlers
   const handleStatusUpdate = async (newStatus, otp = null) => {
     if (!booking) return;
+console.log('newStatus',newStatus );
 
     setUpdatingStatus(true);
     try {
@@ -331,7 +332,7 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
       <SEOHead
-        title={`Booking ${booking._id} - Active Booking`}
+        title={`Booking ${booking.uniqueId} - Active Booking`}
         description="Track your active booking with live updates and driver location"
       />
 

@@ -40,11 +40,12 @@ export default function Cars() {
 
   // Calculate categories count based on current cars data
   const categories = useMemo(() => [
-    { id: "all", name: "All Cars", count: cars.length },
-    { id: "economy", name: "Economy", count: cars.filter((car) => car.category === "economy").length },
-    { id: "premium", name: "Premium", count: cars.filter((car) => car.category === "premium").length },
-    { id: "luxury", name: "Luxury", count: cars.filter((car) => car.category === "luxury").length },
-    { id: "suv", name: "SUV", count: cars.filter((car) => car.category === "suv").length },
+    { id: "all", name: "All Vehicles", count: cars.length },
+    { id: "car", name: "Car", count: cars.filter((car) => car.category === "car").length },
+    { id: "bike", name: "Bike", count: cars.filter((car) => car.category === "bike").length },
+    { id: "bus", name: "Bus", count: cars.filter((car) => car.category === "bus").length },
+    { id: "riksha", name: "Riksha", count: cars.filter((car) => car.category === "riksha").length },
+    { id: "cab", name: "Cab", count: cars.filter((car) => car.category === "cab").length },
   ], [cars])
 
   // Filter cars based on all criteria
@@ -489,7 +490,7 @@ export default function Cars() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl font-bold text-black mb-4">Why Choose Our Cars?</h2>
+            <h2 className="text-4xl font-bold text-black mb-4">Why Choose Our Vehicles?</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               We ensure the highest standards of safety, comfort, and reliability for your sacred journey
             </p>
@@ -556,7 +557,7 @@ export default function Cars() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            Ready to Book Your Car?
+            Ready to Book Your Vehicle?
           </motion.h2>
           <motion.p
             className="text-xl mb-8 max-w-3xl mx-auto"

@@ -93,10 +93,13 @@ function LocationMarker({ pickupCoords, destinationCoords, onPickupChange, onDes
           position={pickupCoords}
           icon={{
             url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-              <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="20" cy="20" r="18" fill="#3B82F6" stroke="white" stroke-width="3"/>
-                <circle cx="20" cy="20" r="8" fill="white"/>
-              </svg>
+              <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+              <!-- Location pin -->
+              <path d="M15 2C8.1 2 2.5 7.6 2.5 14.5C2.5 21.5 15 38 15 38C15 38 27.5 21.5 27.5 14.5C27.5 7.6 21.9 2 15 2Z" fill="#3B82F6"/>
+              <circle cx="15" cy="14" r="11" fill="white"/>
+              <!-- Letter P -->
+              <text x="15" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#3B82F6" font-family="Arial, sans-serif">P</text>
+            </svg>
             `),
             scaledSize: new window.google.maps.Size(40, 40),
             anchor: new window.google.maps.Point(20, 40),
@@ -108,10 +111,13 @@ function LocationMarker({ pickupCoords, destinationCoords, onPickupChange, onDes
           position={destinationCoords}
           icon={{
             url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-              <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="20" cy="20" r="18" fill="#EF4444" stroke="white" stroke-width="3"/>
-                <circle cx="20" cy="20" r="8" fill="white"/>
-              </svg>
+              <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+              <!-- Location pin -->
+              <path d="M15 2C8.1 2 2.5 7.6 2.5 14.5C2.5 21.5 15 38 15 38C15 38 27.5 21.5 27.5 14.5C27.5 7.6 21.9 2 15 2Z" fill="#dc2626"/>
+              <circle cx="15" cy="14" r="11" fill="white"/>
+              <!-- Letter D -->
+              <text x="15" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif">D</text>
+            </svg>
             `),
             scaledSize: new window.google.maps.Size(40, 40),
             anchor: new window.google.maps.Point(20, 40),
@@ -176,58 +182,57 @@ const LoadingSearchResult = () => (
   </motion.div>
 )
 
-// Transportation options data
-const transportOptions = [
-  {
-    id: "68e3627f58138fe47e4e56fc",
-    
-    name: "Cab",
+// Local transport options configuration with icons, colors, etc.
+const transportConfig = {
+  "cab": {
     icon: <FaCar className="text-2xl" />,
-    baseFare: 40,
-    perKm: 12,
-    capacity: "4 passengers",
-    image: "/cab.png",
     color: "bg-blue-500",
     textColor: "text-blue-500",
-    borderColor: "border-blue-200"
+    borderColor: "border-blue-200",
+    baseFare: 40,
+    perKm: 12,
   },
-  {
-    id: "68e3627f58138fe47e4e56fd",
-    name: "Bike",
+  "bike": {
     icon: <FaMotorcycle className="text-2xl" />,
-    baseFare: 20,
-    perKm: 8,
-    capacity: "1 passenger",
-    image: "/bike.png",
     color: "bg-green-500",
     textColor: "text-green-500",
-    borderColor: "border-green-200"
-  },
-  {
-    id: "68e3627f58138fe47e4e56fe",
-    name: "E-Rickshaw",
-    icon: <MdElectricRickshaw className="text-2xl" />,
-    baseFare: 30,
+    borderColor: "border-green-200",
+    baseFare: 20,
     perKm: 8,
-    capacity: "3 passengers",
-    image: "/rickshaw.png",
+  },
+  "e-rickshaw": {
+    icon: <MdElectricRickshaw className="text-2xl" />,
     color: "bg-yellow-500",
     textColor: "text-yellow-500",
-    borderColor: "border-yellow-200"
+    borderColor: "border-yellow-200",
+    baseFare: 30,
+    perKm: 8,
   },
-  {
-    id: "68e3627f58138fe47e4e56ff",
-    name: "Auto Rikshaw",
+  "bus": {
     icon: <FaBus className="text-2xl" />,
-    baseFare: 15,
-    perKm: 10,
-    capacity: "4 passengers",
-    image: "/auto.png",
     color: "bg-purple-500",
     textColor: "text-purple-500",
-    borderColor: "border-purple-200"
+    borderColor: "border-purple-200",
+    baseFare: 10,
+    perKm: 5,
+  },
+  "rickshaw": {
+    icon: <MdElectricRickshaw className="text-2xl" />,
+    color: "bg-amber-500",
+    textColor: "text-indigo-500",
+    borderColor: "border-red-200",
+    baseFare: 20,
+    perKm: 10,
+  }, 
+  "default": {
+    icon: <FaCar className="text-2xl" />,
+    color: "bg-gray-500",
+    textColor: "text-gray-500",
+    borderColor: "border-gray-200",
+    baseFare: 40,
+    perKm: 12,
   }
-]
+}
 
 export default function MobileHome() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -252,9 +257,9 @@ export default function MobileHome() {
   const [destinationCoords, setDestinationCoords] = useState({ lat: 0, lng: 0 })
   const [mapCenter, setMapCenter] = useState({ lat: 23.1765, lng: 75.7885 }) // Ujjain coordinates
   const [selectedTransport, setSelectedTransport] = useState("cab")
-  const [transport_id, setTransport_id] = useState("68e3627f58138fe47e4e56fc")
-
-  const { cars,brand, places, hotels, reviews, getAverageRating } = useUjjain()
+  const [transport_id, setTransport_id] = useState("")
+  const [transportOptions, setTransportOptions] = useState([])
+  const { cars, brand, places, hotels, reviews, getAverageRating } = useUjjain()
 
   const pickupInputRef = useRef(null)
   const destinationInputRef = useRef(null)
@@ -273,6 +278,37 @@ export default function MobileHome() {
 
     loadGoogleMaps()
   }, [])
+
+  // Process transport options from database and merge with local config
+  useEffect(() => {
+    if (cars.length) {
+      const instantCars = cars.filter((item) => item.bookingType === 'instant')
+      
+      const processedTransports = instantCars.map(car => {
+        // Get the transport type from model or use default
+        const transportType = car.model?.toLowerCase() || "default"
+        const config = transportConfig[transportType] || transportConfig.default
+        
+        return {
+          ...car,
+          icon: config.icon,
+          color: config.color,
+          textColor: config.textColor,
+          borderColor: config.borderColor,
+          baseFare: config.baseFare,
+          
+        }
+      })
+      
+      setTransportOptions(processedTransports)
+      
+      // Set default selected transport
+      if (processedTransports.length > 0 && !transport_id) {
+        setSelectedTransport(processedTransports[0].model?.toLowerCase() || "cab")
+        setTransport_id(processedTransports[0]._id)
+      }
+    }
+  }, [cars, transport_id])
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -329,11 +365,14 @@ export default function MobileHome() {
   }
 
   const calculateFare = useCallback((transportType = selectedTransport, dist = distance || 0) => {
-    const transport = transportOptions.find(option => option.name.toLowerCase() === transportType.toLowerCase())
+    const transport = transportOptions.find(option => 
+      option.model?.toLowerCase() === transportType.toLowerCase()
+    )
     if (!transport) return 0
 
-    return Math.floor((transport.baseFare + dist * transport.perKm), 2)
-  }, [selectedTransport, distance])
+    return Math.floor((transport?.basePrice + dist * transport.pricePerKm), 2)
+  }, [selectedTransport, distance, transportOptions])
+
   const getFilteredResults = () => {
     if (!searchTerm) return []
 
@@ -446,7 +485,7 @@ export default function MobileHome() {
   useEffect(() => {
     if (pickupCoords.lat !== 0 && destinationCoords.lat !== 0) {
       const dist = haversineDistance(pickupCoords, destinationCoords)
-      setDistance(Math.floor(dist,2))
+      setDistance(Math.floor(dist, 2))
     }
   }, [pickupCoords, destinationCoords])
 
@@ -578,26 +617,26 @@ export default function MobileHome() {
             <div className="mb-4">
               <h3 className="text-sm font-medium text-gray-700 mb-3">Choose your ride:</h3>
               <div className="grid grid-cols-4 gap-2">
-                {transportOptions.map((transport) => (
+                {transportOptions?.map((transport) => (
                   <motion.button
-                    key={transport.id}
+                    key={transport._id}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
-                      setSelectedTransport(transport.name.toLowerCase())
-                      setTransport_id(transport.id)
+                      setSelectedTransport(transport.model?.toLowerCase() || "cab")
+                      setTransport_id(transport._id)
                     }}
                     className={`p-3 rounded-xl border-2 transition-all ${
-                      selectedTransport === transport.name.toLowerCase()
+                      selectedTransport === (transport.model?.toLowerCase() || "cab")
                         ? `${transport.borderColor} ${transport.color} text-white shadow-md`
                         : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                     }`}
                   >
                     <div className="flex flex-col items-center">
                       <div className="mb-1">{transport.icon}</div>
-                      <span className="text-xs font-medium">{transport.name}</span>
+                      <span className="text-xs font-medium">{transport.model}</span>
                       {currentLocation && destination && (
                         <span className="text-xs font-bold mt-1">
-                          ₹{calculateFare(transport.name)}
+                          ₹{calculateFare(transport.model?.toLowerCase())}
                         </span>
                       )}
                     </div>
@@ -616,39 +655,48 @@ export default function MobileHome() {
                   <div>
                     <span className="text-gray-700 font-medium">Estimated Fare:</span>
                     <span className="text-xs text-gray-500 ml-2">
-                      {transportOptions.find(t => t.id === selectedTransport)?.capacity}
+                      {transportOptions.find(t => t._id === transport_id)?.seats} 
                     </span>
                   </div>
                   <span className="text-orange-600 font-bold text-lg">₹{calculateFare()}</span>
                 </div>
-                <p className="text-xs text-gray-500">
-                  {/* {transportOptions.find(t => t.id === selectedTransport)?.name} */} {distance}km • Approximate distance 
+                <p className="text-xs mb-1 text-gray-500">
+                 {/*  {transportOptions.find(t => t._id === transport_id)?.model} */} • Capacity : {transportOptions.find(t => t._id === transport_id)?.seats} 
+                </p> 
+                <p className="text-xs mb-1 text-gray-500">
+                • Rate : {transportOptions.find(t => t._id === transport_id)?.pricePerKm} Rupees Per KM 
+                </p> 
+                <p className="text-xs mb-1 text-gray-500">
+                • Base Price : {transportOptions.find(t => t._id === transport_id)?.basePrice} Rupees 
+                </p> 
+                 <p className="text-xs text-gray-500">
+                  {/* {transportOptions.find(t => t._id === transport_id)?.model} */}  • Approximate distance : {distance}km
                 </p>
               </motion.div>
             )}
 
-         <button
-  onClick={() => {
-    if (currentLocation && destination) {
-      // Set current date for instant booking
-      const today = new Date().toISOString().split('T')[0];
-      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
-      // For instant booking, we don't need to select specific vehicles
-      // Redirect to booking page with transport type and calculated fare
-      const bookingUrl = `/booking?pickup=${encodeURIComponent(currentLocation)}&pickupLat=${pickupCoords.lat}&pickupLng=${pickupCoords.lng}&destination=${encodeURIComponent(destination)}&destLat=${destinationCoords.lat}&destLng=${destinationCoords.lng}&transport=${selectedTransport}&_id=${transport_id}&fare=${calculateFare()}&bookingType=instant&startDate=${today}&endDate=${tomorrow}`
-      window.location.href = bookingUrl;
-    }
-  }}
-  disabled={!currentLocation || !destination}
-  className={`w-full py-3 capitalize rounded-lg font-semibold transition-all ${
-    currentLocation && destination
-      ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg"
-      : "bg-gray-200 text-gray-500 cursor-not-allowed"
-  }`}
->
-  {currentLocation && destination ? `Book ${selectedTransport}` : "Enter Locations"}
-</button>
+            <button
+              onClick={() => {
+                if (currentLocation && destination) {
+                  // Set current date for instant booking
+                  const today = new Date().toISOString().split('T')[0];
+                  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                  
+                  // For instant booking, we don't need to select specific vehicles
+                  // Redirect to booking page with transport type and calculated fare
+                  const bookingUrl = `/booking?pickup=${encodeURIComponent(currentLocation)}&pickupLat=${pickupCoords.lat}&pickupLng=${pickupCoords.lng}&destination=${encodeURIComponent(destination)}&destLat=${destinationCoords.lat}&destLng=${destinationCoords.lng}&transport=${selectedTransport}&_id=${transport_id}&fare=${calculateFare()}&bookingType=instant&startDate=${today}&endDate=${tomorrow}`
+                  window.location.href = bookingUrl;
+                }
+              }}
+              disabled={!currentLocation || !destination}
+              className={`w-full py-3 capitalize rounded-lg font-semibold transition-all ${
+                currentLocation && destination
+                  ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg"
+                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              {currentLocation && destination ? `Book ${selectedTransport}` : "Enter Locations"}
+            </button>
           </div>
 
           {/* Quick Location Buttons */}
@@ -683,7 +731,7 @@ export default function MobileHome() {
         <AdCarousel />
       </div>
 
-     
+      {/* Rest of your component remains exactly the same */}
       <div className="md:px-4 px-2 py-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">Popular Car Rentals</h2>
@@ -757,6 +805,8 @@ export default function MobileHome() {
         </motion.div>
       </div>
 
+   
+{/* */}
       <div className="md:px-4 px-2 py-8 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">

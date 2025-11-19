@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, ResponsiveContainer, BarChart, Bar } from "recharts"
-import { Star, Trophy, Car, CreditCard, Wallet2, Ticket, CalendarDays, MapPin, MessageSquare, Clock, CheckCircle, XCircle, Eye, Navigation, Route } from "lucide-react"
+import { Star, Trophy, Car, CreditCard, Wallet2, Ticket, CalendarDays, MapPin, MessageSquare, Clock, CheckCircle, XCircle, Eye, Navigation, Route, Bike, Bus, Truck } from "lucide-react"
 import Image from "next/image"
 import { useUjjain } from '@/components/context/UjjainContext';
 import { useEffect } from "react"
@@ -46,8 +46,9 @@ const reviewsSample = [
 export default function DriverPanelPage() {
   const router = useRouter()
   const [tab, setTab] = useState("overview")
-  const [bookingSubTab, setBookingSubTab] = useState("normal")
-  const [myBookingSubTab, setMyBookingSubTab] = useState("normal")
+  const [categoryFilter, setCategoryFilter] = useState("all")
+  const [bookingTypeFilter, setBookingTypeFilter] = useState("all")
+  const [myBookingSubTab, setMyBookingSubTab] = useState("all")
   const [driver, setDriver] = useState({})
   const [bookings, setBookings] = useState([])
   const [myBookings, setMyBookings] = useState([])
@@ -85,9 +86,9 @@ setDriver(user)
 
   const fetchMyBookings = async () => {
     try {
-      console.log('Fetching my bookings...')
-      const data = await BookingService.getDriverAssignedBookings()
-      console.log('My bookings data:', data)
+     // console.log('Fetching my bookings...')
+     const data = await BookingService.getDriverAssignedBookings()
+     // console.log('My bookings data:', data)
       setMyBookings(data.bookings || [])
     } catch (error) {
       console.error('Error fetching my bookings:', error)
@@ -184,6 +185,36 @@ setDriver(user)
     return driver?.isVerified === true
   }, [driver?.isVerified])
 
+  // Category icons and colors
+  const categoryIcons = {
+    car: { icon: Car, color: 'text-blue-500' },
+    bike: { icon: Bike, color: 'text-green-500' },
+    bus: { icon: Bus, color: 'text-orange-500' },
+    riksha: { icon: Car, color: 'text-yellow-500' },
+    cab: { icon: Car, color: 'text-purple-500' }
+  }
+
+  // Filtered bookings based on category and booking type
+  const filteredBookings = useMemo(() => {
+    return bookings.filter(booking => {
+      const matchesCategory = categoryFilter === 'all' || (booking.service && booking.service.category === categoryFilter)
+      const matchesBookingType = bookingTypeFilter === 'all' || booking.bookingType === bookingTypeFilter
+      return matchesCategory && matchesBookingType && booking.serviceType === 'Car'
+    })
+  }, [bookings, categoryFilter, bookingTypeFilter])
+
+  const filteredMyBookings = useMemo(() => {
+    return myBookings.filter(booking => {
+      const matchesCategory = categoryFilter === 'all' || (booking.service && booking.service.category === categoryFilter)
+      const matchesBookingType = bookingTypeFilter === 'all' || booking.bookingType === bookingTypeFilter
+      const matchesSubTab = myBookingSubTab === 'all' ||
+        (myBookingSubTab === 'active' && ['accepted', 'in_progress', 'picked'].includes(booking.status)) ||
+        (myBookingSubTab === 'completed' && booking.status === 'completed') ||
+        (myBookingSubTab === 'cancelled' && booking.status === 'cancelled')
+      return matchesCategory && matchesBookingType && booking.serviceType === 'Car' && matchesSubTab
+    })
+  }, [myBookings, categoryFilter, bookingTypeFilter, myBookingSubTab])
+
   return (
     <main className="p-4 md:p-6">
       <div className="mx-auto w-full max-w-6xl space-y-4">
@@ -279,21 +310,42 @@ setDriver(user)
               <CardHeader className="space-y-1">
                 <CardTitle>Available Bookings</CardTitle>
                 <CardDescription>Accept and manage car bookings</CardDescription>
-                <Tabs value={bookingSubTab} onValueChange={setBookingSubTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="normal">Normal Bookings</TabsTrigger>
-                    <TabsTrigger value="instant">Instant Bookings</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium">Category:</Label>
+                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="All" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="car">Car</SelectItem>
+                          <SelectItem value="bike">Bike</SelectItem>
+                          <SelectItem value="bus">Bus</SelectItem>
+                          <SelectItem value="riksha">Riksha</SelectItem>
+                          <SelectItem value="cab">Cab</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Tabs value={bookingTypeFilter} onValueChange={setBookingTypeFilter} className="w-full">
+                    <TabsList className="w-full justify-start h-10">
+                      <TabsTrigger value="all">All</TabsTrigger>
+                      <TabsTrigger value="normal">Normal</TabsTrigger>
+                      <TabsTrigger value="instant">Instant</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {bookings.length === 0 ? (
+                {filteredBookings.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     No bookings available at the moment.
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {bookings.filter((item)=> item.serviceType==='Car' && item.bookingType === bookingSubTab).map((booking) => (
+                    {filteredBookings.map((booking) => (
                       <div key={booking._id} className="rounded-lg border p-3 md:p-4">
                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                           <div className="space-y-1">
@@ -301,7 +353,7 @@ setDriver(user)
                               <Badge variant={booking.status === 'pending' ? 'secondary' : 'default'}>
                                 {booking.status.toUpperCase()}
                               </Badge>
-                              <span className="text-sm text-muted-foreground">#{booking._id.slice(-6)}</span>
+                              <span className="text-sm text-muted-foreground">#{booking?.uniqueId || booking._id.slice(-6)}</span>
                               <div className="w-full flex items-center justify-end ">
                                {
                                 (driver._id === booking.assignedDriver && (booking.status === 'in_progress' || booking.status === 'picked' || booking.status === 'accepted' || booking.status === 'completed' )) &&
@@ -322,7 +374,7 @@ setDriver(user)
                               </div>
                             </div>
                             <div className="text-sm md:text-base flex items-center gap-1">
-                             <FaCar size={12}/> {booking.service.model}  {booking.user?.fullName} hrs • {booking.distance} km
+                             <FaCar size={12}/> {booking.service.model} {booking.user?.fullName} hrs • {booking.distance} km
                             </div>
                             <div className="text-xs text-muted-foreground">
                               <CalendarDays className="mr-1 inline-block h-3.5 w-3.5" />
@@ -332,7 +384,7 @@ setDriver(user)
                             <div className="text-sm font-medium">₹{booking?.payment?.amount}</div>
                           </div>
                           <div className="flex items-center gap-2">
-                            {(!booking.isAssignedToMe && (booking.status === 'pending' || booking.status === 'confirmed')) ? (
+                            {(!booking.isAssignedToMe && (booking.status === 'pending' || booking.status === 'confirmed') && booking.user?._id !== driver._id) ? (
                               isDriverVerified ? (
                                 hasMultipleIncompleteBookings ? (
                                   <Popover>
@@ -371,7 +423,7 @@ setDriver(user)
                                       variant="outline"
                                     >
                                       <CheckCircle className="h-4 w-4 mr-1" />
-                                      Accept
+                                      Accept 
                                     </Button>
                                   </PopoverTrigger>
                                   <PopoverContent>
@@ -446,21 +498,50 @@ setDriver(user)
               <CardHeader className="space-y-1">
                 <CardTitle>My Bookings</CardTitle>
                 <CardDescription>Bookings assigned to you</CardDescription>
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium">Category:</Label>
+                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="All" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="car">Car</SelectItem>
+                          <SelectItem value="bike">Bike</SelectItem>
+                          <SelectItem value="bus">Bus</SelectItem>
+                          <SelectItem value="riksha">Riksha</SelectItem>
+                          <SelectItem value="cab">Cab</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Tabs value={bookingTypeFilter} onValueChange={setBookingTypeFilter} className="w-full">
+                    <TabsList className="w-full justify-start h-10">
+                      <TabsTrigger value="all">All</TabsTrigger>
+                      <TabsTrigger value="normal">Normal</TabsTrigger>
+                      <TabsTrigger value="instant">Instant</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
                 <Tabs value={myBookingSubTab} onValueChange={setMyBookingSubTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="normal">Normal Bookings</TabsTrigger>
-                    <TabsTrigger value="instant">Instant Bookings</TabsTrigger>
+                  <TabsList className="w-full justify-start h-10">
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="active">Active</TabsTrigger>
+                    <TabsTrigger value="completed">Completed</TabsTrigger>
+                    <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </CardHeader>
               <CardContent className="space-y-4">
-                {myBookings.length === 0 ? (
+                {filteredMyBookings.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     No bookings assigned to you yet.
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {myBookings.filter((item)=> item.serviceType==='Car' && item?.bookingType === myBookingSubTab).map((booking) => (
+                    {filteredMyBookings.map((booking) => (
                       <div key={booking._id} className="rounded-lg border p-3 md:p-4">
                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                           <div className="space-y-1">

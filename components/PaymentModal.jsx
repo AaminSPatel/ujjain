@@ -104,7 +104,7 @@ console.log(orderData , 'response' , response);
             });
 
             if (verifyResponse.ok) {
-              onComplete("online");
+              onComplete("razorpay_at_drop");
             } else {
               throw new Error("Payment verification failed");
             }

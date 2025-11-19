@@ -278,7 +278,7 @@ export const BookingService = {
   getBookingsByService: async (serviceType, serviceIds) => {
     try {
     //  console.log('🔍 BookingService.getBookingsByService() called:', { serviceType, serviceIds });
-      
+
       const queryString = new URLSearchParams({ serviceType, serviceIds: serviceIds.join(',') }).toString();
       const response = await api.get(`/bookings/service?${queryString}`);
     //  console.log('✅ BookingService.getBookingsByService() SUCCESS');
@@ -427,19 +427,52 @@ export const BookingService = {
     }
   },
 
+  // Hotel manager accept booking
+  acceptHotelBooking: async (bookingId) => {
+    try {
+      console.log('🔍 BookingService.acceptHotelBooking() called with bookingId:', bookingId);
+
+      const response = await api.post(`/bookings/${bookingId}/accept-hotel-booking`);
+      console.log('✅ BookingService.acceptHotelBooking() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.acceptHotelBooking() ERROR:', error);
+      throw error;
+    }
+  },
+
+  // Hotel manager reject booking
+  rejectHotelBooking: async (bookingId, cancellationReason = null) => {
+    try {
+      console.log('🔍 BookingService.rejectHotelBooking() called:', { bookingId, cancellationReason });
+
+      const data = {};
+      if (cancellationReason) {
+        data.cancellationReason = cancellationReason;
+      }
+
+      const response = await api.post(`/bookings/${bookingId}/reject-hotel-booking`, data);
+      console.log('✅ BookingService.rejectHotelBooking() SUCCESS');
+      return response.data;
+    } catch (error) {
+      console.error('❌ BookingService.rejectHotelBooking() ERROR:', error);
+      throw error;
+    }
+  },
+
   // TEST FUNCTION: Direct API call to diagnose issues
   testBookingAPI: async (bookingId) => {
     try {
    //   console.log('🧪 BookingService.testBookingAPI() called with ID:', bookingId);
-      
+
       // Test 1: Check if API is reachable
       const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`);
       console.log('📡 API Health Check Status:', healthCheck.status);
-      
+
       // Test 2: Try direct fetch with authentication
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     //  console.log('🔐 Token available:', !!token);
-      
+
       const directResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}`,
         {
@@ -449,7 +482,7 @@ export const BookingService = {
           }
         }
       );
-      
+
     /*   console.log('📡 Direct Fetch Result:', {
         status: directResponse.status,
         statusText: directResponse.statusText,
@@ -461,18 +494,18 @@ export const BookingService = {
         return { success: true, data, method: 'direct' };
       } else {
         const errorText = await directResponse.text();
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: errorText,
-          status: directResponse.status 
+          status: directResponse.status
         };
       }
-      
+
     } catch (error) {
       console.error('❌ BookingService.testBookingAPI() ERROR:', error);
-      return { 
-        success: false, 
-        error: error.message 
+      return {
+        success: false,
+        error: error.message
       };
     }
   }

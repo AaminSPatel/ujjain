@@ -100,14 +100,14 @@ useEffect(()=>{
                 <div className="md:flex">
                   <div className="md:w-2/5 relative">
                     <img
-                      src={hotel.images[0].url || "/placeholder.svg"}
+                      src={hotel?.images[0]?.url || "/placeholder.svg"}
                       alt={hotel.name}
                       className="w-full h-64 md:h-full object-cover"
                     />
                     <button
                       onClick={() => toggleFavorite(hotel.id)}
                       className={`absolute top-4 right-4 p-2 rounded-full transition-colors duration-300 ${
-                        favorites.includes(hotel.id)
+                        favorites.includes(hotel._id)
                           ? "bg-red-500 text-white"
                           : "bg-white text-gray-600 hover:bg-red-500 hover:text-white"
                       }`}

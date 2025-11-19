@@ -1,5 +1,5 @@
 "use client"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { useState, useEffect, Suspense } from "react"
 import { motion } from "framer-motion"
 import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTruck, FaMotorcycle, FaBus } from "react-icons/fa"
@@ -85,6 +85,8 @@ function BookingContent() {
   const [bookingId, setBookingId] = useState(null)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
   const [isPaymentCompleted, setIsPaymentCompleted] = useState(false)
+  const [confirmedBooking, setConfirmedBooking] = useState(null)
+  const [isLoadingBooking, setIsLoadingBooking] = useState(false)
   const [pickup, setPickup] = useState("")
   const [destination, setDestination] = useState("")
   const [isInstantBooking, setIsInstantBooking] = useState(false)
@@ -538,6 +540,7 @@ function BookingContent() {
           await handleRazorpayPayment(result._id)
         } else {
           setStep(5) // Go to confirmation
+          await fetchBookingDetails(result._id)
         }
       } else {
         console.error('Booking creation failed')
@@ -1014,6 +1017,29 @@ function BookingContent() {
     </motion.div>
   )
 
+  const fetchBookingDetails = async (bookingId) => {
+    try {
+      setIsLoadingBooking(true)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${safeStorage.get('token')}`,
+        },
+      })
+
+      if (response.ok) {
+        const booking = await response.json()
+        setConfirmedBooking(booking)
+      } else {
+        console.error('Failed to fetch booking details')
+      }
+    } catch (error) {
+      console.error('Error fetching booking details:', error)
+    } finally {
+      setIsLoadingBooking(false)
+    }
+  }
+
   const handleRazorpayPayment = async (booking_id) => {
     try {
       setIsProcessingPayment(true)
@@ -1377,35 +1403,17 @@ function BookingContent() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <button
-          onClick={() => {
-            const today = new Date().toISOString().split('T')[0];
-            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-            setStep(1)
-            setBookingData({
-              serviceType: "Car",
-              service: "",
-              startDate: today,
-              endDate: tomorrow,
-              dates: [new Date(today), new Date(tomorrow)],
-              pickupLocation: { address: "", coordinates: { lat: 0, lng: 0 } },
-              dropoffLocation: { address: "", coordinates: { lat: 0, lng: 0 } },
-              passengers: { adults: 1, children: 0, infants: 0 },
-              rooms: 1,
-              personalInfo: { fullname: "", email: "", mobile: "", address: "" },
-              specialRequests: "",
-              payment: { method: "razorpay", amount: 0, status: "pending" },
-              pricing: { basePrice: 0, discount: 0, tax: 0, totalPrice: 0 }
-            })
-            setIsInstantBooking(false)
-            setSelectedTransport("cab")
-            setSelectedVehicleId("")
-          }}
-          className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300"
-        >
-          Book Another Service
-        </button>
+        {confirmedBooking?.serviceType === "Car" && bookingId && (
+          <button
+            onClick={() => {
+              // Navigate to active booking page for Car services
+              window.location.href = `/active-booking/${bookingId}`;
+            }}
+            className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300"
+          >
+            Check Booking Status
+          </button>
+        )}
         <a
           href={`tel:+91${brand.mobile}`}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-50 transition-colors duration-300"
@@ -1521,17 +1529,7 @@ function BookingContent() {
   )
 }
 
-// Loading component for Suspense fallback
-function BookingLoading() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading booking page...</p>
-      </div>
-    </div>
-  )
-}
+
 
 // Main export with Suspense boundary
 export default BookingContent

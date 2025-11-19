@@ -22,8 +22,15 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
     model: "",
     type: "Sedan",
+    category: "car",
     pricePerDay: "",
-    description: "",
+    basePrice: "",
+    pricePerKm: "",
+    geartype: "Automatic",
+    seats: "",
+    fueltype: "Petrol",
+    bookingType: "normal",
+    detail: "",
     features: [],
     availability: true,
     images: [],
@@ -38,8 +45,15 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
       setFormData({
         model: car.model || "",
         type: car.type || "Sedan",
+        category: car.category || "car",
         pricePerDay: car.pricePerDay?.toString() || "",
-        description: car.description || "",
+        basePrice: car.basePrice?.toString() || "",
+        pricePerKm: car.pricePerKm?.toString() || "",
+        geartype: car.geartype || "Automatic",
+        seats: car.seats?.toString() || "",
+        fueltype: car.fueltype || "Petrol",
+        bookingType: car.bookingType || "normal",
+        detail: car.detail || "",
         features: car.features || [],
         availability: car.availability ?? true,
         images: car.images || [],
@@ -54,8 +68,15 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
       setFormData({
         model: "",
         type: "Sedan",
+        category: "car",
         pricePerDay: "",
-        description: "",
+        basePrice: "",
+        pricePerKm: "",
+        geartype: "Automatic",
+        seats: "",
+        fueltype: "Petrol",
+        bookingType: "normal",
+        detail: "",
         features: [],
         availability: true,
         images: [],
@@ -70,6 +91,9 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
     const submissionData = {
       ...formData,
       pricePerDay: Number(formData.pricePerDay),
+      basePrice: formData.basePrice ? Number(formData.basePrice) : undefined,
+      pricePerKm: Number(formData.pricePerKm),
+      seats: Number(formData.seats),
     }
 
     onSubmit(submissionData)
@@ -228,7 +252,7 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="model">Model</Label>
               <Input
@@ -254,17 +278,120 @@ export function CarForm({ open, onOpenChange, car, onSubmit, isLoading }) {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bike">Bike</SelectItem>
+                  <SelectItem value="car">Car</SelectItem>
+                  <SelectItem value="bus">Bus</SelectItem>
+                  <SelectItem value="riksha">Riksha</SelectItem>
+                  <SelectItem value="cab">Cab</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pricePerDay">Price per Day (₹)</Label>
+              <Input
+                id="pricePerDay"
+                type="number"
+                value={formData.pricePerDay}
+                onChange={(e) => setFormData({ ...formData, pricePerDay: e.target.value })}
+                placeholder="2500"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="basePrice">Base Price (₹)</Label>
+              <Input
+                id="basePrice"
+                type="number"
+                value={formData.basePrice}
+                onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                placeholder="500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pricePerKm">Price per Km (₹)</Label>
+              <Input
+                id="pricePerKm"
+                type="number"
+                value={formData.pricePerKm}
+                onChange={(e) => setFormData({ ...formData, pricePerKm: e.target.value })}
+                placeholder="15"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="geartype">Gear Type</Label>
+              <Select value={formData.geartype} onValueChange={(value) => setFormData({ ...formData, geartype: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select gear type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Manual">Manual</SelectItem>
+                  <SelectItem value="Automatic">Automatic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seats">Seats</Label>
+              <Input
+                id="seats"
+                type="number"
+                value={formData.seats}
+                onChange={(e) => setFormData({ ...formData, seats: e.target.value })}
+                placeholder="4"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fueltype">Fuel Type</Label>
+              <Select value={formData.fueltype} onValueChange={(value) => setFormData({ ...formData, fueltype: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select fuel type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Petrol">Petrol</SelectItem>
+                  <SelectItem value="Diesel">Diesel</SelectItem>
+                  <SelectItem value="Electric">Electric</SelectItem>
+                  <SelectItem value="Hybrid">Hybrid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bookingType">Booking Type</Label>
+              <Select value={formData.bookingType} onValueChange={(value) => setFormData({ ...formData, bookingType: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select booking type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="luxury">Luxury</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="pricePerDay">Price per Day (₹)</Label>
-            <Input
-              id="pricePerDay"
-              type="number"
-              value={formData.pricePerDay}
-              onChange={(e) => setFormData({ ...formData, pricePerDay: e.target.value })}
-              placeholder="2500"
-              required
+            <Label htmlFor="detail">Additional Details</Label>
+            <Textarea
+              id="detail"
+              value={formData.detail}
+              onChange={(e) => setFormData({ ...formData, detail: e.target.value })}
+              placeholder="Additional information about the vehicle..."
+              rows={2}
+              className="resize-none"
             />
           </div>
 

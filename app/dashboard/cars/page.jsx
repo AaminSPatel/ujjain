@@ -97,7 +97,7 @@ export default function CarsPage() {
           <div className="flex justify-between items-start mb-3">
             <div>
               <h3 className="font-semibold text-lg">{car.model}</h3>
-              <p className="text-sm text-gray-600">{car.type}</p>
+              <p className="text-sm text-gray-600">{car.type} - {car.category}</p>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -128,6 +128,14 @@ export default function CarsPage() {
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Price/Day:</span>
               <span className="font-medium">₹{car.pricePerDay}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Base Price:</span>
+              <span className="font-medium">{car.basePrice ? `₹${car.basePrice}` : "-"}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Price/Km:</span>
+              <span className="font-medium">₹{car.pricePerKm}</span>
             </div>
 
             <div className="flex justify-between items-center">
@@ -233,7 +241,10 @@ export default function CarsPage() {
                   <TableRow>
                     <TableHead className="min-w-[120px]">Model</TableHead>
                     <TableHead className="min-w-[100px]">Type</TableHead>
+                    <TableHead className="min-w-[100px]">Category</TableHead>
                     <TableHead className="min-w-[100px]">Price/Day</TableHead>
+                    <TableHead className="min-w-[100px]">Base Price</TableHead>
+                    <TableHead className="min-w-[100px]">Price/Km</TableHead>
                     <TableHead className="min-w-[120px]">Availability</TableHead>
                     <TableHead className="min-w-[150px]">Features</TableHead>
                     <TableHead className="text-right min-w-[80px]">Actions</TableHead>
@@ -250,7 +261,14 @@ export default function CarsPage() {
                     >
                       <TableCell className="font-medium">{car.model}</TableCell>
                       <TableCell>{car.type}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="capitalize">
+                          {car.category}
+                        </Badge>
+                      </TableCell>
                       <TableCell>₹{car.pricePerDay}</TableCell>
+                      <TableCell>{car.basePrice ? `₹${car.basePrice}` : "-"}</TableCell>
+                      <TableCell>₹{car.pricePerKm}</TableCell>
                       <TableCell>
                         <Badge variant={car.availability ? "default" : "secondary"}>
                           {car.availability ? "Available" : "Unavailable"}

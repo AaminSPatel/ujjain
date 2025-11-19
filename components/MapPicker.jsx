@@ -64,9 +64,10 @@ function LocationMarker({ value, onChange, map }) {
             position={value.coordinates}
             icon={{
               url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-                <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="20" cy="20" r="18" fill="#3B82F6" stroke="white" stroke-width="3"/>
-                  <circle cx="20" cy="20" r="8" fill="white"/>
+                <svg width="30" height="35" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+              <!-- Location pin -->
+              <path d="M15 2C8.1 2 2.5 7.6 2.5 14.5C2.5 21.5 15 38 15 38C15 38 27.5 21.5 27.5 14.5C27.5 7.6 21.9 2 15 2Z" fill="#dc2626"/>
+              <circle cx="15" cy="14" r="6" fill="white"/>
                 </svg>
               `),
               scaledSize: new window.google.maps.Size(40, 40),

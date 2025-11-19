@@ -60,7 +60,7 @@ export default function Header() {
           <div className="flex items-center space-x-2">
             <div className="hidden md:flex items-center space-x-2 text-orange-500">
               <Phone className="h-4 w-4" />
-              <span className="font-semibold">+91-9876543210</span>
+              <span className="font-semibold">+91-{brand.mobile}</span>
             </div>
             
             {/* Notification Bell - Only show when logged in */}

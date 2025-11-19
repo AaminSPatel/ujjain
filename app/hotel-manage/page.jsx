@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Plus,Star, Search, Filter, MoreHorizontal, Edit, Trash2, List, Grid3X3, Calendar, Users, DollarSign } from "lucide-react"
+import { Plus,Star, Search, Filter, MoreHorizontal, Edit, Trash2, List, Grid3X3, Calendar, Users, DollarSign, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,6 +27,7 @@ export default function HotelManagePage() {
   const { hotels, formatDate, isLoading: contextLoading, addHotel, updateHotel, removeHotel, user } = useUjjain()
   const { toast } = useToast()
   const [localLoading, setLocalLoading] = useState(false)
+  const [actionLoading, setActionLoading] = useState(null) // Track which booking is being processed
 
   useEffect(() => {
     if (hotels.length > 0 && user) {
@@ -118,6 +119,54 @@ export default function HotelManagePage() {
 
   const getTotalRevenue = () => {
     return bookings.reduce((total, booking) => total + (booking.payment?.amount || 0), 0)
+  }
+
+  const handleAcceptBooking = async (bookingId) => {
+    try {
+      setActionLoading(bookingId)
+      const { BookingService } = await import('@/components/apiService')
+      await BookingService.acceptHotelBooking(bookingId)
+      toast({
+        title: "Success",
+        description: "Booking accepted successfully",
+      })
+      // Refresh bookings
+      const hotelIds = allHotels.map(hotel => hotel._id)
+      const data = await BookingService.getBookingsByService('Hotel', hotelIds)
+      setBookings(data)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to accept booking",
+        variant: "destructive",
+      })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleRejectBooking = async (bookingId) => {
+    try {
+      setActionLoading(bookingId)
+      const { BookingService } = await import('@/components/apiService')
+      await BookingService.rejectHotelBooking(bookingId)
+      toast({
+        title: "Success",
+        description: "Booking rejected successfully",
+      })
+      // Refresh bookings
+      const hotelIds = allHotels.map(hotel => hotel._id)
+      const data = await BookingService.getBookingsByService('Hotel', hotelIds)
+      setBookings(data)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject booking",
+        variant: "destructive",
+      })
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   return (
@@ -422,19 +471,50 @@ export default function HotelManagePage() {
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold">₹{booking.payment?.amount || 0}</p>
-                        <Badge
-                          variant={
-                            booking.status === "confirmed"
-                              ? "default"
-                              : booking.status === "completed"
-                                ? "secondary"
-                                : "destructive"
-                          }
-                        >
-                          {booking.status}
-                        </Badge>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <p className="text-xl font-bold">₹{booking.payment?.amount || 0}</p>
+                          <Badge
+                            variant={
+                              booking.status === "confirmed"
+                                ? "default"
+                                : booking.status === "completed"
+                                  ? "secondary"
+                                  : "destructive"
+                            }
+                          >
+                            {booking.status}
+                          </Badge>
+                        </div>
+                        {booking.status === "pending" && (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleAcceptBooking(booking._id)}
+                              disabled={actionLoading === booking._id}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {actionLoading === booking._id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              ) : (
+                                <Check className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleRejectBooking(booking._id)}
+                              disabled={actionLoading === booking._id}
+                            >
+                              {actionLoading === booking._id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              ) : (
+                                <X className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
