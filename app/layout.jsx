@@ -23,6 +23,7 @@ export default function RootLayout({ children }) {
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#f97316" />
         <meta name="background-color" content="#ffffff" />
+        <meta name="google-site-verification" content="zqC-69tz8B1VhINUghxq96W2BgClagcAIvgQKh7Lqi4" />
         <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
 
         {/* ✅ App Icons for Android/iOS */}
