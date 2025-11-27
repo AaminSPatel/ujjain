@@ -21,6 +21,7 @@ import {
 import { MdTempleHindu, MdWaves } from "react-icons/md"
 import Link from "next/link"
 import { useUjjain } from "@/components/context/UjjainContext"
+import Head from "next/head"
 
 export default function Places() {
   const [selectedCategory, setSelectedCategory] = useState("all")
@@ -31,7 +32,7 @@ export default function Places() {
   const [imageIndexes, setImageIndexes] = useState({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const { places} = useUjjain()
+  const { places ,brand} = useUjjain()
 
   // Updated filter states to match schema
   const [filters, setFilters] = useState({
@@ -238,6 +239,418 @@ export default function Places() {
 
   return (
     <div className="min-h-screen bg-white">
+
+    <Head>
+      {/* Primary Meta Tags */}
+      <title>Explore Top Places in Indore, Ujjain, Dewas, Bhopal, Dhar | Tourist Guide - Safar Sathi</title>
+      <meta name="title" content="Explore Top Places in Indore, Ujjain, Dewas, Bhopal, Dhar | Tourist Guide - Safar Sathi" />
+      <meta name="description" content="Complete travel guide to best places in Indore, Ujjain, Dewas, Bhopal, Dhar, Mahu, Rau, Mandaw. Discover temples, historical sites, tourist attractions, shopping areas, food streets with detailed information, timings, entry fees and travel tips." />
+      
+      {/* Keywords */}
+      <meta name="keywords" content="places to visit in Indore, Ujjain tourist places, Dewas attractions, Bhopal tourism, Dhar historical sites, Mahu places, Rau attractions, Mandaw tourism, Mahakal Temple Ujjain, Rajwada Indore, Khajrana Temple, Bhimbetka Bhopal, Sanchi Stupa, Omkareshwar, Mandu Fort, Patalpani Waterfall, Indore food tour, Sarafa Bazaar, Chappan Dukan, Lal Bagh Palace, Kanch Mandir, Gomatgiri, Pipliyapala Park, Treasure Island Mall, Indore zoo, Ujjain temples, Dewas Mata Temple, Kalideh Palace, Bhopal lakes, Upper Lake, Lower Lake, Taj-ul-Masajid, Van Vihar, MP tourism, Central India travel, Madhya Pradesh attractions, religious places MP, historical sites MP, weekend getaways, family tourist spots, pilgrimage sites, adventure tourism, cultural heritage, sightseeing tours, local guides, travel information, tourist maps, best time to visit, entry fees, timings, photography spots, nearby hotels, transportation guide, Safar Sathi places, travel companion MP" />
+      
+      {/* Open Graph / Facebook */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={`${brand.link}/places`} />
+      <meta property="og:title" content="Explore Top Tourist Places in Indore, Ujjain, Dewas, Bhopal, Dhar | Travel Guide" />
+      <meta property="og:description" content="Complete travel guide to best places in Indore, Ujjain, Dewas, Bhopal, Dhar. Discover temples, historical sites, tourist attractions with detailed information and travel tips." />
+      <meta property="og:image" content={`${brand.link}/bg1.png`} />
+      <meta property="og:site_name" content="Safar Sathi" />
+      <meta property="og:locale" content="en_IN" />
+      
+      {/* Twitter */}
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:url" content={`${brand.link}/places`} />
+      <meta property="twitter:title" content="Explore Top Places in Indore, Ujjain, Dewas, Bhopal | Travel Guide" />
+      <meta property="twitter:description" content="Complete travel guide to best tourist places in Indore, Ujjain, Dewas, Bhopal, Dhar with detailed information and travel tips." />
+      <meta property="twitter:image" content={`${brand.link}/bg1.png`} />
+      
+      {/* Canonical URL */}
+      <link rel="canonical" href={`${brand.link}/places`} />
+      
+      {/* Alternate Languages */}
+      <link rel="alternate" href={`${brand.link}/places`} hrefLang="en-in" />
+      <link rel="alternate" href={`${brand.link}/places`} hrefLang="en" />
+      <link rel="alternate" href={`${brand.link}/places`} hrefLang="hi" />
+      
+      {/* Robots Meta */}
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+      
+      {/* Google Specific Meta */}
+      <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+      <meta name="google" content="nositelinkssearchbox" />
+      <meta name="google" content="notranslate" />
+      
+      {/* Additional Meta Tags */}
+      <meta name="author" content="Safar Sathi" />
+      <meta name="publisher" content="Safar Sathi" />
+      <meta name="copyright" content="Safar Sathi" />
+      <meta name="classification" content="Travel, Tourism, Places, Attractions, Guide" />
+      <meta name="category" content="travel, tourism, places" />
+      <meta name="coverage" content="India, Madhya Pradesh, Indore, Ujjain, Dewas, Bhopal, Dhar" />
+      <meta name="distribution" content="global" />
+      <meta name="rating" content="general" />
+      <meta name="referrer" content="origin" />
+      <meta name="target" content="all" />
+      <meta name="audience" content="all" />
+      
+      {/* Mobile Specific */}
+      <meta name="format-detection" content="telephone=yes" />
+      <meta name="HandheldFriendly" content="true" />
+      <meta name="MobileOptimized" content="width" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="theme-color" content="#8B5CF6" />
+      
+      {/* Viewport */}
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+      
+      {/* Dublin Core Metadata */}
+      <meta name="DC.title" content="Tourist Places in Indore, Ujjain, Dewas, Bhopal - Safar Sathi" />
+      <meta name="DC.creator" content="Safar Sathi" />
+      <meta name="DC.subject" content="Tourism, Travel, Places, Attractions, Guide" />
+      <meta name="DC.description" content="Comprehensive guide to tourist places in Indore, Ujjain, Dewas, Bhopal, Dhar and surrounding areas in Madhya Pradesh" />
+      <meta name="DC.publisher" content="Safar Sathi" />
+      <meta name="DC.format" content="text/html" />
+      <meta name="DC.language" content="en-IN" />
+      
+      {/* Geo Tags */}
+      <meta name="geo.region" content="IN-MP" />
+      <meta name="geo.placename" content="Indore, Ujjain, Dewas, Bhopal, Dhar, Madhya Pradesh" />
+      <meta name="ICBM" content="22.7196, 75.8577" />
+      
+      {/* Site Links Search Box */}
+      <meta name="google" content="nositelinkssearchbox" />
+      
+      {/* App Links */}
+      <meta property="al:web:url" content={`${brand.link}/places`} />
+      
+      {/* Structured Data - JSON-LD for Tourist Guide */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Guide",
+            "name": "Safar Sathi Travel Guide - Madhya Pradesh",
+            "description": "Comprehensive travel guide to tourist places in Indore, Ujjain, Dewas, Bhopal, Dhar and surrounding areas in Madhya Pradesh",
+            "url": `${brand.link}/places`,
+            "about": {
+              "@type": "Place",
+              "name": "Madhya Pradesh",
+              "containsPlace": [
+                {"@type": "Place", "name": "Indore"},
+                {"@type": "Place", "name": "Ujjain"},
+                {"@type": "Place", "name": "Dewas"},
+                {"@type": "Place", "name": "Bhopal"},
+                {"@type": "Place", "name": "Dhar"},
+                {"@type": "Place", "name": "Mahu"},
+                {"@type": "Place", "name": "Rau"},
+                {"@type": "Place", "name": "Mandaw"}
+              ]
+            },
+            "hasPart": [
+              {
+                "@type": "Guide",
+                "name": "Indore Tourist Places Guide",
+                "description": "Complete guide to places in Indore including Rajwada, Khajrana Temple, Sarafa Bazaar and more"
+              },
+              {
+                "@type": "Guide",
+                "name": "Ujjain Pilgrimage Guide",
+                "description": "Guide to religious places in Ujjain including Mahakal Temple and other sacred sites"
+              },
+              {
+                "@type": "Guide",
+                "name": "Bhopal Tourism Guide",
+                "description": "Guide to lakes, historical sites and attractions in Bhopal"
+              }
+            ]
+          })
+        }}
+      />
+      
+      {/* Local Business Structured Data for Travel Guide */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": "Safar Sathi Travel Guide Services",
+            "description": "Professional travel guide and tourism information service for Madhya Pradesh covering Indore, Ujjain, Dewas, Bhopal and surrounding areas",
+            "url": `${brand.link}/places`,
+            "telephone": `+91 ${brand.mobile}`,
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Ujjain",
+              "addressRegion": "Madhya Pradesh",
+              "postalCode": "456001",
+              "addressCountry": "IN"
+            },
+            "areaServed": ["Indore", "Ujjain", "Dewas", "Bhopal", "Dhar", "Mahu", "Rau", "Mandaw", "Madhya Pradesh"],
+            "openingHours": "Mo-Su 00:00-23:59",
+            "sameAs": [
+              `${brand.link}/places`
+            ]
+          })
+        }}
+      />
+      
+      {/* Tourist Attractions Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "TouristAttraction",
+                "name": "Mahakaleshwar Temple",
+                "description": "One of the 12 Jyotirlingas dedicated to Lord Shiva, located in Ujjain",
+                "url": `${brand.link}/places`,
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "Ujjain",
+                  "addressRegion": "Madhya Pradesh"
+                },
+                "publicAccess": true,
+                "openingHours": "Mo-Su 04:00-23:00"
+              },
+              {
+                "@type": "TouristAttraction",
+                "name": "Rajwada Palace",
+                "description": "Historical palace of the Holkar dynasty in Indore, showcasing Maratha architecture",
+                "url": `${brand.link}/places`,
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "Indore",
+                  "addressRegion": "Madhya Pradesh"
+                },
+                "publicAccess": true
+              },
+              {
+                "@type": "TouristAttraction",
+                "name": "Khajrana Ganesh Temple",
+                "description": "Famous temple dedicated to Lord Ganesha in Indore, known for wish fulfillment",
+                "url": `${brand.link}/places`,
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "Indore",
+                  "addressRegion": "Madhya Pradesh"
+                },
+                "publicAccess": true
+              },
+              {
+                "@type": "TouristAttraction",
+                "name": "Bhimbetka Rock Shelters",
+                "description": "UNESCO World Heritage Site with prehistoric rock paintings near Bhopal",
+                "url": `${brand.link}/places`,
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "Bhopal",
+                  "addressRegion": "Madhya Pradesh"
+                },
+                "publicAccess": true
+              },
+              {
+                "@type": "TouristAttraction",
+                "name": "Sanchi Stupa",
+                "description": "Ancient Buddhist complex and UNESCO World Heritage Site near Bhopal",
+                "url": `${brand.link}/places`,
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "Sanchi",
+                  "addressRegion": "Madhya Pradesh"
+                },
+                "publicAccess": true
+              },
+              {
+                "@type": "TouristAttraction",
+                "name": "Mandu Fort",
+                "description": "Historical fort city with Afghan architecture near Dhar",
+                "url": `${brand.link}/places`,
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "Mandu",
+                  "addressRegion": "Madhya Pradesh"
+                },
+                "publicAccess": true
+              }
+            ]
+          })
+        }}
+      />
+      
+      {/* Breadcrumb Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": brand.link
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Places",
+                "item": `${brand.link}/places`
+              },{
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Cars",
+                "item": `${brand.link}/cars`
+              },{
+                "@type": "ListItem",
+                "position": 4,
+                "name": "Hotels",
+                "item": `${brand.link}/hotels`
+              }
+            ]
+          })
+        }}
+      />
+      
+      {/* FAQ Structured Data for Places */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What are the must-visit places in Indore?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Top places in Indore include Rajwada Palace, Khajrana Ganesh Temple, Sarafa Bazaar for street food, Chappan Dukan, Lal Bagh Palace, Kanch Mandir, and Pipliyapala Regional Park for family outings."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Which religious places should I visit in Ujjain?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Must-visit religious places in Ujjain are Mahakaleshwar Temple (Jyotirlinga), Kal Bhairav Temple, Harsiddhi Temple, Mangalnath Temple, and Ram Ghat for evening aarti."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What are the best historical sites in Bhopal?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Top historical sites in Bhopal include Bhimbetka Rock Shelters (UNESCO), Sanchi Stupa (UNESCO), Taj-ul-Masajid, Shaukat Mahal, and the old city with its blend of Hindu and Islamic architecture."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Are there any adventure tourism spots near these cities?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, you can visit Patalpani Waterfall near Indore for trekking, various water sports at Bhopal lakes, wildlife spotting at Van Vihar, and explore the caves at Bhimbetka."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What is the best time to visit these places in Madhya Pradesh?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The best time to visit most places in Madhya Pradesh is from October to March when the weather is pleasant. Avoid summer months (April-June) as temperatures can be very high."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Do these places have entry fees?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Most temples are free to enter, but some may have special darshan fees. Historical sites and museums usually have nominal entry fees. National parks and UNESCO sites have separate ticket charges."
+                }
+              }
+            ]
+          })
+        }}
+      />
+      
+      {/* ItemList Structured Data for Top Places */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": "Top 20 Must-Visit Places in Madhya Pradesh",
+            "description": "List of most popular tourist attractions in Indore, Ujjain, Dewas, Bhopal and surrounding areas",
+            "numberOfItems": 20,
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "item": {
+                  "@type": "Place",
+                  "name": "Mahakaleshwar Temple, Ujjain",
+                  "description": "One of the 12 Jyotirlingas of Lord Shiva"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "item": {
+                  "@type": "Place",
+                  "name": "Rajwada Palace, Indore",
+                  "description": "Historic palace of Holkar dynasty"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "item": {
+                  "@type": "Place",
+                  "name": "Bhimbetka Rock Shelters, Bhopal",
+                  "description": "UNESCO World Heritage Site with prehistoric art"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "item": {
+                  "@type": "Place",
+                  "name": "Sanchi Stupa, Sanchi",
+                  "description": "Ancient Buddhist monument and UNESCO site"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 5,
+                "item": {
+                  "@type": "Place",
+                  "name": "Mandu Fort, Dhar",
+                  "description": "Fortress city with Afghan architecture"
+                }
+              }
+            ]
+          })
+        }}
+      />
+      
+      {/* Preload and Preconnect for performance */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+      <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+      
+      {/* Favicon and App Icons */}
+      <link rel="icon" href="/favicon.ico" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+      <link rel="manifest" href="/site.webmanifest" />
+    </Head>
+
+
       {/* Hero Section */}
       <section className="relative py-20 bg-black text-white overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-blue-600 text-white"></div>

@@ -21,13 +21,14 @@ import {
 import { MdAirlineSeatReclineExtra, MdLuggage } from "react-icons/md"
 import Link from "next/link"
 import { useUjjain } from "@/components/context/UjjainContext"
+import Head from "next/head"
 
 export default function Cars() {
  const [selectedCategory, setSelectedCategory] = useState("all")
   const [favorites, setFavorites] = useState([])
   const [showFilters, setShowFilters] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const { cars ,getAverageRating} = useUjjain()
+  const { cars ,getAverageRating,brand} = useUjjain()
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -99,6 +100,249 @@ export default function Cars() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
+
+
+    <Head>
+      {/* Primary Meta Tags */}
+      <title>Safar Sathi - Premium Car Rentals & Taxi Services in Dewas, Indore, Ujjain | Best Cab Booking</title>
+      <meta name="title" content="Safar Sathi - Premium Car Rentals & Taxi Services in Dewas, Indore, Ujjain | Best Cab Booking" />
+      <meta name="description" content="Book premium car rentals & taxi services in Dewas, Indore, Ujjain. 24/7 cab booking for local rides, airport transfers, outstation trips. AC/Non-AC cars with verified drivers. Affordable prices, instant booking, safe rides for families & business travelers." />
+      
+      {/* Keywords */}
+      <meta name="keywords" content="car rental Dewas, taxi service Indore, cab booking Ujjain, car hire MP, 24/7 taxi service, airport taxi, outstation cab, local taxi, AC car rental, premium cab service, affordable taxi, online cab booking, verified drivers, safe taxi service, family cab, business travel taxi, temple tour taxi, corporate cab, one-way taxi, round-trip cab, SUV rental, sedan car hire, Indore airport taxi, Dewas to Indore taxi, Ujjain to Dewas cab, MP tourism taxi, religious tour cab, business travel MP, Madhya Pradesh car rental, Central India taxi service, reliable cab operator, instant taxi booking, cheapest cab service, luxury car rental, budget taxi, group travel cab, wedding cab service, event transportation, hourly car rental, daily car hire, monthly car rental, long term cab service, short distance taxi, intercity travel cab, highway taxi service, verified taxi drivers, GPS enabled cabs, cashless payment taxi, online taxi booking app, car rental near me, taxi service nearby, cab booking app, Safar Sathi cars, Safar Sathi taxi booking, Safar Sathi car rental" />
+      
+      {/* Open Graph / Facebook */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={`${brand.link}/cars`} />
+      <meta property="og:title" content="Safar Sathi - Premium Car Rentals & Taxi Services in Dewas, Indore, Ujjain" />
+      <meta property="og:description" content="Book 24/7 reliable car rentals & taxi services in Dewas, Indore, Ujjain. AC/Non-AC cabs for local rides, airport transfers, outstation trips with verified drivers." />
+      <meta property="og:image" content={`${brand.link}/bg2.png`} />
+      <meta property="og:site_name" content="Safar Sathi" />
+      <meta property="og:locale" content="en_IN" />
+      
+      {/* Twitter */}
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:url" content={`${brand.link}/cars`} />
+      <meta property="twitter:title" content="Safar Sathi - Premium Car Rentals & Taxi Services" />
+      <meta property="twitter:description" content="Book reliable 24/7 taxi services in Dewas, Indore, Ujjain. AC cars for local rides, airport transfers, outstation trips with verified drivers." />
+      <meta property="twitter:image" content={`${brand.link}/bg2.png`} />
+      
+      {/* Canonical URL */}
+      <link rel="canonical" href={`${brand.link}/cars`}  />
+      
+      {/* Alternate Languages - if you plan to add regional languages */}
+      <link rel="alternate" href={`${brand.link}/cars`}  hrefLang="en-in" />
+      <link rel="alternate" href={`${brand.link}/cars`}  hrefLang="en" />
+      
+      {/* Robots Meta */}
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+      
+      {/* Google Specific Meta */}
+      <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+      <meta name="google" content="nositelinkssearchbox" />
+      <meta name="google" content="notranslate" />
+      
+      {/* Verification Meta - Add when you have these */}
+      {/* <meta name="google-site-verification" content="your-verification-code" /> */}
+      {/* <meta name="facebook-domain-verification" content="your-verification-code" /> */}
+      
+      {/* Additional Meta Tags */}
+      <meta name="author" content="Safar Sathi" />
+      <meta name="publisher" content="Safar Sathi" />
+      <meta name="copyright" content="Safar Sathi" />
+      <meta name="classification" content="Travel, Transportation, Car Rental, Taxi Service" />
+      <meta name="category" content="travel, transport" />
+      <meta name="coverage" content="India, Madhya Pradesh, Dewas, Indore, Ujjain" />
+      <meta name="distribution" content="global" />
+      <meta name="rating" content="general" />
+      <meta name="referrer" content="origin" />
+      <meta name="target" content="all" />
+      <meta name="audience" content="all" />
+      <meta name="robots" content="all" />
+      
+      {/* Mobile Specific */}
+      <meta name="format-detection" content="telephone=yes" />
+      <meta name="HandheldFriendly" content="true" />
+      <meta name="MobileOptimized" content="width" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="theme-color" content="#3B82F6" />
+      
+      {/* Viewport */}
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+      
+      {/* Dublin Core Metadata */}
+      <meta name="DC.title" content="Safar Sathi - Premium Car Rentals & Taxi Services" />
+      <meta name="DC.creator" content="Safar Sathi" />
+      <meta name="DC.subject" content="Car Rental, Taxi Service, Cab Booking, Transportation" />
+      <meta name="DC.description" content="Premium car rentals and taxi services in Dewas, Indore, Ujjain for local and outstation travel" />
+      <meta name="DC.publisher" content="Safar Sathi" />
+      <meta name="DC.format" content="text/html" />
+      <meta name="DC.language" content="en-IN" />
+      
+      {/* Geo Tags */}
+      <meta name="geo.region" content="IN-MP" />
+      <meta name="geo.placename" content="Dewas, Indore, Ujjain, Madhya Pradesh" />
+     {/*  <meta name="geo.position" content="22.9658;76.0550" />
+      <meta name="ICBM" content="22.9658, 76.0550" />
+      */} 
+      {/* Site Links Search Box */}
+      <meta name="google" content="nositelinkssearchbox" />
+      
+      {/* App Links */}
+    {/*   <meta property="al:android:url" content="safarsathi://cars" />
+      <meta property="al:android:app_name" content="Safar Sathi" />
+      <meta property="al:android:package" content="com.safarsathi.app" /> */}
+      <meta property="al:web:url" content={`${brand.link}/cars`}  />
+      
+      {/* Structured Data - JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "AutomotiveBusiness",
+            "name": "Safar Sathi",
+            "description": "Premium car rental and taxi service provider in Dewas, Indore, Ujjain and surrounding areas",
+            "url": `${brand.link}/cars` ,
+            "telephone": `+91 ${brand.mobile}` ,
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Ujjain",
+              "addressRegion": "Madhya Pradesh",
+              "postalCode": "456001",
+              "addressCountry": "IN"
+            },
+            
+            "areaServed": ["Dewas", "Indore", "Ujjain", "Madhya Pradesh"],
+            "serviceType": [
+              "Taxi Service",
+              "Car Rental",
+              "Airport Transfer",
+              "Outstation Taxi",
+              "Local Cab Service"
+            ],
+            "offers": {
+              "@type": "Offer",
+              "description": "Affordable and premium car rental services"
+            },
+            
+          })
+        }}
+      />
+      
+      {/* Additional Local Business Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": "Safar Sathi Car Rentals",
+            "image": `${brand.link}/logo.png`,
+            "@id": `${brand.link}/cars` ,
+            "url": `${brand.link}/cars`,
+            "telephone": `+91 ${brand.mobile}`,
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Main Road",
+              "addressLocality": "Ujjain",
+              "addressRegion": "MP",
+              "postalCode": "456001",
+              "addressCountry": "IN"
+            },
+            
+            "openingHoursSpecification": {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+              ],
+              "opens": "00:00",
+              "closes": "23:59"
+            },
+            "sameAs": [
+              `${brand.link}/cars`
+            ]
+          })
+        }}
+      />
+      
+      {/* Service Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "serviceType": "Car Rental & Taxi Service",
+            "provider": {
+              "@type": "LocalBusiness",
+              "name": "Safar Sathi"
+            },
+            "areaServed": {
+              "@type": "State",
+              "name": "Madhya Pradesh"
+            },
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Taxi Services",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Local Taxi Service"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Outstation Taxi Service"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Airport Transfer Service"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Temple Tour Service"
+                  }
+                }
+              ]
+            }
+          })
+        }}
+      />
+      
+      {/* Preload and Preconnect for performance */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+      <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+      
+      {/* Favicon and App Icons */}
+      <link rel="icon" href="/favicon.ico" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+      <link rel="manifest" href="/site.webmanifest" />
+      
+      {/* RSS Feed - if you have blog */}
+      {/* <link rel="alternate" type="application/rss+xml" href="/rss.xml" title="Safar Sathi Blog" /> */}
+    </Head>
+  
+
+export default CarsPageHead;
       <section className="relative py-10 bg-black text-white overflow-hidden bg-cover" style={{backgroundImage:`url('./bg1.png')`}}>
         <div className="absolute inset-0  bg-gradient-to-t from-gray-800/90 to-sky-600/30 backdrop-opacity-20 text-white"></div>
         <div className="container mx-auto px-4 text-center relative z-10">

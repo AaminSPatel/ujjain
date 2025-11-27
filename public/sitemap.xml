@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Home & Main Pages -->
+  <url>
+    <loc>https://safar--sathi.vercel.app/</loc>
+    <lastmod>2025-11-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Public Service Pages -->
+  <url>
+    <loc>https://safar--sathi.vercel.app/cars</loc>
+    <lastmod>2025-11-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://safar--sathi.vercel.app/hotels</loc>
+    <lastmod>2025-11-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://safar--sathi.vercel.app/logistics</loc>
+    <lastmod>2025-11-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://safar--sathi.vercel.app/places</loc>
+    <lastmod>2025-11-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://safar--sathi.vercel.app/booking</loc>
+    <lastmod>2025-11-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Information Pages -->
+  <url>
+    <loc>https://safar--sathi.vercel.app/about</loc>
+    <lastmod>2025-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://safar--sathi.vercel.app/contact</loc>
+    <lastmod>2025-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://safar--sathi.vercel.app/faqs</loc>
+    <lastmod>2025-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://safar--sathi.vercel.app/privacy</loc>
+    <lastmod>2025-11-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <url>
+    <loc>https://safar--sathi.vercel.app/terms</loc>
+    <lastmod>2025-11-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Authentication Page (Public facing but requires login for functionality) -->
+  <url>
+    <loc>https://safar--sathi.vercel.app/auth</loc>
+    <lastmod>2025-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- NOTE: The following pages are NOT included as they require authentication:
+       - /active-booking
+       - /driver
+       - /hotel-manage
+       - /profile
+       These should be blocked from search engines via robots.txt and noindex meta tags -->
+       
+</urlset>

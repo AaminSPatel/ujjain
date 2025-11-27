@@ -62,6 +62,7 @@ export const UjjainProvider = ({ children }) => {
     icon: "",
     email: "wecare.safarsathi@gmail.com",
     mobile: "9294757679",
+    link:'https://safar--sathi.vercel.app/'
   };
 
   const getAverageRating = (reviews, ratingKey = 'rating') => {

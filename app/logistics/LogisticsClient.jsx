@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useUjjain } from "../../components/context/UjjainContext";
 import Link from "next/link";
+import Head from "next/head";
 
 // Mock data based on your logistics schema
 /* const mockLogisticsData = [
@@ -139,7 +140,7 @@ export default function LogisticsClient() {
     availability: "all",
   });
   const [showFilters, setShowFilters] = useState(false);
-  const { logistics, getAverageRating } = useUjjain();
+  const { logistics, getAverageRating, brand } = useUjjain();
   // Apply filters
   useEffect(() => {
     setFilteredData(logistics);
@@ -223,6 +224,359 @@ export default function LogisticsClient() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
+
+    <Head>
+      {/* Primary Meta Tags */}
+      <title>Safar Sathi - Logistics & Transport Services in Ujjain, Dewas, Indore | Goods Delivery</title>
+      <meta name="title" content="Safar Sathi - Logistics & Transport Services in Ujjain, Dewas, Indore | Goods Delivery" />
+      <meta name="description" content="Professional logistics & transport services in Ujjain, Dewas, Indore. Goods transportation, parcel delivery, cargo services, warehouse logistics. Fast, reliable & affordable logistics solutions for businesses & individuals across Madhya Pradesh." />
+      
+      {/* Keywords */}
+      <meta name="keywords" content="logistics services Ujjain, transport services Dewas, goods transportation Indore, parcel delivery MP, cargo services Ujjain, logistics company Dewas, transport agency Indore, goods delivery Ujjain, courier services Dewas, freight services Indore, warehouse logistics Ujjain, supply chain management, truck transport Dewas, tempo services Indore, commercial transport Ujjain, business logistics Dewas, industrial transport Indore, local goods delivery, intercity logistics, interstate transport, logistics solutions MP, affordable transport services, reliable logistics company, fast parcel delivery, same day delivery Ujjain, next day delivery Dewas, bulk goods transport, small parcel delivery, heavy goods transportation, light goods transport, perishable goods transport, document delivery Ujjain, commercial cargo Indore, industrial logistics Dewas, business parcel service, e-commerce logistics, retail goods transport, wholesale logistics, manufacturing transport, distribution services, pickup and delivery, door to door logistics, logistics booking online, transport service app, logistics tracking, GPS enabled transport, insured logistics, safe goods transport, professional logistics, certified transport service, experienced logistics team, logistics network MP, Madhya Pradesh transport, Central India logistics, Safar Sathi logistics, Safar Sathi transport, Safar Sathi delivery services" />
+      
+      {/* Open Graph / Facebook */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={`${brand.link}/logistics`} />
+      <meta property="og:title" content="Safar Sathi - Professional Logistics & Transport Services in Ujjain, Dewas, Indore" />
+      <meta property="og:description" content="Reliable logistics & transport services in Ujjain, Dewas, Indore. Goods transportation, parcel delivery, cargo services with fast, affordable & insured logistics solutions for businesses." />
+      <meta property="og:image" content={`${brand.link}/bg3.png`} />
+      <meta property="og:site_name" content="Safar Sathi" />
+      <meta property="og:locale" content="en_IN" />
+      
+      {/* Twitter */}
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:url" content={`${brand.link}/logistics`} />
+      <meta property="twitter:title" content="Safar Sathi - Logistics & Transport Services in MP" />
+      <meta property="twitter:description" content="Professional logistics services in Ujjain, Dewas, Indore. Goods transport, parcel delivery, cargo services with reliable & affordable solutions for businesses." />
+      <meta property="twitter:image" content={`${brand.link}//bg3.png`} />
+      
+      {/* Canonical URL */}
+      <link rel="canonical" href={`${brand.link}/logistics`} />
+      
+      {/* Alternate Languages */}
+      <link rel="alternate" href={`${brand.link}/logistics`} hrefLang="en-in" />
+      <link rel="alternate" href={`${brand.link}/logistics`} hrefLang="en" />
+      
+      {/* Robots Meta */}
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+      
+      {/* Google Specific Meta */}
+      <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+      <meta name="google" content="nositelinkssearchbox" />
+      <meta name="google" content="notranslate" />
+      
+      {/* Additional Meta Tags */}
+      <meta name="author" content="Safar Sathi" />
+      <meta name="publisher" content="Safar Sathi" />
+      <meta name="copyright" content="Safar Sathi" />
+      <meta name="classification" content="Logistics, Transportation, Delivery Services, Cargo, Supply Chain" />
+      <meta name="category" content="logistics, transport, delivery" />
+      <meta name="coverage" content="India, Madhya Pradesh, Ujjain, Dewas, Indore" />
+      <meta name="distribution" content="global" />
+      <meta name="rating" content="general" />
+      <meta name="referrer" content="origin" />
+      <meta name="target" content="all" />
+      <meta name="audience" content="all" />
+      
+      {/* Mobile Specific */}
+      <meta name="format-detection" content="telephone=yes" />
+      <meta name="HandheldFriendly" content="true" />
+      <meta name="MobileOptimized" content="width" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="theme-color" content="#F59E0B" />
+      
+      {/* Viewport */}
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+      
+      {/* Dublin Core Metadata */}
+      <meta name="DC.title" content="Safar Sathi - Logistics & Transport Services" />
+      <meta name="DC.creator" content="Safar Sathi" />
+      <meta name="DC.subject" content="Logistics, Transport, Delivery, Cargo, Supply Chain" />
+      <meta name="DC.description" content="Professional logistics and transport services in Ujjain, Dewas, Indore for businesses and individuals" />
+      <meta name="DC.publisher" content="Safar Sathi" />
+      <meta name="DC.format" content="text/html" />
+      <meta name="DC.language" content="en-IN" />
+      
+      {/* Geo Tags */}
+      <meta name="geo.region" content="IN-MP" />
+      <meta name="geo.placename" content="Ujjain, Dewas, Indore, Madhya Pradesh" />
+      <meta name="ICBM" content="23.1828, 75.7772" />
+      
+      {/* Site Links Search Box */}
+      <meta name="google" content="nositelinkssearchbox" />
+      
+      {/* App Links */}
+      <meta property="al:web:url" content={`${brand.link}/logistics`} />
+      
+      {/* Structured Data - JSON-LD for Logistics Service */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "name": "Safar Sathi Logistics & Transport",
+            "description": "Professional logistics and transport services in Ujjain, Dewas, Indore offering goods transportation, parcel delivery, and cargo services",
+            "url": `${brand.link}/logistics`,
+            "telephone": `+91 ${brand.mobile}`,
+            "areaServed": {
+              "@type": "State",
+              "name": "Madhya Pradesh"
+            },
+            "serviceType": [
+              "Logistics Service",
+              "Transport Service",
+              "Delivery Service",
+              "Cargo Service"
+            ],
+            "provider": {
+              "@type": "Organization",
+              "name": "Safar Sathi",
+              "url": brand.link
+            },
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Logistics Services",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Parcel Delivery Service",
+                    "description": "Fast and reliable parcel delivery services for small to medium packages"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Goods Transportation",
+                    "description": "Commercial goods transportation for businesses and industries"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Cargo Services",
+                    "description": "Heavy cargo and freight transportation services"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Warehouse Logistics",
+                    "description": "Complete warehouse and storage logistics solutions"
+                  }
+                }
+              ]
+            }
+          })
+        }}
+      />
+      
+      {/* Local Business Structured Data for Logistics */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": "Safar Sathi Logistics Services",
+            "description": "Trusted logistics and transport service provider in Ujjain, Dewas, Indore offering comprehensive goods transportation solutions",
+            "url": `${brand.link}/logistics`,
+            "telephone": `+91 ${brand.mobile}`,
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Ujjain",
+              "addressRegion": "Madhya Pradesh",
+              "postalCode": "456001",
+              "addressCountry": "IN"
+            },
+            "areaServed": ["Ujjain", "Dewas", "Indore", "Madhya Pradesh"],
+            "openingHours": "Mo-Su 06:00-22:00",
+            "priceRange": "10 - 100000",
+            "sameAs": [
+              `${brand.link}/logistics`
+            ]
+          })
+        }}
+      />
+      
+      {/* Service Area Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "GeoCircle",
+            "geoMidpoint": {
+              "@type": "GeoCoordinates",
+              "latitude": "23.1828",
+              "longitude": "75.7772"
+            },
+            "geoRadius": "50000",
+            "name": "Safar Sathi Logistics Service Area"
+          })
+        }}
+      />
+      
+      {/* Aggregate Rating for Logistics Service */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "AggregateRating",
+            "itemReviewed": {
+              "@type": "Service",
+              "name": "Safar Sathi Logistics Services"
+            },
+            "ratingValue": "4.4",
+            "bestRating": "5",
+            "worstRating": "1",
+            "ratingCount": "89"
+          })
+        }}
+      />
+      
+      {/* Breadcrumb Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": brand.link
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Logistics",
+                "item": `${brand.link}/logistics`
+              },{
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Cars",
+                "item": `${brand.link}/cars`
+              },{
+                "@type": "ListItem",
+                "position": 4,
+                "name": "Hotels",
+                "item": `${brand.link}/hotels`
+              }
+            ]
+          })
+        }}
+      />
+      
+      {/* FAQ Structured Data for Logistics */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What types of goods do you transport?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We transport all types of goods including commercial products, industrial materials, retail merchandise, documents, parcels, and personal items. We handle both light and heavy cargo with proper care and safety measures."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Do you offer same-day delivery services?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, we offer same-day delivery services for urgent shipments within Ujjain, Dewas, and Indore. Contact us for same-day delivery options and pricing."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What areas do you cover for logistics services?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We cover Ujjain, Dewas, Indore and surrounding areas in Madhya Pradesh. We also provide interstate logistics services to major cities across India."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Do you provide warehouse and storage facilities?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, we offer warehouse logistics and storage solutions for businesses requiring temporary or long-term storage of goods with proper security and maintenance."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How can I track my shipment?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We provide shipment tracking facilities. You can track your goods through our online portal or by contacting our customer service team with your tracking number."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Do you handle perishable goods?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, we have specialized services for perishable goods with temperature-controlled transportation to ensure your products reach in perfect condition."
+                }
+              }
+            ]
+          })
+        }}
+      />
+      
+      {/* Product/Service Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": "Logistics & Transport Service",
+            "description": "Professional logistics and goods transportation services in Ujjain, Dewas, Indore",
+            "brand": {
+              "@type": "Brand",
+              "name": "Safar Sathi"
+            },
+            "offers": {
+              "@type": "Offer",
+              "url": `${brand.link}/logistics`,
+              "priceCurrency": "INR",
+              "description": "Competitive pricing for all logistics services"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.4",
+              "reviewCount": "89"
+            }
+          })
+        }}
+      />
+      
+      {/* Preload and Preconnect for performance */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+      <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+      
+      {/* Favicon and App Icons */}
+      <link rel="icon" href="/favicon.ico" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+      <link rel="manifest" href="/site.webmanifest" />
+    </Head>
+
      <section className="relative  text-white bg-cover" style={{backgroundImage:`url('./bg3.png')`}}>
         <div className="container mx-auto px-2 py-12 text-center bg-gradient-to-t from-slate-900/40 to-slate-900/40">
           <motion.h1
