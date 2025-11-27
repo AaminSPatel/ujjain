@@ -1,7 +1,7 @@
 {
   "name": "Safar Saathi - Sacred City Explorer",
   "short_name": "Safar Saathi",
-  "description": "Your trusted companion for exploring the sacred city of Ujjain",
+  "description": "Safar Sathi offers premium taxi services, car rentals, and cab bookings in Dewas, Indore, Ujjain, and surrounding areas. Book 24/7 reliable taxi services for local rides, airport transfers, outstation trips, temple tours, and corporate travel. Affordable AC/Non-AC cabs with verified drivers, instant booking, and safe rides for families, tourists, and business travelers across Madhya Pradesh.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -21,7 +21,7 @@
       "purpose": "any"
     }
   ],
-  "categories": ["travel", "lifestyle", "navigation"],
+  "categories": ["travel", "transportation", "car rentals", "hotel bookings"],
   "lang": "en",
   "dir": "ltr"
 }
