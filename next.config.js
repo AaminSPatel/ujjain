@@ -3,6 +3,19 @@ const nextConfig = {
   devIndicators: {
     position: 'bottom-right',
   },
+  
+  // Configure allowed image domains
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+      // You can add other image hostnames here if needed
+    ],
+  },
+  
   // Disable development features that might access localStorage
   /* compiler: {
     removeConsole: process.env.NODE_ENV === 'production',

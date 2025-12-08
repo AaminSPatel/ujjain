@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { X, Plus, Upload } from "lucide-react"
 
-export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
+export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading, userRole }) {
   const [formData, setFormData] = useState({
     name: "",
     category: "luxury",
@@ -29,9 +29,16 @@ export function HotelForm({ open, onOpenChange, hotel, onSubmit, isLoading }) {
     features: [],
     description: "",
     availability: "Available",
+    status: "unverified",
     roomTypes: [],
     images: [],
     rooms: [],
+    contact: {
+      mobile: "",
+      email: "",
+      address: "",
+      website: ""
+    }
   })
 
   // For rooms
@@ -359,6 +366,28 @@ const addRoom = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Status field - only for admin */}
+            {userRole === 'admin' && (
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) => setFormData({ ...formData, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="unverified">Unverified</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="blacklisted">Blacklisted</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {/* Hotel Images */}
@@ -450,6 +479,63 @@ const addRoom = () => {
                     />
                   </Badge>
                 ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Contact Information</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Mobile Number</Label>
+                <Input
+                  value={formData?.contact?.mobile}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    contact: { ...formData?.contact, mobile: e.target.value }
+                  })}
+                  placeholder="+91 9876543210"
+                  required
+                />
+              </div>
+              <div>
+                <Label>Email Address</Label>
+                <Input
+                  type="email"
+                  value={formData?.contact?.email}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    contact: { ...formData.contact, email: e.target.value }
+                  })}
+                  placeholder="contact@hotel.com"
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Address</Label>
+                <Input
+                  value={formData?.contact?.address}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    contact: { ...formData.contact, address: e.target.value }
+                  })}
+                  placeholder="123 Main Street, City, State"
+                  required
+                />
+              </div>
+              <div>
+                <Label>Website (Optional)</Label>
+                <Input
+                  value={formData?.contact?.website}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    contact: { ...formData.contact, website: e.target.value }
+                  })}
+                  placeholder="https://www.hotel.com"
+                />
               </div>
             </div>
           </div>

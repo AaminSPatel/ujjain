@@ -11,6 +11,7 @@ export default function ReviewModal({ booking, onSubmit, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showBenefits, setShowBenefits] = useState(false);
+  const isHotel = booking?.serviceType === "Hotel";
 
   const handleSubmit = async () => {
     if (rating === 0) {
@@ -70,23 +71,39 @@ export default function ReviewModal({ booking, onSubmit, onClose }) {
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-4 sm:p-6 space-y-3 sm:space-y-6">
-              {/* Driver Info */}
+              {/* Service Info */}
               <div className="text-center">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                  {booking?.assignedDriver?.profilePic?.url ? (
-                    <img
-                      src={booking.assignedDriver.profilePic.url}
-                      alt={booking.assignedDriver.fullName}
-                      className="w-full h-full rounded-full object-cover"
-                    />
+                  {isHotel ? (
+                    booking?.service?.images?.[0]?.url ? (
+                      <img
+                        src={booking.service.images[0].url}
+                        alt={booking.service.name}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-semibold text-base sm:text-lg">
+                        {booking?.service?.name?.charAt(0)?.toUpperCase()}
+                      </span>
+                    )
                   ) : (
-                    <span className="text-white font-semibold text-base sm:text-lg">
-                      {booking?.assignedDriver?.fullName?.charAt(0)?.toUpperCase()}
-                    </span>
+                    booking?.assignedDriver?.profilePic?.url ? (
+                      <img
+                        src={booking.assignedDriver.profilePic.url}
+                        alt={booking.assignedDriver.fullName}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-semibold text-base sm:text-lg">
+                        {booking?.assignedDriver?.fullName?.charAt(0)?.toUpperCase()}
+                      </span>
+                    )
                   )}
                 </div>
-                <h3 className="font-semibold text-gray-800 text-base sm:text-lg">{booking?.assignedDriver?.fullName}</h3>
-                <p className="text-xs sm:text-sm text-gray-600">Driver</p>
+                <h3 className="font-semibold text-gray-800 text-base sm:text-lg">
+                  {isHotel ? booking?.service?.name : booking?.assignedDriver?.fullName}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600">{isHotel ? "Hotel" : "Driver"}</p>
               </div>
 
               {/* Rating Stars */}
@@ -133,7 +150,7 @@ export default function ReviewModal({ booking, onSubmit, onClose }) {
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Tell us about your experience with this driver..."
+                  placeholder={isHotel ? "Tell us about your experience with this hotel..." : "Tell us about your experience with this driver..."}
                   className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-sm sm:text-base"
                   rows={3}
                   maxLength={500}
@@ -147,14 +164,21 @@ export default function ReviewModal({ booking, onSubmit, onClose }) {
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-1">Quick feedback:</p>
                 <div className="flex flex-wrap gap-1 sm:gap-2">
-                  {[
+                  {(isHotel ? [
+                    "Clean rooms",
+                    "Good location",
+                    "Comfortable beds",
+                    "Friendly staff",
+                    "Good amenities",
+                    "Good value"
+                  ] : [
                     "Professional",
                     "Clean car",
                     "On time",
                     "Safe driving",
                     "Good communication",
                     "Good value"
-                  ].map((option) => (
+                  ]).map((option) => (
                     <button
                       key={option}
                       type="button"
@@ -204,10 +228,21 @@ export default function ReviewModal({ booking, onSubmit, onClose }) {
                     >
                       <div className="mt-3 p-3 bg-blue-50 rounded-xl">
                         <ul className="text-xs text-blue-700 space-y-1">
-                          <li>• Help other passengers choose</li>
-                          <li>• Improve service quality</li>
-                          <li>• Drivers appreciate feedback</li>
-                          <li>• Maintain high standards</li>
+                          {isHotel ? (
+                            <>
+                              <li>• Help other travelers choose</li>
+                              <li>• Improve hotel quality</li>
+                              <li>• Hotels appreciate feedback</li>
+                              <li>• Maintain high standards</li>
+                            </>
+                          ) : (
+                            <>
+                              <li>• Help other passengers choose</li>
+                              <li>• Improve service quality</li>
+                              <li>• Drivers appreciate feedback</li>
+                              <li>• Maintain high standards</li>
+                            </>
+                          )}
                         </ul>
                       </div>
                     </motion.div>

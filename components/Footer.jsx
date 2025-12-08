@@ -15,11 +15,12 @@ export default function Footer() {
   // safe-guard brand so component doesn't crash if context is undefined
   const ctx = useUjjain?.() ?? {}
   const brand = ctx.brand ?? {
-    name: "Safar Saathi",
+    name: "Safar Sathi",
     image: "/logo.png",
-    description: "",
-    mobile: "0000000000",
-    email: "info@example.com",
+    description: "Sacred City Explorer",
+    icon: "",
+    email: "wecare.safarsathi@gmail.com",
+    mobile: "9294757679",
   }
 
   const quickLinks = [

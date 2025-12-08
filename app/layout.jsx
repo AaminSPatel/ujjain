@@ -8,10 +8,17 @@ import InstallPWA from "@/components/InstallPwa"
 export const metadata = {
   title: "Safar Sathi - Premium Car Rentals & Taxi Services in Dewas, Indore, Ujjain | 24/7 Cab Booking",
   description: "Safar Sathi offers premium taxi services, car rentals, and cab bookings in Dewas, Indore, Ujjain, and surrounding areas. Book 24/7 reliable taxi services for local rides, airport transfers, outstation trips, temple tours, and corporate travel. Affordable AC/Non-AC cabs with verified drivers, instant booking, and safe rides for families, tourists, and business travelers across Madhya Pradesh.",
-  
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon.ico", sizes: "16x16", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   // Removed keywords array as it's not used by modern search engines
   // and can be considered spammy if too long
-  keywords : [ "Indore taxi for tourists",
+  keywords : [ "Indore taxi for tourists", 'safar', 'sathi', 'taxi', 'ujjain', 'indore',
     "Reliable airport transfer Indore",
     "Indore VIP cab service",
     "Indore ride for shopping",
@@ -48,7 +55,9 @@ export const metadata = {
     "Premium car hire Madhya Pradesh",
     "24/7 cab service near me",
     "Online taxi booking app",
-    "Trusted cab service MP"],
+    "Trusted cab service MP"
+  ],
+
   openGraph: {
     title: "Safar Sathi - Premium Taxi Services in Dewas, Indore & Ujjain",
     description: "Safar Sathi - Book reliable 24/7 taxi services, car rentals, and cab bookings across Dewas, Indore, Ujjain. Airport transfers, outstation trips, temple tours with verified drivers.",
@@ -68,7 +77,7 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Safar Sathi - Premium Taxi Services in MP",
-    description: "24/7 reliable taxi services in Dewas, Indore, Ujjain. Book cabs for local rides, airport transfers, outstation trips & temple tours.",
+    description: "24/7 reliable taxi services in Dewas, Indore, Ujjain. Book cabs for local rides, airport transfers, outstation trips & temple tours with safar sathi.",
     images: ["/logo.png"],
   },
   robots: {
@@ -117,11 +126,11 @@ export default function RootLayout({ children }) {
         
         {/* ✅ Icons - Cleaned and Optimized */}
         <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+       {/*  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="shortcut icon" href="/favicon.ico" />
-        
+         */}
         {/* ✅ Preload Critical Resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

@@ -747,6 +747,8 @@ export const CarService = {
 export const HotelService = {
   getAll: async () => (await api.get('/hotels')).data,
 
+  updateStatus: async (id, status) => (await api.put(`/hotels/${id}/status`, { status })).data,
+
 create: async (hotelData) => {
   console.log('hotelData at apiServices', hotelData);
   
@@ -757,6 +759,9 @@ create: async (hotelData) => {
     if (key !== 'images' && key !== 'rooms') {
       if (['amenities', 'features', 'roomTypes'].includes(key)) {
         formData.append(key, JSON.stringify(hotelData[key]));
+      } else if (key === 'contact') {
+        // Handle contact as an object, not an array
+        formData.append(key, JSON.stringify(hotelData[key] || {}));
       } else {
         formData.append(key, hotelData[key]);
       }
@@ -821,6 +826,18 @@ update: async (id, hotelData) => {
           }
         }
         formData.append(key, JSON.stringify(Array.isArray(arrayValue) ? arrayValue : []));
+      } else if (key === 'contact') {
+        // Handle contact as an object, not an array
+        let contactValue = hotelData[key];
+        if (typeof contactValue === 'string') {
+          try {
+            contactValue = JSON.parse(contactValue);
+          } catch (error) {
+            console.log('Error parsing contact field:', error);
+            contactValue = {};
+          }
+        }
+        formData.append(key, JSON.stringify(contactValue || {}));
       } else {
         formData.append(key, hotelData[key]);
       }

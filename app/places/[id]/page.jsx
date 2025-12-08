@@ -445,14 +445,14 @@ export default function PlaceDetail() {
 
       {/* Recommended Hotels */}
       <RecommendedSection type="hotels" title={`Stay Near ${safePlace.name}`} items={recommendedHotels} />
-
+{showReviewModal &&
       <ReviewModal
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         type="place"
         itemId={place._id}
         itemName={safePlace.name}
-      />
+      />}
     </div>
   )
 }

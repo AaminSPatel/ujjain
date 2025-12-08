@@ -7,6 +7,7 @@ import {
   Marker,
 } from "@react-google-maps/api"
 import { MapPin, Navigation } from "lucide-react"
+import { haversineDistance } from "./utils/distance"
 
 const containerStyle = {
   width: "100%",
@@ -70,8 +71,10 @@ function LocationMarker({ value, onChange, map }) {
               <circle cx="15" cy="14" r="6" fill="white"/>
                 </svg>
               `),
-              scaledSize: new window.google.maps.Size(40, 40),
-              anchor: new window.google.maps.Point(20, 40),
+              ...(window.google && window.google.maps ? {
+                scaledSize: new window.google.maps.Size(40, 40),
+                anchor: new window.google.maps.Point(20, 40),
+              } : {}),
             }}
           />
         )}
@@ -80,9 +83,19 @@ function LocationMarker({ value, onChange, map }) {
   )
 }
 
-export default function MapPicker({ label, value, onChange }) {
+export default function MapPicker({ label, value, onChange, otherLocation, showDistance = false }) {
   const [loadingLocation, setLoadingLocation] = useState(false)
   const autocompleteRef = useRef(null)
+
+  // Calculate distance if both locations are available
+  const calculateDistance = () => {
+    if (showDistance && otherLocation && otherLocation.coordinates.lat !== 0 && value.coordinates.lat !== 0) {
+      return haversineDistance(value.coordinates, otherLocation.coordinates)
+    }
+    return null
+  }
+
+  const distance = calculateDistance()
 
   const getCurrentLocation = async () => {
     if (!navigator.geolocation) {
@@ -181,6 +194,20 @@ export default function MapPicker({ label, value, onChange }) {
         <div className="rounded-xl border-2 border-gray-200 hover:border-blue-400 transition-colors shadow-sm overflow-hidden">
           <LocationMarker value={value} onChange={onChange} />
         </div>
+
+        {showDistance && distance !== null && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mt-2">
+            <div className="flex items-center gap-2 text-blue-800">
+              <Navigation className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                Distance: {distance.toFixed(2)} km
+              </span>
+            </div>
+            <p className="text-xs text-blue-600 mt-1">
+              Distance from the other location to help you confirm accuracy
+            </p>
+          </div>
+        )}
 
         <p className="text-xs text-gray-500 mt-2 flex items-start gap-1">
           <span className="text-blue-600 font-semibold">Tip:</span>

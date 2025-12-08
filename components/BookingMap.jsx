@@ -18,7 +18,7 @@ const center = {
   lng: 75.7849,
 };
 
-const libraries = [];
+const libraries = ["places"];
 
 export default function BookingMap({
   bookingData,
@@ -71,6 +71,8 @@ export default function BookingMap({
   };
 
   const calculateRoute = () => {
+    if (!window.google?.maps?.DirectionsService) return;
+
     const directionsService = new window.google.maps.DirectionsService();
 
     directionsService.route(

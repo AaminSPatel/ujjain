@@ -20,6 +20,7 @@ import {
 } from "react-icons/fa"
 import { MdAirlineSeatReclineExtra, MdLuggage } from "react-icons/md"
 import Link from "next/link"
+import Image from "next/image"
 import { useUjjain } from "@/components/context/UjjainContext"
 import Head from "next/head"
 
@@ -342,7 +343,6 @@ export default function Cars() {
     </Head>
   
 
-export default CarsPageHead;
       <section className="relative py-10 bg-black text-white overflow-hidden bg-cover" style={{backgroundImage:`url('./bg1.png')`}}>
         <div className="absolute inset-0  bg-gradient-to-t from-gray-800/90 to-sky-600/30 backdrop-opacity-20 text-white"></div>
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -581,9 +581,11 @@ export default CarsPageHead;
                 >
                   {/* Car Image with Gradient */}
                   <div className="relative h-64 overflow-hidden bg-gradient-to-br from-amber-50 to-sky-50">
-                    <img
+                    <Image
                       src={car?.images[0]?.url || "/placeholder.svg?height=300&width=400"}
                       alt={car?.model}
+                      width={400}
+                      height={300}
                       className="w-full h-full object-contain relative z-10 mix-blend-multipl"
                     />
 

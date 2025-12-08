@@ -1,6 +1,7 @@
 'use client'
 import { FaUsers, FaAward, FaCar, FaHotel, FaMapMarkerAlt, FaClock, FaHeart, FaShieldAlt } from "react-icons/fa"
 import Link from "next/link"
+import Image from "next/image"
 import { useUjjain } from "@/components/context/UjjainContext"
 
 export default function About() {
@@ -65,7 +66,7 @@ export default function About() {
       {/* SEO Meta Tags would be added in the Head component in your layout */}
       
       {/* Hero Section */}
-      <section className="relative  text-white bg-cover" style={{backgroundImage:`url('./bg5.png')`}}>
+      <section className="relative  text-white bg-cover" style={{backgroundImage:`url('/bg5.png')`}}>
         <div className="container mx-auto px-2 py-12 text-center bg-gradient-to-t from-slate-900/40 to-slate-900/40">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">About Safar Sathi</h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
@@ -120,25 +121,33 @@ export default function About() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <img
+              <Image
                 src="/tower.jpeg"
                 alt="Mahakaleshwar Temple Ujjain"
+                width={300}
+                height={200}
                 className="rounded-3xl shadow-lg"
               />
-              <img
-                src="/mahakal5.jpeg"
+              <Image
+                src="/bg1.png"
                 alt="Ujjain Ghat Spiritual Journey"
-                className="rounded-3xl shadow-lg mt-8"
+                width={300}
+                height={200}
+                className="rounded-3xl shadow-lg -mt-1"
               />
-              <img
-                src="/abt1.jpeg"
+              <Image
+                src="/bg2.png"
                 alt="Ujjain Temple Rituals"
-                className="rounded-3xl shadow-lg -mt-8"
+                width={300}
+                height={200}
+                className="rounded-3xl shadow-lg "
               />
-              <img
-                src="/ic1.png"
+              <Image
+                src="/gwalior1.jpeg"
                 alt="Safar Sathi Travel Services Ujjain"
-                className="rounded-3xl h-96 object-contain shadow-lg bg-gradient-to-b from-teal-100 via-sky-400 to-teal-400"
+                width={320}
+                height={584}
+                className="rounded-3xl w-fit h-fit object-contain shadow-lg bg-gradient-to- from-teal-100 via-sky-400 to-teal-400 -mt-12"
               />
             </div>
           </div>
@@ -180,9 +189,11 @@ export default function About() {
           <div className="grid md:grid-cols-3 gap-8">
             {team.map((member, index) => (
               <div key={index} className="card p-8 text-center">
-                <img
+                <Image
                   src={member.image || "/placeholder.svg"}
                   alt={`${member.name} - ${member.position} at Safar Sathi`}
+                  width={128}
+                  height={128}
                   className="w-32 h-32 rounded-full mx-auto mb-6 object-cover"
                 />
                 <h3 className="text-xl font-bold text-gray-800 mb-2">{member.name}</h3>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Plus,Star, Search, Filter, MoreHorizontal, Edit, Trash2, List, Grid3X3, Calendar, Users, DollarSign, Check, X } from "lucide-react"
+import { Plus,Star, Search, Filter, MoreHorizontal, Edit, Trash2, List, Grid3X3, Calendar, Users, DollarSign, Check, X, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { HotelForm } from "@/components/forms/hotel-form"
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog"
 import { useUjjain } from "@/components/context/UjjainContext"
@@ -28,6 +29,8 @@ export default function HotelManagePage() {
   const { toast } = useToast()
   const [localLoading, setLocalLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState(null) // Track which booking is being processed
+  const [selectedBooking, setSelectedBooking] = useState(null) // Track selected booking for details view
+  const [showBookingDetails, setShowBookingDetails] = useState(false) // Control booking details modal
 
   useEffect(() => {
     if (hotels.length > 0 && user) {
@@ -118,7 +121,9 @@ export default function HotelManagePage() {
   }
 
   const getTotalRevenue = () => {
-    return bookings.reduce((total, booking) => total + (booking.payment?.amount || 0), 0)
+    return bookings
+      .filter(booking => booking.payment?.status === "completed")
+      .reduce((total, booking) => total + (booking.payment?.amount || 0), 0)
   }
 
   const handleAcceptBooking = async (bookingId) => {
@@ -456,23 +461,30 @@ export default function HotelManagePage() {
               ) : (
                 <div className="space-y-4">
                   {bookings.map((booking) => (
-                    <div key={booking._id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={booking._id}
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors gap-4"
+                      onClick={() => {
+                        setSelectedBooking(booking)
+                        setShowBookingDetails(true)
+                      }}
+                    >
                       <div className="flex items-center space-x-4">
-                        <div className="p-3 bg-blue-100 rounded-lg">
+                        <div className="p-3 bg-blue-100 rounded-lg flex-shrink-0">
                           <Calendar className="h-6 w-6 text-blue-600" />
                         </div>
-                        <div>
-                          <h3 className="font-semibold">{booking.service?.name || 'Hotel'}</h3>
-                          <p className="text-gray-500">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold truncate">{booking.service?.name || 'Hotel'}</h3>
+                          <p className="text-gray-500 text-sm truncate">
                             {booking.user?.fullName} • {formatDate(booking.createdAt)}
                           </p>
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-gray-400 truncate">
                             {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
+                      <div className="flex items-center justify-between sm:justify-end space-x-4">
+                        <div className="text-left sm:text-right">
                           <p className="text-xl font-bold">₹{booking.payment?.amount || 0}</p>
                           <Badge
                             variant={
@@ -482,39 +494,61 @@ export default function HotelManagePage() {
                                   ? "secondary"
                                   : "destructive"
                             }
+                            className="text-xs"
                           >
                             {booking.status}
                           </Badge>
                         </div>
-                        {booking.status === "pending" && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => handleAcceptBooking(booking._id)}
-                              disabled={actionLoading === booking._id}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              {actionLoading === booking._id ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              ) : (
-                                <Check className="h-4 w-4" />
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleRejectBooking(booking._id)}
-                              disabled={actionLoading === booking._id}
-                            >
-                              {actionLoading === booking._id ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              ) : (
-                                <X className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedBooking(booking)
+                              setShowBookingDetails(true)
+                            }}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {booking.status === "pending" && (
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleAcceptBooking(booking._id)
+                                }}
+                                disabled={actionLoading === booking._id}
+                                className="bg-green-600 hover:bg-green-700 h-8 px-2"
+                              >
+                                {actionLoading === booking._id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                ) : (
+                                  <Check className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleRejectBooking(booking._id)
+                                }}
+                                disabled={actionLoading === booking._id}
+                                className="h-8 px-2"
+                              >
+                                {actionLoading === booking._id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                ) : (
+                                  <X className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -544,6 +578,128 @@ export default function HotelManagePage() {
         description={`Are you sure you want to delete ${deletingHotel?.name}? This action cannot be undone.`}
         isLoading={localLoading}
       />
+
+      <Dialog open={showBookingDetails} onOpenChange={setShowBookingDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Booking Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about the hotel booking
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Hotel Information</h3>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Hotel:</span> {selectedBooking.service?.name}</p>
+                    <p><span className="font-medium">Location:</span> {selectedBooking.service?.location}</p>
+                    <p><span className="font-medium">Rating:</span> {selectedBooking.service?.rating} ★</p>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Customer Information</h3>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Name:</span> {selectedBooking.user?.fullName}</p>
+                    <p><span className="font-medium">Email:</span> {selectedBooking.user?.email}</p>
+                    <p><span className="font-medium">Phone:</span> {selectedBooking.user?.phone}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Booking Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Check-in:</span> {formatDate(selectedBooking.startDate)}</p>
+                    <p><span className="font-medium">Check-out:</span> {formatDate(selectedBooking.endDate)}</p>
+                    <p><span className="font-medium">Guests:</span> {selectedBooking.guests || 1}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Booking Date:</span> {formatDate(selectedBooking.createdAt)}</p>
+                    <p><span className="font-medium">Status:</span>
+                      <Badge
+                        variant={
+                          selectedBooking.status === "confirmed"
+                            ? "default"
+                            : selectedBooking.status === "completed"
+                              ? "secondary"
+                              : "destructive"
+                        }
+                        className="ml-2"
+                      >
+                        {selectedBooking.status}
+                      </Badge>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Payment Information</h3>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Amount:</span> ₹{selectedBooking.payment?.amount || 0}</p>
+                  <p><span className="font-medium">Payment Status:</span>
+                    <Badge
+                      variant={selectedBooking.payment?.status === "completed" ? "default" : "destructive"}
+                      className="ml-2"
+                    >
+                      {selectedBooking.payment?.status || "pending"}
+                    </Badge>
+                  </p>
+                  {selectedBooking.payment?.method && (
+                    <p><span className="font-medium">Payment Method:</span> {selectedBooking.payment.method}</p>
+                  )}
+                </div>
+              </div>
+
+              {selectedBooking.specialRequests && (
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Special Requests</h3>
+                  <p className="text-gray-600">{selectedBooking.specialRequests}</p>
+                </div>
+              )}
+
+              {selectedBooking.status === "pending" && (
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="default"
+                    onClick={() => {
+                      handleAcceptBooking(selectedBooking._id)
+                      setShowBookingDetails(false)
+                    }}
+                    disabled={actionLoading === selectedBooking._id}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {actionLoading === selectedBooking._id ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <Check className="h-4 w-4 mr-2" />
+                    )}
+                    Accept Booking
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      handleRejectBooking(selectedBooking._id)
+                      setShowBookingDetails(false)
+                    }}
+                    disabled={actionLoading === selectedBooking._id}
+                  >
+                    {actionLoading === selectedBooking._id ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <X className="h-4 w-4 mr-2" />
+                    )}
+                    Reject Booking
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

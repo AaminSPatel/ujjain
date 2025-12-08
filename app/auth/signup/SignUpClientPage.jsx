@@ -9,17 +9,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Eye,Mail,Phone , EyeOff, Star, ArrowLeft, Gift, User, Car, MapPin, IdCard, Calendar, CreditCard } from "lucide-react"
+import { Eye,Mail,Phone , EyeOff, Star, ArrowLeft, Gift, User, Car, MapPin, IdCard, Calendar, CreditCard, Upload, X, Globe, Building } from "lucide-react"
 import { useUjjain } from "@/components/context/UjjainContext"
+import { HotelForm } from "@/components/forms/hotel-form"
 
 export default function SignUpClientPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [userType, setUserType] = useState(null) // null, "user", or "driver"
+  const [userType, setUserType] = useState(null) // null, "user", "driver", or "hotel_manager"
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
+  const [showHotelForm, setShowHotelForm] = useState(false)
+  const [showPostSignupHotelForm, setShowPostSignupHotelForm] = useState(false)
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -40,18 +43,11 @@ export default function SignUpClientPage() {
       year: "",
       color: "",
       licensePlate: ""
-    },
-    // Hotel manager specific fields
-    hotelInfo: {
-      name: "",
-      address: "",
-      contactNumber: "",
-      description: ""
     }
   })
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
-  const {signUp, brand, error: apiError, clearError} = useUjjain();
+  const {signUp, brand, error: apiError, clearError, addHotel} = useUjjain();
   // Auto-fill referral code from URL params
   useEffect(() => {
     const refCode = searchParams.get("ref")
@@ -59,6 +55,7 @@ export default function SignUpClientPage() {
       setFormData((prev) => ({ ...prev, referrer: refCode }))
     }
   }, [searchParams])
+
 
 
   const validateForm = () => {
@@ -128,38 +125,11 @@ export default function SignUpClientPage() {
       }
     }
 
-    // Hotel manager specific validations
-    if (userType === "hotel_manager") {
-      if (!formData.hotelInfo.name.trim()) {
-        newErrors.hotelName = "Hotel name is required"
-      } else if (formData.hotelInfo.name.trim().length < 2) {
-        newErrors.hotelName = "Hotel name must be at least 2 characters"
-      }
 
-      if (!formData.hotelInfo.address.trim()) {
-        newErrors.hotelAddress = "Hotel address is required"
-      } else if (formData.hotelInfo.address.trim().length < 10) {
-        newErrors.hotelAddress = "Hotel address must be at least 10 characters"
-      }
-
-      if (!formData.hotelInfo.contactNumber.trim()) {
-        newErrors.hotelContactNumber = "Hotel contact number is required"
-      } else if (!/^[6-9]\d{9}$/.test(formData.hotelInfo.contactNumber)) {
-        newErrors.hotelContactNumber = "Please enter a valid 10-digit contact number"
-      }
-
-      if (!formData.hotelInfo.description.trim()) {
-        newErrors.hotelDescription = "Hotel description is required"
-      } else if (formData.hotelInfo.description.trim().length < 20) {
-        newErrors.hotelDescription = "Hotel description must be at least 20 characters"
-      }
-    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -184,9 +154,6 @@ export default function SignUpClientPage() {
         address: formData.address,
         driverLicense: formData.driverLicense,
         vehicleInfo: formData.vehicleInfo
-      }),
-      ...(userType === "hotel_manager" && {
-        hotelInfo: formData.hotelInfo
       })
     }
 
@@ -194,9 +161,19 @@ export default function SignUpClientPage() {
       await signUp(signupData)
       setSuccessMessage(`${userType === "driver" ? "Driver" : userType === "hotel_manager" ? "Hotel Manager" : "User"} account created successfully!`)
       setShowSuccess(true)
-      setTimeout(() => {
-        router.push("/")
-      }, 3000)
+
+      if (userType === "hotel_manager") {
+        // Show hotel form for hotel managers after signup
+        setTimeout(() => {
+          setShowSuccess(false)
+          setShowPostSignupHotelForm(true)
+        }, 2000)
+      } else {
+        setTimeout(() => {
+          router.push("/")
+        }, 3000)
+      }
+
     } catch (error) {
       console.log('Sign up failed', error);
       // Extract error message
@@ -232,6 +209,20 @@ export default function SignUpClientPage() {
         ...prev,
         [name]: "",
       }))
+    }
+  }
+
+  const handleHotelSubmit = async (hotelData) => {
+    setIsLoading(true)
+    try {
+      await addHotel(hotelData)
+      // Redirect to hotel management page or home
+      router.push("/hotel-manage")
+    } catch (error) {
+      console.log('Hotel creation failed', error)
+      setErrors({ general: error.response?.data?.message || error.message || 'Hotel creation failed. Please try again.' })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -313,10 +304,10 @@ export default function SignUpClientPage() {
                   className="w-full h-20 flex flex-col items-center justify-center gap-2 py-4"
                   variant="outline"
                 >
-                  <MapPin className="h-8 w-8 text-orange-500" />
+                  <Building className="h-8 w-8 text-orange-500" />
                   <div className="text-left">
                     <div className="font-semibold">Hotel Manager Registration</div>
-                    <div className="text-sm text-muted-foreground">Register as hotel owner.</div>
+                    <div className="text-sm text-muted-foreground">List and manage your hotels</div>
                   </div>
                 </Button>
               </motion.div>
@@ -391,6 +382,32 @@ export default function SignUpClientPage() {
     )
   }
 
+  // Render post-signup hotel form for hotel managers
+  if (showPostSignupHotelForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-4xl"
+        >
+          <div className="mb-6 text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome, Hotel Manager!</h1>
+            <p className="text-gray-600">Let's get started by adding your first hotel</p>
+          </div>
+          <HotelForm
+            open={true}
+            onOpenChange={() => {}}
+            hotel={null}
+            onSubmit={handleHotelSubmit}
+            isLoading={isLoading}
+          />
+        </motion.div>
+      </div>
+    )
+  }
+
   // Render the appropriate form based on selection
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -437,7 +454,7 @@ export default function SignUpClientPage() {
               {userType === "driver"
                 ? "Join our driver community and start earning"
                 : userType === "hotel_manager"
-                ? "Register as hotel manager and manage your properties"
+                ? "List and manage your hotels"
                 : "Create your account to book rides in Ujjain"}
             </CardDescription>
           </CardHeader>
@@ -643,78 +660,7 @@ export default function SignUpClientPage() {
                 </>
               )}
 
-              {/* Hotel Manager Specific Fields */}
-              {userType === "hotel_manager" && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="hotelInfo.name">Hotel Name</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="hotelInfo.name"
-                        name="hotelInfo.name"
-                        type="text"
-                        placeholder="Enter your hotel name"
-                        value={formData.hotelInfo.name}
-                        onChange={handleInputChange}
-                        className={`pl-10 h-11 ${errors.hotelName ? "border-red-500" : ""}`}
-                        required
-                      />
-                    </div>
-                    {errors.hotelName && <p className="text-sm text-red-500">{errors.hotelName}</p>}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="hotelInfo.address">Hotel Address</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="hotelInfo.address"
-                        name="hotelInfo.address"
-                        type="text"
-                        placeholder="Enter your hotel complete address"
-                        value={formData.hotelInfo.address}
-                        onChange={handleInputChange}
-                        className={`pl-10 h-11 ${errors.hotelAddress ? "border-red-500" : ""}`}
-                        required
-                      />
-                    </div>
-                    {errors.hotelAddress && <p className="text-sm text-red-500">{errors.hotelAddress}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="hotelInfo.contactNumber">Hotel Contact Number</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="hotelInfo.contactNumber"
-                        name="hotelInfo.contactNumber"
-                        type="tel"
-                        placeholder="Enter hotel contact number"
-                        value={formData.hotelInfo.contactNumber}
-                        onChange={handleInputChange}
-                        className={`pl-10 h-11 ${errors.hotelContactNumber ? "border-red-500" : ""}`}
-                        required
-                      />
-                    </div>
-                    {errors.hotelContactNumber && <p className="text-sm text-red-500">{errors.hotelContactNumber}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="hotelInfo.description">Hotel Description</Label>
-                    <textarea
-                      id="hotelInfo.description"
-                      name="hotelInfo.description"
-                      placeholder="Describe your hotel (facilities, amenities, etc.)"
-                      value={formData.hotelInfo.description}
-                      onChange={handleInputChange}
-                      className={`w-full h-24 p-3 border border-gray-300 rounded-md resize-none ${errors.hotelDescription ? "border-red-500" : ""}`}
-                      required
-                    />
-                    {errors.hotelDescription && <p className="text-sm text-red-500">{errors.hotelDescription}</p>}
-                  </div>
-                </>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
@@ -799,7 +745,7 @@ export default function SignUpClientPage() {
 
               <Button
                 type="submit"
-                /* disabled={isLoading} */
+                disabled={isLoading}
                 className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold"
               >
                 {isLoading ? "Creating Account..." : `Create ${userType === "driver" ? "Driver" : userType === "hotel_manager" ? "Hotel Manager" : "Customer"} Account`}

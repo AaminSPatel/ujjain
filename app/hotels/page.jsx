@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { FaStar, FaHeart, FaMapMarkerAlt, FaPhone, FaShieldAlt } from "react-icons/fa"
 import { MdRoomService } from "react-icons/md"
 import Link from "next/link"
+import Image from "next/image"
 import { useUjjain } from "@/components/context/UjjainContext"
 import Head from "next/head"
 
@@ -375,9 +376,11 @@ useEffect(()=>{
               <div key={hotel._id} className="card overflow-hidden">
                 <div className="md:flex">
                   <div className="md:w-2/5 relative">
-                    <img
+                    <Image
                       src={hotel?.images[0]?.url || "/placeholder.svg"}
                       alt={hotel.name}
+                      width={400}
+                      height={300}
                       className="w-full h-64 md:h-full object-cover"
                     />
                     <button

@@ -20,6 +20,7 @@ import {
 } from "react-icons/fa"
 import { MdTempleHindu, MdWaves } from "react-icons/md"
 import Link from "next/link"
+import Image from "next/image"
 import { useUjjain } from "@/components/context/UjjainContext"
 import Head from "next/head"
 
@@ -856,16 +857,21 @@ export default function Places() {
                     {/* Place Image with Auto-change */}
                     <div className="relative h-64 overflow-hidden">
                       <AnimatePresence mode="wait">
-                        <motion.img
+                        <motion.div
                           key={imageIndexes[place._id] || 0}
-                          src={place.images?.[imageIndexes[place._id] || 0]?.url || "/placeholder.svg"}
-                          alt={place.title}
-                          className="w-full h-full object-cover"
                           initial={{ opacity: 0, scale: 1.1 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.9 }}
                           transition={{ duration: 0.5 }}
-                        />
+                        >
+                          <Image
+                            src={place.images?.[imageIndexes[place._id] || 0]?.url || "/placeholder.svg"}
+                            alt={place.title}
+                            width={400}
+                            height={256}
+                            className="w-full h-full object-cover"
+                          />
+                        </motion.div>
                       </AnimatePresence>
 
                       {/* Action Buttons */}

@@ -21,12 +21,9 @@ const center = {
   lng: 75.7849,
 };
 
-const libraries = [];
-
 export default function ActiveBookingMap({ booking, userRole, onLocationUpdate }) {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-    libraries,
   });
 
   const { updateDriverLocation } = useUjjain();
@@ -129,10 +126,10 @@ const driverCarIcon =
       {
         origin: booking.pickupLocation.coordinates,
         destination: booking.dropoffLocation.coordinates,
-        travelMode: window.google.maps.TravelMode.DRIVING,
+        travelMode: window.google?.maps?.TravelMode?.DRIVING,
       },
       (result, status) => {
-        if (status === "OK") {
+        if (status === window.google?.maps?.DirectionsStatus?.OK) {
           setDirections(result);
         } else {
           console.error("Directions request failed:", status);
@@ -156,10 +153,10 @@ const driverCarIcon =
       {
         origin: driverLocation,
         destination: destination,
-        travelMode: window.google.maps.TravelMode.DRIVING,
+        travelMode: window.google?.maps?.TravelMode?.DRIVING,
       },
       (result, status) => {
-        if (status === "OK") {
+        if (status === window.google?.maps?.DirectionsStatus?.OK) {
           setDriverDirections(result);
           // Extract distance and duration
           const leg = result.routes[0]?.legs[0];
@@ -434,7 +431,7 @@ const driverCarIcon =
 
   // 🗺️ Fit map to all markers
   useEffect(() => {
-    if (!map || !isLoaded || !window.google) return;
+    if (!map || !isLoaded || !window.google?.maps?.LatLngBounds) return;
     const bounds = new window.google.maps.LatLngBounds();
 
     if (booking?.pickupLocation?.coordinates && isValidCoordinate(booking.pickupLocation.coordinates)) {
@@ -452,9 +449,9 @@ const driverCarIcon =
 
     if (!bounds.isEmpty()) {
       map.fitBounds(bounds);
-      const listener = window.google.maps.event.addListener(map, "idle", () => {
+      const listener = window.google?.maps?.event?.addListener(map, "idle", () => {
         if (map.getZoom() > 15) map.setZoom(15);
-        window.google.maps.event.removeListener(listener);
+        window.google?.maps?.event?.removeListener(listener);
       });
     }
   }, [map, booking, driverLocation, userLocation, isLoaded]);

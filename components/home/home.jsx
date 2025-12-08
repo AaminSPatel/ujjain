@@ -1,132 +1,27 @@
 "use client"
-import { useState, useEffect, useRef, useCallback, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect, useCallback } from "react"
+import { motion } from "framer-motion"
 import {
   FaCar,
   FaStar,
   FaPhone,
-  FaFilter,
-  FaChevronDown,
   FaArrowRight,
   FaMapMarkerAlt,
   FaCalendarAlt,
   FaRupeeSign,
+  FaFilter,
+  FaChevronDown,
   FaLocationArrow,
-  FaMap,
   FaMotorcycle,
   FaBus,
 } from "react-icons/fa"
-import { MdPlace, MdHotel, MdMyLocation, MdMoped, MdElectricRickshaw } from "react-icons/md"
+import { MdPlace, MdHotel, MdElectricRickshaw } from "react-icons/md"
 import { BiTab } from "react-icons/bi"
-import {
-  GoogleMap,
-  Marker,
-} from "@react-google-maps/api"
 import { useUjjain } from "../context/UjjainContext"
 import Link from "next/link"
-import { haversineDistance } from "@/components/utils/distance";
-import AdCarousel from "../AdCarousel";
-
-// Google Maps constants
-const containerStyle = {
-  width: "100%",
-  height: "256px",
-}
-
-const center = {
-  lat: 22.7196, // Default center: Indore
-  lng: 75.8577,
-}
-
-const libraries = []
-
-// Google Maps interaction component
-function LocationMarker({ pickupCoords, destinationCoords, onPickupChange, onDestinationChange, selectionMode, mapCenter }) {
-  const handleMapClick = useCallback(async (event) => {
-    const lat = event.latLng.lat()
-    const lng = event.latLng.lng()
-
-    // Reverse geocode using Nominatim (OpenStreetMap)
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-      )
-      const data = await response.json()
-      const address = data.display_name || `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
-      if (selectionMode === "pickup") {
-        onPickupChange({ address, coordinates: { lat, lng } })
-      } else if (selectionMode === "destination") {
-        onDestinationChange({ address, coordinates: { lat, lng } })
-      }
-    } catch (error) {
-      console.error("Reverse geocoding failed:", error)
-      const address = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
-      if (selectionMode === "pickup") {
-        onPickupChange({ address, coordinates: { lat, lng } })
-      } else if (selectionMode === "destination") {
-        onDestinationChange({ address, coordinates: { lat, lng } })
-      }
-    }
-  }, [onPickupChange, onDestinationChange, selectionMode])
-
-  return (
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={
-        pickupCoords.lat !== 0
-          ? pickupCoords
-          : destinationCoords.lat !== 0
-          ? destinationCoords
-          : mapCenter
-      }
-      zoom={13}
-      onClick={handleMapClick}
-      options={{
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: true,
-      }}
-    >
-      {pickupCoords.lat !== 0 && (
-        <Marker
-          position={pickupCoords}
-          icon={{
-            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-              <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
-              <!-- Location pin -->
-              <path d="M15 2C8.1 2 2.5 7.6 2.5 14.5C2.5 21.5 15 38 15 38C15 38 27.5 21.5 27.5 14.5C27.5 7.6 21.9 2 15 2Z" fill="#3B82F6"/>
-              <circle cx="15" cy="14" r="11" fill="white"/>
-              <!-- Letter P -->
-              <text x="15" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#3B82F6" font-family="Arial, sans-serif">P</text>
-            </svg>
-            `),
-            scaledSize: new window.google.maps.Size(40, 40),
-            anchor: new window.google.maps.Point(20, 40),
-          }}
-        />
-      )}
-      {destinationCoords.lat !== 0 && (
-        <Marker
-          position={destinationCoords}
-          icon={{
-            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-              <svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
-              <!-- Location pin -->
-              <path d="M15 2C8.1 2 2.5 7.6 2.5 14.5C2.5 21.5 15 38 15 38C15 38 27.5 21.5 27.5 14.5C27.5 7.6 21.9 2 15 2Z" fill="#dc2626"/>
-              <circle cx="15" cy="14" r="11" fill="white"/>
-              <!-- Letter D -->
-              <text x="15" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif">D</text>
-            </svg>
-            `),
-            scaledSize: new window.google.maps.Size(40, 40),
-            anchor: new window.google.maps.Point(20, 40),
-          }}
-        />
-      )}
-    </GoogleMap>
-  )
-}
+import { haversineDistance } from "@/components/utils/distance"
+import AdCarousel from "../AdCarousel"
+import MapPicker from "../MapHome"
 
 // Loading Skeleton Components
 const LoadingCard = () => (
@@ -182,57 +77,53 @@ const LoadingSearchResult = () => (
   </motion.div>
 )
 
-// Local transport options configuration with icons, colors, etc.
-const transportConfig = {
-  "cab": {
+// Transportation options data
+const transportOptions = [
+  {
+    id: "68e3627f58138fe47e4e56fc",
+    name: "Cab",
     icon: <FaCar className="text-2xl" />,
+    baseFare: 40,
+    perKm: 12,
+    capacity: "4 passengers",
     color: "bg-blue-500",
     textColor: "text-blue-500",
-    borderColor: "border-blue-200",
-    baseFare: 40,
-    perKm: 12,
+    borderColor: "border-blue-200"
   },
-  "bike": {
+  {
+    id: "68e3627f58138fe47e4e56fd",
+    name: "Bike",
     icon: <FaMotorcycle className="text-2xl" />,
+    baseFare: 20,
+    perKm: 8,
+    capacity: "1 passenger",
     color: "bg-green-500",
     textColor: "text-green-500",
-    borderColor: "border-green-200",
-    baseFare: 20,
-    perKm: 8,
+    borderColor: "border-green-200"
   },
-  "e-rickshaw": {
+  {
+    id: "68e3627f58138fe47e4e56fe",
+    name: "E-Rickshaw",
     icon: <MdElectricRickshaw className="text-2xl" />,
+    baseFare: 30,
+    perKm: 10,
+    capacity: "3 passengers",
     color: "bg-yellow-500",
     textColor: "text-yellow-500",
-    borderColor: "border-yellow-200",
-    baseFare: 30,
-    perKm: 8,
+    borderColor: "border-yellow-200"
   },
-  "bus": {
+  {
+    id: "68e3627f58138fe47e4e56ff",
+    name: "Bus",
     icon: <FaBus className="text-2xl" />,
+    baseFare: 15,
+    perKm: 5,
+    capacity: "40+ passengers",
     color: "bg-purple-500",
     textColor: "text-purple-500",
-    borderColor: "border-purple-200",
-    baseFare: 10,
-    perKm: 5,
-  },
-  "rickshaw": {
-    icon: <MdElectricRickshaw className="text-2xl" />,
-    color: "bg-amber-500",
-    textColor: "text-indigo-500",
-    borderColor: "border-red-200",
-    baseFare: 20,
-    perKm: 10,
-  }, 
-  "default": {
-    icon: <FaCar className="text-2xl" />,
-    color: "bg-gray-500",
-    textColor: "text-gray-500",
-    borderColor: "border-gray-200",
-    baseFare: 40,
-    perKm: 12,
+    borderColor: "border-purple-200"
   }
-}
+]
 
 export default function MobileHome() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -244,71 +135,57 @@ export default function MobileHome() {
   const [isLoading, setIsLoading] = useState(true)
 
   // Location states
-  const [currentLocation, setCurrentLocation] = useState("")
-  const [destination, setDestination] = useState("")
+  const [pickupLocation, setPickupLocation] = useState({ address: "", coordinates: { lat: 0, lng: 0 } })
+  const [destinationLocation, setDestinationLocation] = useState({ address: "", coordinates: { lat: 0, lng: 0 } })
   const [distance, setDistance] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
   const [isLocating, setIsLocating] = useState(false)
   const [locationPermission, setLocationPermission] = useState(false)
+  const [selectedTransport, setSelectedTransport] = useState(transportOptions[0])
 
-  const [showMap, setShowMap] = useState(false)
-  const [selectionMode, setSelectionMode] = useState("pickup") // 'pickup' or 'destination'
-  const [pickupCoords, setPickupCoords] = useState({ lat: 0, lng: 0 })
-  const [destinationCoords, setDestinationCoords] = useState({ lat: 0, lng: 0 })
-  const [mapCenter, setMapCenter] = useState({ lat: 23.1765, lng: 75.7885 }) // Ujjain coordinates
-  const [selectedTransport, setSelectedTransport] = useState("cab")
-  const [transport_id, setTransport_id] = useState("")
-  const [transportOptions, setTransportOptions] = useState([])
-  const { cars, brand, places, hotels, reviews, getAverageRating } = useUjjain()
+  const { cars, brand, places,verifiedHotels,hotels, reviews, getAverageRating } = useUjjain()
+ // console.log('home hotels verified', verifiedHotels.length,'all hotels :', hotels);
+  
+// Filter vehicles for instant booking based on your schema
+  const instantVehicles = cars.filter(car => 
+    car.bookingType === 'instant' && 
+    car.availability === true // Only show available vehicles
+  )
 
-  const pickupInputRef = useRef(null)
-  const destinationInputRef = useRef(null)
 
-  // Load Google Maps API (without Places library to avoid third-party cookies)
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+      },
+    },
+  }
+
   useEffect(() => {
-    const loadGoogleMaps = () => {
-      if (!window.google) {
-        const script = document.createElement("script")
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&loading=async`
-        script.async = true
-        script.defer = true
-        document.head.appendChild(script)
-      }
-    }
-
-    loadGoogleMaps()
+    const timer = setTimeout(() => setIsLoading(false), 1500)
+    return () => clearTimeout(timer)
   }, [])
 
-  // Process transport options from database and merge with local config
+  // Calculate distance when coordinates change
   useEffect(() => {
-    if (cars.length) {
-      const instantCars = cars.filter((item) => item.bookingType === 'instant')
-      
-      const processedTransports = instantCars.map(car => {
-        // Get the transport type from model or use default
-        const transportType = car.model?.toLowerCase() || "default"
-        const config = transportConfig[transportType] || transportConfig.default
-        
-        return {
-          ...car,
-          icon: config.icon,
-          color: config.color,
-          textColor: config.textColor,
-          borderColor: config.borderColor,
-          baseFare: config.baseFare,
-          
-        }
-      })
-      
-      setTransportOptions(processedTransports)
-      
-      // Set default selected transport
-      if (processedTransports.length > 0 && !transport_id) {
-        setSelectedTransport(processedTransports[0].model?.toLowerCase() || "cab")
-        setTransport_id(processedTransports[0]._id)
-      }
+    if (pickupLocation.coordinates.lat !== 0 && destinationLocation.coordinates.lat !== 0) {
+      const dist = haversineDistance(pickupLocation.coordinates, destinationLocation.coordinates)
+      setDistance(Math.floor(dist))
     }
-  }, [cars, transport_id])
+  }, [pickupLocation.coordinates, destinationLocation.coordinates])
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -321,8 +198,6 @@ export default function MobileHome() {
       async (position) => {
         const { latitude, longitude } = position.coords
         setUserLocation({ lat: latitude, lng: longitude })
-        setPickupCoords({ lat: latitude, lng: longitude })
-        setMapCenter({ lat: latitude, lng: longitude })
 
         try {
           const response = await fetch(
@@ -331,12 +206,18 @@ export default function MobileHome() {
           const data = await response.json()
 
           if (data.display_name) {
-            setCurrentLocation(data.display_name)
+            setPickupLocation({ 
+              address: data.display_name, 
+              coordinates: { lat: latitude, lng: longitude } 
+            })
             setLocationPermission(true)
           }
         } catch (error) {
           console.error("Error getting address:", error)
-          setCurrentLocation(`Near ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
+          setPickupLocation({ 
+            address: `Near ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            coordinates: { lat: latitude, lng: longitude } 
+          })
         }
 
         setIsLocating(false)
@@ -353,25 +234,31 @@ export default function MobileHome() {
       },
     )
   }
+const calculateFare = useCallback((transport = selectedTransport) => {
+    if (!transport || !distance) return 0
+    
+    // Use the actual pricing from your schema
+    // baseFare comes from transport.baseFare which is vehicle.basePrice
+    // perKm comes from transport.perKm which is vehicle.pricePerKm
+    const baseFare = transport.baseFare || 0
+    const perKm = transport.perKm || 10
+    return Math.floor((baseFare + distance * perKm))
+  }, [selectedTransport, distance])
 
-  const handlePickupChange = (locationData) => {
-    setCurrentLocation(locationData.address)
-    setPickupCoords(locationData.coordinates)
+  const handleBookNow = () => {
+    if (pickupLocation.address && destinationLocation.address && selectedTransport) {
+      const today = new Date().toISOString().split('T')[0]
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      
+      const fare = calculateFare()
+      
+      // Since we're grouping by category, we need to handle the booking differently
+      // You might want to redirect to a vehicle selection page or automatically assign a vehicle
+      const bookingUrl = `/booking?pickup=${encodeURIComponent(pickupLocation.address)}&pickupLat=${pickupLocation.coordinates.lat}&pickupLng=${pickupLocation.coordinates.lng}&destination=${encodeURIComponent(destinationLocation.address)}&destLat=${destinationLocation.coordinates.lat}&destLng=${destinationLocation.coordinates.lng}&transportType=${selectedTransport.category}&fare=${fare}&bookingType=instant&startDate=${today}&endDate=${tomorrow}`
+      
+      window.location.href = bookingUrl
+    }
   }
-
-  const handleDestinationChange = (locationData) => {
-    setDestination(locationData.address)
-    setDestinationCoords(locationData.coordinates)
-  }
-
-  const calculateFare = useCallback((transportType = selectedTransport, dist = distance || 0) => {
-    const transport = transportOptions.find(option => 
-      option.model?.toLowerCase() === transportType.toLowerCase()
-    )
-    if (!transport) return 0
-
-    return Math.floor((transport?.basePrice + dist * transport.pricePerKm), 2)
-  }, [selectedTransport, distance, transportOptions])
 
   const getFilteredResults = () => {
     if (!searchTerm) return []
@@ -435,285 +322,67 @@ export default function MobileHome() {
     { id: "tours", label: "Tours", icon: <BiTab /> },
   ]
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-      },
-    },
-  }
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
-
-  const parseNumber = (val) => {
-    if (val == null) return 0
-    if (typeof val === "number") return val
-    const cleaned = String(val).replace(/[^\d.-]/g, "")
-    return Number(cleaned) || 0
-  }
-
-  useEffect(() => {
-    if (searchTerm) {
-      const results = getFilteredResults()
-      if (activeTab !== "cars") {
-        setFilteredResults(results.filter((i) => i.type === activeTab.slice(0, -1)))
-      } else {
-        setFilteredResults(results)
-      }
-    } else {
-      setFilteredResults([])
-    }
-  }, [searchTerm, activeTab, budget, passengers, cars, hotels, places])
-
-  // Calculate distance when coordinates change
-  useEffect(() => {
-    if (pickupCoords.lat !== 0 && destinationCoords.lat !== 0) {
-      const dist = haversineDistance(pickupCoords, destinationCoords)
-      setDistance(Math.floor(dist, 2))
-    }
-  }, [pickupCoords, destinationCoords])
-
   return (
     <div className="min-h-screen bg-background">
       {/* Enhanced Hero Section with Map Picker */}
       <div className="bg-gradient-to-r from-sky-500 to-blue-500 text-white p-6 rounded-b-3xl shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">{brand.name}</h1>
-          <p className="text-orange-100 mb-6">{brand.description}</p>
-
-          {/* Ride Booking Interface */}
-          <div className="bg-white rounded-2xl p-4 shadow-lg mb-4">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="flex-1 relative">
-                <input
-                  ref={pickupInputRef}
-                  type="text"
-                  placeholder="Current location"
-                  className="w-full p-3 rounded-lg bg-gray-50 text-gray-800 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                  value={currentLocation}
-                  onChange={(e) => setCurrentLocation(e.target.value)}
-                  onFocus={() => setSelectionMode("pickup")}
-                />
-                <button
-                  onClick={getCurrentLocation}
-                  disabled={isLocating}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-500"
-                >
-                  {isLocating ? (
-                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <MdMyLocation className="text-lg" />
-                  )}
-                </button>
-              </div>
+          {isLoading ? (
+            <div className="animate-pulse">
+              <div className="h-8 bg-white/30 rounded w-48 mb-2"></div>
+              <div className="h-4 bg-white/30 rounded w-64 mb-6"></div>
             </div>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold mb-2">{brand.name}</h1>
+              <p className="text-orange-100 mb-6">{brand.description}</p>
+            </>
+          )}
 
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <div className="flex-1">
-                <input
-                  ref={destinationInputRef}
-                  type="text"
-                  placeholder="Where to?"
-                  className="w-full p-3 rounded-lg bg-gray-50 text-gray-800 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  onFocus={() => setSelectionMode("destination")}
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowMap(!showMap)}
-              className="w-full py-2 mb-3 rounded-lg font-medium transition-all bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 flex items-center justify-center space-x-2"
-            >
-              <FaMap className="text-sm" />
-              <span>{showMap ? "Hide Map" : "Select on Map"}</span>
-              <FaChevronDown className={`text-xs transition-transform ${showMap ? "rotate-180" : ""}`} />
-            </button>
-
-            <AnimatePresence>
-              {showMap && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-4 overflow-hidden"
-                >
-                  <div className="bg-blue-50 rounded-lg p-3 mb-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Select Location:</span>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => setSelectionMode("pickup")}
-                          className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                            selectionMode === "pickup"
-                              ? "bg-blue-500 text-white shadow-md"
-                              : "bg-white text-blue-600 border border-blue-200"
-                          }`}
-                        >
-                          Pickup
-                        </button>
-                        <button
-                          onClick={() => setSelectionMode("destination")}
-                          className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                            selectionMode === "destination"
-                              ? "bg-red-500 text-white shadow-md"
-                              : "bg-white text-red-600 border border-red-200"
-                          }`}
-                        >
-                          Destination
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      Tap on the map to set your {selectionMode === "pickup" ? "pickup" : "destination"} location
-                    </p>
-                  </div>
-
-                  <LocationMarker
-                    pickupCoords={pickupCoords}
-                    destinationCoords={destinationCoords}
-                    onPickupChange={handlePickupChange}
-                    onDestinationChange={handleDestinationChange}
-                    selectionMode={selectionMode}
-                    mapCenter={mapCenter}
-                  />
-
-                  {/* Map Legend */}
-                  <div className="flex items-center justify-center space-x-4 mt-2 text-xs">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow"></div>
-                      <span className="text-gray-600">Pickup</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow"></div>
-                      <span className="text-gray-600">Destination</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Transportation Options */}
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Choose your ride:</h3>
-              <div className="grid grid-cols-4 gap-2">
-                {transportOptions?.map((transport) => (
-                  <motion.button
-                    key={transport._id}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      setSelectedTransport(transport.model?.toLowerCase() || "cab")
-                      setTransport_id(transport._id)
-                    }}
-                    className={`p-3 rounded-xl border-2 transition-all ${
-                      selectedTransport === (transport.model?.toLowerCase() || "cab")
-                        ? `${transport.borderColor} ${transport.color} text-white shadow-md`
-                        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex flex-col items-center">
-                      <div className="mb-1">{transport.icon}</div>
-                      <span className="text-xs font-medium">{transport.model}</span>
-                      {currentLocation && destination && (
-                        <span className="text-xs font-bold mt-1">
-                          ₹{calculateFare(transport.model?.toLowerCase())}
-                        </span>
-                      )}
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-
-            {currentLocation && destination && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-orange-50 rounded-lg p-3 mb-3"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <span className="text-gray-700 font-medium">Estimated Fare:</span>
-                    <span className="text-xs text-gray-500 ml-2">
-                      {transportOptions.find(t => t._id === transport_id)?.seats} 
-                    </span>
-                  </div>
-                  <span className="text-orange-600 font-bold text-lg">₹{calculateFare()}</span>
-                </div>
-                <p className="text-xs mb-1 text-gray-500">
-                 {/*  {transportOptions.find(t => t._id === transport_id)?.model} */} • Capacity : {transportOptions.find(t => t._id === transport_id)?.seats} 
-                </p> 
-                <p className="text-xs mb-1 text-gray-500">
-                • Rate : {transportOptions.find(t => t._id === transport_id)?.pricePerKm} Rupees Per KM 
-                </p> 
-                <p className="text-xs mb-1 text-gray-500">
-                • Base Price : {transportOptions.find(t => t._id === transport_id)?.basePrice} Rupees 
-                </p> 
-                 <p className="text-xs text-gray-500">
-                  {/* {transportOptions.find(t => t._id === transport_id)?.model} */}  • Approximate distance : {distance}km
-                </p>
-              </motion.div>
-            )}
-
-            <button
-              onClick={() => {
-                if (currentLocation && destination) {
-                  // Set current date for instant booking
-                  const today = new Date().toISOString().split('T')[0];
-                  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                  
-                  // For instant booking, we don't need to select specific vehicles
-                  // Redirect to booking page with transport type and calculated fare
-                  const bookingUrl = `/booking?pickup=${encodeURIComponent(currentLocation)}&pickupLat=${pickupCoords.lat}&pickupLng=${pickupCoords.lng}&destination=${encodeURIComponent(destination)}&destLat=${destinationCoords.lat}&destLng=${destinationCoords.lng}&transport=${selectedTransport}&_id=${transport_id}&fare=${calculateFare()}&bookingType=instant&startDate=${today}&endDate=${tomorrow}`
-                  window.location.href = bookingUrl;
-                }
-              }}
-              disabled={!currentLocation || !destination}
-              className={`w-full py-3 capitalize rounded-lg font-semibold transition-all ${
-                currentLocation && destination
-                  ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg"
-                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
-              }`}
-            >
-              {currentLocation && destination ? `Book ${selectedTransport}` : "Enter Locations"}
-            </button>
-          </div>
+          {/* MapPicker Component */}
+          <MapPicker
+            pickupLocation={pickupLocation}
+            destinationLocation={destinationLocation}
+            onPickupChange={setPickupLocation}
+            instantVehicles={instantVehicles}
+            onDestinationChange={setDestinationLocation}
+            selectedTransport={selectedTransport}
+            onTransportSelect={setSelectedTransport}
+            distance={distance}
+            calculateFare={calculateFare}
+            onBookNow={handleBookNow}
+            getCurrentLocation={getCurrentLocation}
+            locationPermission={locationPermission}
+            isLocating={isLocating}
+          />
 
           {/* Quick Location Buttons */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {["Mahakal Temple", "Ram Ghat", "Ujjain Railway Station", "Airport"].map((place) => (
-              <button
-                key={place}
-                onClick={() => setDestination(place)}
-                className="bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm hover:bg-white/30 transition-colors"
-              >
-                {place}
-              </button>
-            ))}
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm animate-pulse">
+                  <div className="h-3 w-16 bg-white/30 rounded"></div>
+                </div>
+              ))
+            ) : (
+              ["Mahakal Temple", "Ram Ghat", "Ujjain Railway Station", "Airport"].map((place) => (
+                <button
+                  key={place}
+                  onClick={() => setDestinationLocation({ 
+                    address: place, 
+                    coordinates: { lat: 0, lng: 0 } 
+                  })}
+                  className="bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm hover:bg-white/30 transition-colors"
+                >
+                  {place}
+                </button>
+              ))
+            )}
           </div>
 
           {/* Location Permission Status */}
-          {locationPermission && (
+          {locationPermission && !isLoading && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -726,92 +395,208 @@ export default function MobileHome() {
         </div>
       </div>
 
-      {/* Ad Carousel below instant ride booking */}
+      {/* Ad Carousel */}
       <div className="md:px-4 px-2 py-4">
         <AdCarousel />
       </div>
 
-      {/* Rest of your component remains exactly the same */}
-      <div className="md:px-4 px-2 py-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Popular Car Rentals</h2>
-          <Link href={"/cars"}>
-            <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
-              <FaArrowRight />
-            </button>
-          </Link>
-        </div>
+    
+      {/* Popular Car Rentals */}
+      {!searchTerm && (
+  <div className="md:px-4 px-2 py-6 md:py-8 max-w-7xl mx-auto">
+    <div className="flex items-center justify-between mb-4 md:mb-6">
+      <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">Popular Car Rentals</h2>
+      <Link href={"/cars"}>
+        <button className="bg-orange-500 text-white p-2 md:p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
+          <FaArrowRight className="text-sm md:text-base" />
+        </button>
+      </Link>
+    </div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 md:gap-6 gap-1 gap-y-4"
-        >
-          {isLoading
-            ? Array.from({ length: 6 }).map((_, index) => <LoadingCard key={index} />)
-            : cars.slice(0, 6).map((car, index) => (
-                <motion.div
-                  key={car._id}
-                  variants={itemVariants}
-                  className="bg-card md:rounded-xl rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
-                >
-                  <img
-                    src={car.images?.[0]?.url || car.image?.url || "/placeholder.svg" || "/placeholder.svg"}
-                    alt={car.model}
-                    className="w-full h-20 md:h-48 md:object-cover object-contain"
-                  />
-                  <div className="md:p-6 p-1">
-                    <h3 className="md:font-bold font-semibold md:text-xl line-clamp-1 text-sm text-card-foreground">
-                      {car.model}
-                    </h3>
-                    <div className="flex items-center md:mb-3 mb-1">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar
-                            key={i}
-                            className={`md:text-sm text-xs ${
-                              i < Math.floor(getAverageRating(car.reviews)) ? "text-orange-500" : "text-muted"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-muted-foreground ml-2">{getAverageRating(car.reviews)}</span>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4"
+    >
+      {isLoading
+        ? Array.from({ length: 4 }).map((_, index) => <LoadingCard key={index} />)
+        : cars.slice(0, 8).map((car) => (
+            <motion.div
+              key={car._id}
+              variants={itemVariants}
+              className="bg-card rounded-lg md:rounded-xl shadow-sm overflow-hidden border border-border hover:shadow-md md:hover:shadow-lg transition-shadow"
+            >
+              {/* Image Container */}
+              <div className="relative w-full pt-[60%] md:pt-[75%] overflow-hidden">
+                <img
+                  src={car.images?.[0]?.url || car.image?.url || "/placeholder.svg"}
+                  alt={car.model}
+                  className="absolute top-0 left-0 w-full h-full object-contain p-2 md:p-0"
+                />
+              </div>
+              
+              <div className="p-2 md:p-4">
+                {/* Car Model */}
+                <h3 className="font-bold text-xs md:text-sm lg:text-base text-card-foreground line-clamp-1 mb-1">
+                  {car.model}
+                </h3>
+                
+                {/* Rating */}
+                <div className="flex items-center mb-1 md:mb-2">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar
+                        key={i}
+                        className={`${i < Math.floor(getAverageRating(car.reviews)) ? "text-orange-500" : "text-muted"} text-[10px] md:text-xs`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] md:text-xs text-muted-foreground ml-1">
+                    {getAverageRating(car.reviews)}
+                  </span>
+                </div>
+                
+                {/* Price and Details Row */}
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <div>
+                    <div className="text-sm md:text-lg lg:text-xl font-bold text-card-foreground flex items-center">
+                      <FaRupeeSign className="text-[10px] md:text-sm" /> 
+                      <span className="ml-0.5">{car.pricePerDay}</span>
                     </div>
-                    <div className="flex items-center justify-between md:mb-4 mb-1">
-                      <div>
-                        <div className="md:text-2xl text-gray-700 text-sm md:font-bold font-semibold text-card-foreground flex items-center">
-                          <FaRupeeSign className="text-xs md:text-base" /> {car.pricePerDay}
-                        </div>
-                        <div className="text-sm text-muted-foreground hidden md:block">per day</div>
-                      </div>
-                      <div className="text-right hidden md:block">
-                        <div className="text-sm text-muted-foreground">
-                          {car.seats} seats • {car.fueltype}
-                        </div>
-                        <div className="text-sm text-muted-foreground">{car.geartype}</div>
-                      </div>
+                    <div className="text-[10px] md:text-xs text-muted-foreground">per day</div>
+                  </div>
+                  
+                  {/* Car Details - Hidden on mobile, shown on tablet+ */}
+                  <div className="hidden md:block text-right">
+                    <div className="text-xs text-muted-foreground">
+                      {car.seats} seats • {car.fueltype}
                     </div>
-                    <div className="flex items-center justify-center">
-                      <Link href={`/booking?car=${car._id}`}>
-                        <button className="px-4 mb-1 md:py-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
-                          Book Now
-                        </button>
-                      </Link>
+                    <div className="text-xs text-muted-foreground">{car.geartype}</div>
+                  </div>
+                  
+                  {/* Mobile Badge for details */}
+                  <div className="md:hidden">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-[8px] px-1 py-0.5 bg-blue-100 text-blue-800 rounded">
+                        {car.seats} seats
+                      </span>
+                      <span className="text-[8px] px-1 py-0.5 bg-green-100 text-green-800 rounded">
+                        {car.fueltype.charAt(0)}
+                      </span>
                     </div>
                   </div>
-                </motion.div>
-              ))}
-        </motion.div>
-      </div>
+                </div>
+                
+                {/* Book Now Button */}
+                <div className="flex justify-center">
+                  <Link href={`/booking?car=${car._id}`}>
+                    <button className="w-full px-1 py-1 md:py-2 bg-orange-500 hover:bg-orange-600 text-white rounded md:rounded-lg font-semibold transition-colors text-xs md:text-sm">
+                      Book Now
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+    </motion.div>
+  </div>
+)}
 
-   
-{/* */}
-      <div className="md:px-4 px-2 py-8 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
+      {/* Top Hotels */}
+      { (
+        <div className="md:px-4 px-2 py-8 bg-muted/30">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground">Top Hotels</h2>
+              <Link href={"/hotels"}>
+                <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
+                  <FaArrowRight />
+                </button>
+              </Link>
+            </div>
+
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {isLoading
+                ? Array.from({ length: 6 }).map((_, index) => <LoadingCard key={index} />)
+                : hotels.slice(0, 6).map((hotel) => (
+                    <motion.div
+                      key={hotel._id}
+                      variants={itemVariants}
+                      className="bg-card rounded-xl shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
+                    >
+                      <img
+                        src={hotel.images?.[0]?.url || hotel.image?.url || "/placeholder.svg"}
+                        alt={hotel.name}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-card-foreground line-clamp-1">
+                          {hotel.name}
+                        </h3>
+                        <div className="flex items-center my-2">
+                          <div className="flex">
+                            {[...Array(5)].map((_, i) => (
+                              <FaStar
+                                key={i}
+                                className={`text-sm ${
+                                  i < Math.floor(getAverageRating(hotel.reviews)) ? "text-orange-500" : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm text-muted-foreground capitalize ml-2">
+                            {hotel.category}
+                          </span>
+                        </div>
+                        <div className="flex items-center mb-3">
+                          <FaMapMarkerAlt className="text-muted-foreground mr-2" />
+                          <span className="text-sm text-muted-foreground line-clamp-1">{hotel.location}</span>
+                        </div>
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <div className="text-xl font-bold flex items-center">
+                              <FaRupeeSign className="text-base" /> {hotel.price}
+                            </div>
+                            <div className="text-sm text-muted-foreground">per night</div>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {hotel.amenities.slice(0, 3).map((item, index) => (
+                              <span
+                                key={index}
+                                className="text-xs px-2 py-1 bg-sky-300 rounded-full"
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex justify-center">
+                          <Link href={`/booking?hotel=${hotel._id}`}>
+                            <button className="w-full px-1 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-colors">
+                              Book Now
+                            </button>
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+            </motion.div>
+          </div>
+        </div>
+      )}
+
+      {/* Sacred Places to Visit */}
+      {!searchTerm && (
+        <div className="md:px-4 px-2 py-8 max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Top Hotels</h2>
-            <Link href={"/hotels"}>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Sacred Places to Visit</h2>
+            <Link href={"/places"}>
               <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
                 <FaArrowRight />
               </button>
@@ -822,66 +607,43 @@ export default function MobileHome() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 md:gap-6 gap-1 gap-y-4"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {isLoading
               ? Array.from({ length: 6 }).map((_, index) => <LoadingCard key={index} />)
-              : hotels.slice(0, 6).map((hotel) => (
+              : places.slice(0, 6).map((place) => (
                   <motion.div
-                    key={hotel._id}
+                    key={place._id}
                     variants={itemVariants}
-                    className="bg-card md:rounded-xl rounded-sm shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
+                    className="bg-card rounded-xl shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
                   >
                     <img
-                      src={hotel.images?.[0]?.url || hotel.image?.url || "/placeholder.svg" || "/placeholder.svg"}
-                      alt={hotel.name}
-                      className="w-full h-20 md:h-48 rounded-md object-cover text-xs"
+                      src={place.images?.[0]?.url || place.image?.url || "/placeholder.svg"}
+                      alt={place.title}
+                      className="w-full h-48 object-cover"
                     />
-                    <div className="md:p-6 p-1">
-                      <h3 className="md:font-bold font-semibold md:text-xl line-clamp-1 text-sm text-card-foreground">
-                        {hotel.name}
+                    <div className="p-4">
+                      <h3 className="font-bold text-lg text-card-foreground line-clamp-1">
+                        {place.title}
                       </h3>
-                      <div className="flex items-center md:mb-3 mb-1">
+                      <div className="flex items-center my-2">
                         <div className="flex">
                           {[...Array(5)].map((_, i) => (
                             <FaStar
                               key={i}
-                              className={`md:text-sm text-[9px] ${
-                                i < Math.floor(getAverageRating(hotel.reviews)) ? "text-orange-500" : "text-gray-300"
+                              className={`text-sm ${
+                                i < Math.floor(getAverageRating(place.reviews)) ? "text-orange-500" : "text-muted"
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="md:text-sm text-xs text-muted-foreground capitalize ml-1">
-                          {hotel.category}
-                        </span>
+                        <span className="text-sm text-muted-foreground ml-2">{getAverageRating(place.reviews)}</span>
                       </div>
-                      <div className="flex items-center md:mb-4 mb-1">
-                        <FaMapMarkerAlt className="text-muted-foreground mr-1 text-xs md:text-sm" />
-                        <span className="text-xs md:text-sm text-muted-foreground line-clamp-1">{hotel.location}</span>
-                      </div>
-                      <div className="flex items-center justify-between md:mb-4 mb-1">
-                        <div>
-                          <div className="md:text-2xl text-gray-700 text-sm md:font-bold font-semibold flex items-center">
-                            <FaRupeeSign className="text-xs md:text-base" /> {hotel.price}
-                          </div>
-                          <div className="text-sm text-muted-foreground hidden md:block">per night</div>
-                        </div>
-                        <div className="hidden md:flex items-start gap-0.5">
-                          {hotel.amenities.slice(0, 3).map((item, index) => (
-                            <span
-                              key={index}
-                              className="text-xs px-1 py-0.5 whitespace-nowrap bg-sky-300 rounded-full flex items-center justify-center"
-                            >
-                              {item}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <Link href={`/booking?hotel=${hotel._id}`}>
-                          <button className="px-4 mb-1 md:py-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
-                            Book Now
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{place.description}</p>
+                      <div className="flex justify-center">
+                        <Link href={`/places/${place._id}`}>
+                          <button className="w-full px-1 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-colors">
+                            Learn More
                           </button>
                         </Link>
                       </div>
@@ -890,206 +652,107 @@ export default function MobileHome() {
                 ))}
           </motion.div>
         </div>
-      </div>
+      )}
 
-      <div className="md:px-4 px-2 py-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Sacred Places to Visit</h2>
-          <Link href={"/places"}>
-            <button className="bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
-              <FaArrowRight />
-            </button>
-          </Link>
-        </div>
+      {/* What Travelers Say */}
+      {!searchTerm && (
+        <div className="md:px-4 px-2 py-8 bg-card">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-card-foreground mb-4">What Travelers Say</h2>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto hidden md:block">
+                Read reviews from pilgrims who experienced Ujjain with our services
+              </p>
+            </div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="flex justify-center items-center flex-wrap md:grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 md:gap-6 gap-1 gap-y-4"
-        >
-          {isLoading ? (
-            Array.from({ length: 6 }).map((_, index) => <LoadingCard key={index} />)
-          ) : (
-            <>
-              <div className="bg-card md:hidden md:rounded-xl flex max-w-[100%] rounded-md shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow">
-                <img
-                  src={places[0]?.images?.[0]?.url || places[0]?.image?.url || "/placeholder.svg" || "/placeholder.svg"}
-                  alt={places[0]?.title}
-                  className="max-w-[50%] h-48 md:object-cover object-cover rounded-md"
-                />
-                <div className="md:p-6 p-5 flex flex-col justify-between">
-                  <h3 className="md:font-bold font-semibold md:text-xl line-clamp-1 text-sm text-card-foreground">
-                    {places[0]?.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground md:mb-4 mb-1 line-clamp-2 flex items-start gap-1">
-                    <FaMapMarkerAlt className="mt-1 text-amber-600" />
-                    {places[0]?.location}
-                  </p>
-                  <p className="text-xs text-muted-foreground md:mb-4 mb-1 line-clamp-4">{places[0]?.description}</p>
-                  <div className="flex items-center md:mb-3">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <FaStar
-                          key={i}
-                          className={`md:text-sm text-xs ${
-                            i < Math.floor(getAverageRating(places[0]?.reviews)) ? "text-orange-500" : "text-gray-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-muted-foreground ml-2">{getAverageRating(places[0]?.reviews)}</span>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <Link href={`/places/${places[0]?._id}`}>
-                      <button className="px-4 mb-1 md:py-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
-                            Learn More
-                          </button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              {places?.slice(0, 6).map((place) => (
-                <motion.div
-                  key={place?._id}
-                  variants={itemVariants}
-                  className="bg-card w-[31%] md:w-auto md:rounded-xl rounded-md shadow-sm overflow-hidden border border-border hover:shadow-lg transition-shadow"
-                >
-                  <img
-                    src={place?.images?.[0]?.url || place?.image?.url || "/placeholder.svg" || "/placeholder.svg"}
-                    alt={place?.title}
-                    className="w-full h-20 md:h-48 md:object-cover object-cover rounded-md"
-                  />
-                  <div className="md:p-6 p-1">
-                    <h3 className="md:font-bold font-semibold md:text-xl line-clamp-1 text-sm text-card-foreground">
-                      {place?.title}
-                    </h3>
-                    <div className="flex items-center md:mb-3">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar
-                            key={i}
-                            className={`md:text-sm text-xs ${
-                              i < Math.floor(getAverageRating(place.reviews)) ? "text-orange-500" : "text-muted"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-muted-foreground ml-2">{getAverageRating(place.reviews)}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground md:mb-4 mb-1 line-clamp-2">{place.description}</p>
-                    <div className="flex items-center justify-center">
-                      <Link href={`/places/${place._id}`}>
-                       
-                        <button className="px-4 mb-1 md:py-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-sm font-semibold transition-colors text-xs md:text-base">
-                             Learn More
-                          </button>
-                      </Link>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </>
-          )}
-        </motion.div>
-      </div>
-
-      <div className="md:px-4 px-2 py-8 bg-card">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-card-foreground mb-4">What Travelers Say</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto hidden md:block">
-              Read reviews from pilgrims who experienced Ujjain with our services
-            </p>
-          </div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
-          >
-            {isLoading
-              ? Array.from({ length: 6 }).map((_, index) => <LoadingReview key={index} />)
-              : reviews.slice(0, 6).map((review) => (
-                  <motion.div
-                    key={review._id}
-                    variants={itemVariants}
-                    className="bg-muted/30 rounded-xl p-4 md:p-6 border border-border"
-                  >
-                    <div className="flex items-start space-x-3 md:space-x-4">
-                      <div className="w-8 h-8 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-bold text-sm md:text-lg">
-                          {review?.user?.fullName?.charAt(0) || "U"}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center mb-2">
-                          <h4 className="font-bold text-card-foreground text-sm md:text-base capitalize line-clamp-1">
-                            {review?.user?.fullName || "User"}
-                          </h4>
-                        </div>
-                        <div className="flex items-center mb-2 md:mb-3">
-                          <div className="flex">
-                            {[...Array(5)].map((_, i) => (
-                              <FaStar
-                                key={i}
-                                className={`text-orange-500 ${
-                                  i < review.rating ? "text-orange-500" : "text-muted"
-                                } text-xs md:text-sm`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-xs md:text-sm text-muted-foreground ml-2 line-clamp-1">
-                            {review.location || "Ujjain"}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {isLoading
+                ? Array.from({ length: 6 }).map((_, index) => <LoadingReview key={index} />)
+                : reviews.slice(0, 6).map((review) => (
+                    <motion.div
+                      key={review._id}
+                      variants={itemVariants}
+                      className="bg-muted/30 rounded-xl p-6 border border-border"
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-lg">
+                            {review?.user?.fullName?.charAt(0) || "U"}
                           </span>
                         </div>
-                        <p className="text-muted-foreground text-xs md:text-sm line-clamp-3">"{review.comment}"</p>
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <img
-                          src={
-                            review.reviewedItem?.image?.url ||
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center mb-2">
+                            <h4 className="font-bold text-card-foreground text-base capitalize line-clamp-1">
+                              {review?.user?.fullName || "User"}
+                            </h4>
+                          </div>
+                          <div className="flex items-center mb-3">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <FaStar
+                                  key={i}
+                                  className={`text-orange-500 ${
+                                    i < review.rating ? "text-orange-500" : "text-muted"
+                                  } text-sm`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm text-muted-foreground ml-2 line-clamp-1">
+                              {review.location || "Ujjain"}
+                            </span>
+                          </div>
+                          <p className="text-muted-foreground text-sm line-clamp-3">"{review.comment}"</p>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <img
+                            src={
+                              review.reviewedItem?.image?.url ||
                               review?.reviewedItem?.images?.[0]?.url ||
-                            
-                            "/placeholder.svg"
-                          }
-                          alt={
-                            review.reviewedItem?.model ||
-                            review.reviewedItem?.name ||
-                            review.reviewedItem?.title ||
-                            review.reviewedItem?.serviceName ||
-                            "Review item"
-                          }
-                          className="h-18 w-18 text-xs rounded-md"
-                        />
+                              "/placeholder.svg"
+                            }
+                            alt={
+                              review.reviewedItem?.model ||
+                              review.reviewedItem?.name ||
+                              review.reviewedItem?.title ||
+                              review.reviewedItem?.serviceName ||
+                              "Review item"
+                            }
+                            className="h-16 w-16 rounded-md object-cover"
+                          />
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
-          </motion.div>
+                    </motion.div>
+                  ))}
+            </motion.div>
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* Call to Action */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 1 }}
-        className="bg-orange-500 text-white py-4 md:py-6 px-4"
+        className="bg-orange-500 text-white py-6 px-4"
       >
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-center text-center md:text-left space-y-2 md:space-y-0 md:space-x-6">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-center text-center md:text-left space-y-4 md:space-y-0 md:space-x-6">
           <div className="flex items-center">
-            <FaPhone className="text-lg md:text-2xl animate-pulse mr-2 md:mr-3" />
+            <FaPhone className="text-2xl animate-pulse mr-3" />
             <div>
-              <div className="text-sm md:text-lg font-semibold">24/7 Help Available</div>
-              <div className="text-white/90 text-xs md:text-base">Call: +91-{brand.mobile}</div>
+              <div className="text-lg font-semibold">24/7 Help Available</div>
+              <div className="text-white/90">Call: +91-{brand.mobile}</div>
             </div>
           </div>
           <div className="flex items-center">
-            <FaCalendarAlt className="text-base md:text-xl mr-2 md:mr-3" />
+            <FaCalendarAlt className="text-xl mr-3" />
             <div>
-              <div className="font-semibold text-sm md:text-base">Book Your Journey</div>
-              <div className="text-white/90 text-xs md:text-base">Plan your spiritual trip today</div>
+              <div className="font-semibold">Book Your Journey</div>
+              <div className="text-white/90">Plan your spiritual trip today</div>
             </div>
           </div>
         </div>

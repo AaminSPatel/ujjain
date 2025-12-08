@@ -13,6 +13,7 @@ import {
   AdService,
 } from "./../apiService.js";
 import safeStorage from "./../utils/safeStorage.js";
+import { platform } from "os";
 
 const UjjainContext = createContext();
 
@@ -38,6 +39,7 @@ export const UjjainProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [logistics, setLogistics] = useState([]);
   const [hotels, setHotels] = useState([]);
+  const [verifiedHotels, setVerifiedHotels] = useState([]);
   const [ads, setAds] = useState([]);
   const [users, setUsers] = useState([]);
   const [user, setUser] = useState(null);
@@ -62,7 +64,8 @@ export const UjjainProvider = ({ children }) => {
     icon: "",
     email: "wecare.safarsathi@gmail.com",
     mobile: "9294757679",
-    link:'https://safar--sathi.vercel.app/'
+    link:'https://safar--sathi.vercel.app/',
+    platformFees:50
   };
 
   const getAverageRating = (reviews, ratingKey = 'rating') => {
@@ -293,7 +296,7 @@ const getUserNotifications = async (userId) => {
 const markAsRead = async (userId, notificationId) => {
   try {
     const result = await UserService.markNotificationAsRead(userId, notificationId);
-    console.log("Notification marked as read:", result);
+ //   console.log("Notification marked as read:", result);
   } catch (error) {
     console.error("Error marking notification as read:", error);
   }
@@ -303,7 +306,7 @@ const markAsRead = async (userId, notificationId) => {
 const markAllAsRead = async (userId) => {
   try {
     const result = await UserService.markAllNotificationsAsRead(userId);
-    console.log("All notifications marked as read:", result);
+    //console.log("All notifications marked as read:", result);
   } catch (error) {
     console.error("Error marking all notifications as read:", error);
   }
@@ -801,6 +804,10 @@ const getBookingById = async (id) => {
     try {
       const data = await HotelService.getAll();
       setHotels(data);
+    //  console.log('ujjainCOntes', data.filter((item)=>(item.status!=='unverified' && item.status!=='rejected' && item.status!=='blacklisted' ) ));
+
+      setVerifiedHotels(data.filter((item)=>(item.status!=='unverified' && item.status!=='rejected' && item.status!=='blacklisted' )));
+
     } catch (err) {
       console.error("Error fetching hotels:", err);
     }
@@ -853,7 +860,7 @@ const getBookingById = async (id) => {
     try {
       const data = await ReviewService.getAll();
       setReviews(data);
-      console.log('data of reviews', data);
+     // console.log('data of reviews', data);
       
     } catch (err) {
       console.error("Error fetching reviews:", err);
@@ -876,7 +883,7 @@ const createCarReview = async () => {
     };
     
     const result = await ReviewService.create(reviewData);
-    console.log("Review created:", result);
+   // console.log("Review created:", result);
   } catch (error) {
     console.error("Error creating review:", error);
   }
@@ -1190,6 +1197,7 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     hotels,
     serviceData,
     hotels,
+    verifiedHotels,
     logistics,
     ads,
     reviews,

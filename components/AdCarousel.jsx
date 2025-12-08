@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { useUjjain } from "@/components/context/UjjainContext";
 
 export default function AdCarousel() {
@@ -49,10 +50,13 @@ export default function AdCarousel() {
 
           {/* Ad Image */}
           {currentAd.image?.url && (
-            <img
+            <Image
               src={currentAd.image.url}
               alt={currentAd.title}
-              className="w-full h-32 sm:h-44 object-fit"
+              width={400}
+              height={176}
+              className="w-full h-32 sm:h-44 object-cover"
+              sizes="(max-width: 640px) 100vw, 400px"
             />
           )}
 

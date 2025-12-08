@@ -2,7 +2,7 @@
 import { useSearchParams, useRouter } from "next/navigation"
 import { useState, useEffect, Suspense } from "react"
 import { motion } from "framer-motion"
-import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTruck, FaMotorcycle, FaBus } from "react-icons/fa"
+import { FaCar, FaHotel, FaUsers, FaClock, FaPhone, FaCheckCircle, FaStar, FaTruck, FaMotorcycle, FaBus, FaPercent } from "react-icons/fa"
 import { MdElectricRickshaw } from "react-icons/md"
 import SEOHead from "@/components/SEOHead"
 import { useUjjain } from "@/components/context/UjjainContext"
@@ -94,6 +94,15 @@ function BookingContent() {
   const [selectedVehicleId, setSelectedVehicleId] = useState("")
   const [selectedRoom, setSelectedRoom] = useState(null)
 
+  // Platform fee configuration
+  const [platformFee, setPlatformFee] = useState({
+    percentage: 5, // 5% platform fee
+    fixedFee: 0, // No fixed fee, only percentage
+    minFee: 10, // Minimum platform fee ₹10
+    maxFee: 100, // Maximum platform fee ₹100
+    description: "Platform Service Fee"
+  })
+
   const [bookingData, setBookingData] = useState(() => {
     // Set default dates
     const today = new Date().toISOString().split('T')[0];
@@ -135,6 +144,7 @@ function BookingContent() {
         basePrice: 0,
         discount: 0,
         tax: 0,
+        platformFee: 0,
         totalPrice: 0
       }
     }
@@ -142,6 +152,46 @@ function BookingContent() {
 
   const [availableServices, setAvailableServices] = useState([])
   const [selectedService, setSelectedService] = useState(null)
+
+  // Function to calculate platform fee
+  const calculatePlatformFee = (baseAmount) => {
+    const { percentage, fixedFee, minFee, maxFee } = platformFee;
+    
+    // Calculate percentage fee
+    let calculatedFee = (baseAmount * percentage) / 100;
+    
+    // Add fixed fee if any
+    calculatedFee += fixedFee;
+    
+    // Apply minimum and maximum limits
+    calculatedFee = Math.max(minFee, Math.min(calculatedFee, maxFee));
+    
+    // Round to nearest rupee
+    return Math.round(calculatedFee);
+  };
+
+  // Function to update pricing with platform fee
+  const updatePricingWithPlatformFee = (basePrice) => {
+    const platformFeeAmount = calculatePlatformFee(basePrice);
+    const totalPrice = basePrice + platformFeeAmount;
+    
+    setBookingData(prev => ({
+      ...prev,
+      payment: {
+        ...prev.payment,
+        amount: totalPrice,
+      },
+      pricing: {
+        basePrice: basePrice,
+        discount: 0,
+        tax: 0,
+        platformFee: platformFeeAmount,
+        totalPrice: totalPrice
+      }
+    }));
+    
+    return { basePrice, platformFeeAmount, totalPrice };
+  };
 
   useEffect(() => {
     const pickupParam = searchParams.get("pickup")
@@ -157,7 +207,7 @@ function BookingContent() {
     const endDateParam = searchParams.get("endDate")
     const v_id = searchParams.get("_id")
 
-    console.log('Vehicle ID from URL:', v_id);
+   // console.log('Vehicle ID from URL:', v_id);
 
     // Set current date and next date as default
     const today = new Date().toISOString().split('T')[0];
@@ -215,19 +265,7 @@ function BookingContent() {
 
     if (fareParam) {
       const fareAmount = parseFloat(fareParam) || 0
-      setBookingData(prev => ({
-        ...prev,
-        payment: {
-          ...prev.payment,
-          amount: fareAmount,
-        },
-        pricing: {
-          basePrice: fareAmount,
-          discount: 0,
-          tax: 0,
-          totalPrice: fareAmount
-        }
-      }))
+      updatePricingWithPlatformFee(fareAmount);
     }
 
     if (bookingTypeParam === "instant") {
@@ -297,7 +335,7 @@ function BookingContent() {
       const transport = transportOptions.find(t => t.id === selectedTransport)
 
       // Use fare from URL if available, otherwise calculate based on distance
-      let calculatedPrice = bookingData.payment.amount > 0 ? bookingData.payment.amount : 0
+      let calculatedPrice = bookingData.pricing.basePrice > 0 ? bookingData.pricing.basePrice : 0
       if (calculatedPrice === 0 && transport && bookingData.pickupLocation.coordinates.lat && bookingData.pickupLocation.coordinates.lng &&
           bookingData.dropoffLocation.coordinates.lat && bookingData.dropoffLocation.coordinates.lng) {
         const distance = haversineDistance(
@@ -316,20 +354,8 @@ function BookingContent() {
         price: calculatedPrice
       })
 
-      // Update booking data with calculated price
-      setBookingData(prev => ({
-        ...prev,
-        payment: {
-          ...prev.payment,
-          amount: calculatedPrice,
-        },
-        pricing: {
-          basePrice: calculatedPrice,
-          discount: 0,
-          tax: 0,
-          totalPrice: calculatedPrice
-        }
-      }))
+      // Update booking data with calculated price and platform fee
+      updatePricingWithPlatformFee(calculatedPrice);
     } else if (bookingType === "Car" && cars) {
       setAvailableServices(cars)
       if (bookingData.service) {
@@ -339,19 +365,7 @@ function BookingContent() {
           // Calculate fare based on days for car rentals
           const days = Math.max(1, Math.ceil((new Date(bookingData.endDate) - new Date(bookingData.startDate)) / (1000 * 60 * 60 * 24)))
           const price = (service.pricePerDay || 0) * days
-          setBookingData(prev => ({
-            ...prev,
-            payment: {
-              ...prev.payment,
-              amount: price,
-            },
-            pricing: {
-              basePrice: price,
-              discount: 0,
-              tax: 0,
-              totalPrice: price
-            }
-          }))
+          updatePricingWithPlatformFee(price);
         }
       }
     } else if (bookingType === "Hotel" && hotels) {
@@ -363,19 +377,7 @@ function BookingContent() {
           // Calculate hotel price based on days and rooms
           const days = Math.max(1, Math.ceil((new Date(bookingData.endDate) - new Date(bookingData.startDate)) / (1000 * 60 * 60 * 24)))
           const price = (service.pricePerNight || service.price || 0) * days * bookingData.rooms
-          setBookingData(prev => ({
-            ...prev,
-            payment: {
-              ...prev.payment,
-              amount: price,
-            },
-            pricing: {
-              basePrice: price,
-              discount: 0,
-              tax: 0,
-              totalPrice: price
-            }
-          }))
+          updatePricingWithPlatformFee(price);
         }
       }
     } else if (bookingType === "Logistics" && logistics) {
@@ -385,19 +387,7 @@ function BookingContent() {
         if (service) {
           setSelectedService(service)
           const price = service.price || service.pricePerDay || service.pricePerNight || service.priceRange?.max || 0
-          setBookingData(prev => ({
-            ...prev,
-            payment: {
-              ...prev.payment,
-              amount: price,
-            },
-            pricing: {
-              basePrice: price,
-              discount: 0,
-              tax: 0,
-              totalPrice: price
-            }
-          }))
+          updatePricingWithPlatformFee(price);
         }
       }
     }
@@ -440,9 +430,13 @@ function BookingContent() {
         basePrice: price,
         discount: 0,
         tax: 0,
+        platformFee: 0,
         totalPrice: price
       }
     }))
+    
+    // Update with platform fee
+    updatePricingWithPlatformFee(price);
     setStep(2)
   }
 
@@ -473,21 +467,6 @@ function BookingContent() {
         return
       }
 
-      // Update user profile with personal information
-     /*  try {
-        const { UserService } = await import('@/components/apiService')
-        await UserService.updateProfile({
-          fullName: bookingData.personalInfo.fullname,
-          email: bookingData.personalInfo.email,
-          mobile: bookingData.personalInfo.mobile,
-          address: bookingData.personalInfo.address
-        })
-        console.log('User profile updated successfully')
-      } catch (profileError) {
-        console.error('Failed to update user profile:', profileError)
-        // Continue with booking even if profile update fails
-      } */
-
       // Prepare booking data according to your schema (without personal info)
       const bookingPayload = {
         serviceType: isInstantBooking ? "Car" : bookingData.serviceType,
@@ -509,7 +488,7 @@ function BookingContent() {
         pickupLocation: bookingData.pickupLocation,
         dropoffLocation: bookingData.dropoffLocation,
 
-        // Payment and pricing
+        // Payment and pricing (now includes platform fee)
         payment: {
           method: bookingData.payment.method,
           amount: bookingData.payment.amount,
@@ -530,8 +509,6 @@ function BookingContent() {
         transportType: isInstantBooking ? selectedTransport : undefined
       }
 
-     // console.log('Submitting booking data:', bookingPayload)
-
       const result = await addBooking(bookingPayload)
       if (result && result._id) {
         setBookingId(result._id)
@@ -544,7 +521,6 @@ function BookingContent() {
         }
       } else {
         console.error('Booking creation failed')
-       // alert('Failed to create booking. Please try again.')
       }
     } catch (error) {
       console.error('Booking submission error:', error)
@@ -756,6 +732,8 @@ function BookingContent() {
                 onChange={(val) =>
                   setBookingData((prev) => ({ ...prev, pickupLocation: val }))
                 }
+                otherLocation={bookingData.dropoffLocation}
+                showDistance={true}
               />
 
               <MapPicker
@@ -764,6 +742,8 @@ function BookingContent() {
                 onChange={(val) =>
                   setBookingData((prev) => ({ ...prev, dropoffLocation: val }))
                 }
+                otherLocation={bookingData.pickupLocation}
+                showDistance={true}
               />
             </>
           )}
@@ -895,7 +875,7 @@ function BookingContent() {
     </motion.div>
   )
 
-  const renderStep3 = () => (
+ const renderStep3 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Booking Summary</h2>
@@ -956,7 +936,7 @@ function BookingContent() {
           </div>
         </div>
 
-        {/* Booking Summary */}
+        {/* Updated Booking Summary with Platform Fee */}
         <div className="bg-gradient-to-br from-orange-50 to-blue-50 rounded-3xl p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Booking Summary</h3>
           <div className="space-y-3">
@@ -986,13 +966,49 @@ function BookingContent() {
                 <span className="font-semibold">{bookingData.rooms}</span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span className="text-gray-600">Payment Method:</span>
-              <span className="font-semibold capitalize">{bookingData.payment.method.replace("_", " ")}</span>
+            
+            {/* Price Breakdown */}
+            <div className="border-t pt-4 mt-4 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Base Price:</span>
+                <span className="font-semibold">₹{bookingData.pricing.basePrice}</span>
+              </div>
+              
+              {bookingData.pricing.discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount:</span>
+                  <span>-₹{bookingData.pricing.discount}</span>
+                </div>
+              )}
+              
+              {bookingData.pricing.tax > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tax:</span>
+                  <span>₹{bookingData.pricing.tax}</span>
+                </div>
+              )}
+              
+              {/* Platform Fee Line */}
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <FaPercent className="text-gray-500 mr-2 text-sm" />
+                  <span className="text-gray-600">Platform Fee ({platformFee.percentage}%):</span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="font-semibold">₹{bookingData.pricing.platformFee}</span>
+                  <span className="text-xs text-gray-500">Service & convenience</span>
+                </div>
+              </div>
             </div>
-            <div className="border-t pt-3 flex justify-between text-lg font-bold">
+            
+            <div className="border-t pt-4 flex justify-between text-xl font-bold">
               <span>Total Amount:</span>
-              <span className="text-orange-500">₹{bookingData.payment.amount}</span>
+              <span className="text-orange-500">₹{bookingData.pricing.totalPrice}</span>
+            </div>
+            
+            <div className="flex justify-between text-gray-600">
+              <span>Payment Method:</span>
+              <span className="font-semibold capitalize">{bookingData.payment.method.replace("_", " ")}</span>
             </div>
           </div>
         </div>
@@ -1016,11 +1032,10 @@ function BookingContent() {
       </form>
     </motion.div>
   )
-
   const fetchBookingDetails = async (bookingId) => {
     try {
       setIsLoadingBooking(true)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}?populate=service,user`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${safeStorage.get('token')}`,
@@ -1032,6 +1047,18 @@ function BookingContent() {
         setConfirmedBooking(booking)
       } else {
         console.error('Failed to fetch booking details')
+        // Try again without populate
+        const simpleResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${safeStorage.get('token')}`,
+          },
+        })
+        
+        if (simpleResponse.ok) {
+          const simpleBooking = await simpleResponse.json()
+          setConfirmedBooking(simpleBooking)
+        }
       }
     } catch (error) {
       console.error('Error fetching booking details:', error)
@@ -1039,7 +1066,6 @@ function BookingContent() {
       setIsLoadingBooking(false)
     }
   }
-
   const handleRazorpayPayment = async (booking_id) => {
     try {
       setIsProcessingPayment(true)
@@ -1052,7 +1078,7 @@ function BookingContent() {
         return
       }
 
-      // Create Razorpay order
+      // Create Razorpay order - using total price including platform fee
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/create-razorpay-order`, {
         method: 'POST',
         headers: {
@@ -1061,7 +1087,7 @@ function BookingContent() {
         },
         body: JSON.stringify({
           bookingId: booking_id,
-          amount: bookingData.payment.amount , // Convert to paisa
+          amount: bookingData.pricing.totalPrice , // Now includes platform fee
         }),
       })
 
@@ -1079,7 +1105,7 @@ function BookingContent() {
 
       // Razorpay options
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // You'll need to add this to your env
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'Safar Sathi',
@@ -1087,12 +1113,7 @@ function BookingContent() {
         order_id: orderData.orderId,
         handler: async function (response) {
           // Handle successful payment
-        //  console.log('Razorpay success response:', response);
-
-          // Validate that we have the payment_id (required field)
           if (!response.razorpay_payment_id) {
-          //  console.error('Missing required Razorpay payment_id:', response);
-          //  alert('Payment response incomplete. Please contact support.');
             setIsProcessingPayment(false);
             return;
           }
@@ -1113,36 +1134,25 @@ function BookingContent() {
               }),
             });
 
-           // console.log('Verify payment response status:', verifyResponse.status);
-
             if (verifyResponse.ok) {
               const verifyData = await verifyResponse.json();
-            //  console.log('Payment verification successful:', verifyData);
               setIsPaymentCompleted(true);
               setStep(5); // Go to confirmation
             } else {
               const errorData = await verifyResponse.json();
-            //  console.error('Payment verification failed:', errorData);
-
-              // Check for authentication errors in verification
               if (verifyResponse.status === 401) {
-            //    alert('Your session has expired. Please sign in again.');
+                alert('Your session has expired. Please sign in again.');
                 window.location.href = '/auth/signin';
                 return;
               }
-
-             // alert(`Payment verification failed: ${errorData.error || 'Please contact support.'}`);
             }
           } catch (error) {
             console.error('Payment verification error:', error);
-
-            // Check for authentication errors in verification
             if (error.status === 401 || error.message?.includes('401') || error.message?.includes('unauthorized')) {
               alert('Your session has expired. Please sign in again.');
               window.location.href = '/auth/signin';
               return;
             }
-
             alert('Payment verification failed. Please contact support.');
           } finally {
             setIsProcessingPayment(false);
@@ -1181,7 +1191,6 @@ function BookingContent() {
       setIsProcessingPayment(false)
     }
   }
-
   const renderStep4 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
@@ -1348,7 +1357,6 @@ function BookingContent() {
       </div>
     </motion.div>
   )
-
   const renderStep5 = () => (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -1374,6 +1382,181 @@ function BookingContent() {
         )}
       </div>
 
+      {/* Booking Details Card */}
+      <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-3xl p-6 max-w-2xl mx-auto border border-green-200">
+        <h3 className="font-bold text-gray-800 mb-4 text-xl">Booking Details</h3>
+        
+        {isLoadingBooking ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading booking details...</p>
+          </div>
+        ) : confirmedBooking ? (
+          <div className="space-y-4 text-left">
+            {/* Booking ID */}
+            <div className="flex justify-between items-center bg-white p-4 rounded-2xl">
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-blue-600 font-bold">#</span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Booking ID</p>
+                  <p className="font-bold text-gray-800">{confirmedBooking.uniqueId || confirmedBooking._id}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigator.clipboard.writeText(confirmedBooking.uniqueId || confirmedBooking._id)}
+                className="text-blue-600 text-sm font-semibold hover:text-blue-800"
+              >
+                Copy
+              </button>
+            </div>
+
+            {/* Service Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white p-4 rounded-2xl">
+                <p className="text-sm text-gray-500 mb-1">Service Type</p>
+                <p className="font-bold text-gray-800 capitalize">{confirmedBooking.serviceType}</p>
+              </div>
+              
+              <div className="bg-white p-4 rounded-2xl">
+                <p className="text-sm text-gray-500 mb-1">Status</p>
+                <div className="flex items-center">
+                  <div className={`w-3 h-3 rounded-full mr-2 ${
+                    confirmedBooking.status === 'confirmed' || confirmedBooking.status === 'accepted' ? 'bg-green-500' :
+                    confirmedBooking.status === 'pending' ? 'bg-yellow-500' :
+                    confirmedBooking.status === 'cancelled' ? 'bg-red-500' :
+                    'bg-blue-500'
+                  }`}></div>
+                  <p className="font-bold capitalize">{confirmedBooking.status.replace('_', ' ')}</p>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className="bg-white p-4 rounded-2xl">
+                <p className="text-sm text-gray-500 mb-1">
+                  {confirmedBooking.serviceType === 'Hotel' ? 'Check-in Date' : 'Start Date'}
+                </p>
+                <p className="font-bold text-gray-800">
+                  {new Date(confirmedBooking.startDate).toLocaleDateString('en-IN', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                  })}
+                </p>
+              </div>
+
+              {confirmedBooking.endDate && (
+                <div className="bg-white p-4 rounded-2xl">
+                  <p className="text-sm text-gray-500 mb-1">
+                    {confirmedBooking.serviceType === 'Hotel' ? 'Check-out Date' : 'End Date'}
+                  </p>
+                  <p className="font-bold text-gray-800">
+                    {new Date(confirmedBooking.endDate).toLocaleDateString('en-IN', {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  </p>
+                </div>
+              )}
+
+              {/* Passengers/Rooms */}
+              {confirmedBooking.passengers && (
+                <div className="bg-white p-4 rounded-2xl">
+                  <p className="text-sm text-gray-500 mb-1">Passengers</p>
+                  <p className="font-bold text-gray-800">
+                    {confirmedBooking.passengers.adults} Adult{confirmedBooking.passengers.adults !== 1 ? 's' : ''}
+                    {confirmedBooking.passengers.children > 0 && `, ${confirmedBooking.passengers.children} Child${confirmedBooking.passengers.children !== 1 ? 'ren' : ''}`}
+                    {confirmedBooking.passengers.infants > 0 && `, ${confirmedBooking.passengers.infants} Infant${confirmedBooking.passengers.infants !== 1 ? 's' : ''}`}
+                  </p>
+                </div>
+              )}
+
+              {confirmedBooking.rooms && (
+                <div className="bg-white p-4 rounded-2xl">
+                  <p className="text-sm text-gray-500 mb-1">Rooms</p>
+                  <p className="font-bold text-gray-800">{confirmedBooking.rooms} Room{confirmedBooking.rooms > 1 ? 's' : ''}</p>
+                </div>
+              )}
+
+              {/* Pricing */}
+              <div className="bg-white p-4 rounded-2xl">
+                <p className="text-sm text-gray-500 mb-1">Total Amount</p>
+                <p className="font-bold text-orange-600 text-xl">₹{confirmedBooking.pricing?.totalPrice || confirmedBooking.payment?.amount || 0}</p>
+              </div>
+
+              {/* Payment Status */}
+              <div className="bg-white p-4 rounded-2xl">
+                <p className="text-sm text-gray-500 mb-1">Payment</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-bold capitalize">
+                    {confirmedBooking.payment?.method?.replace('_', ' ') || 'Cash'}
+                  </p>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    confirmedBooking.payment?.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    confirmedBooking.payment?.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {confirmedBooking.payment?.status || 'Pending'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Location Details */}
+            {confirmedBooking.pickupLocation?.address && (
+              <div className="bg-white p-4 rounded-2xl">
+                <p className="text-sm text-gray-500 mb-1">Pickup Location</p>
+                <p className="font-bold text-gray-800">{confirmedBooking.pickupLocation.address}</p>
+              </div>
+            )}
+
+            {confirmedBooking.dropoffLocation?.address && (
+              <div className="bg-white p-4 rounded-2xl">
+                <p className="text-sm text-gray-500 mb-1">Drop-off Location</p>
+                <p className="font-bold text-gray-800">{confirmedBooking.dropoffLocation.address}</p>
+              </div>
+            )}
+
+            {/* Special Requests */}
+            {confirmedBooking.specialRequests && (
+              <div className="bg-white p-4 rounded-2xl">
+                <p className="text-sm text-gray-500 mb-1">Special Requests</p>
+                <p className="text-gray-800">{confirmedBooking.specialRequests}</p>
+              </div>
+            )}
+
+            {/* Created At */}
+            <div className="bg-white p-4 rounded-2xl">
+              <p className="text-sm text-gray-500 mb-1">Booking Created</p>
+              <p className="text-gray-800">
+                {new Date(confirmedBooking.createdAt).toLocaleString('en-IN', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-600">Unable to load booking details.</p>
+            <button
+              onClick={() => fetchBookingDetails(bookingId)}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* What's Next Section */}
       <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-3xl p-6 max-w-md mx-auto">
         <h3 className="font-bold text-gray-800 mb-4">What's Next?</h3>
         <div className="space-y-3 text-left">
@@ -1402,18 +1585,42 @@ function BookingContent() {
         </div>
       </div>
 
+      {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        {/* Track Booking Button - Only for Car bookings */}
         {confirmedBooking?.serviceType === "Car" && bookingId && (
           <button
             onClick={() => {
-              // Navigate to active booking page for Car services
               window.location.href = `/active-booking/${bookingId}`;
             }}
-            className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300"
+            className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-semibold hover:bg-orange-600 transition-colors duration-300 flex items-center justify-center"
           >
-            Check Booking Status
+            <FaCar className="mr-2" />
+            Track Booking
           </button>
         )}
+
+        {/* View All Bookings */}
+        <button
+          onClick={() => {
+            window.location.href = '/my-bookings';
+          }}
+          className="px-6 py-3 bg-blue-500 text-white rounded-2xl font-semibold hover:bg-blue-600 transition-colors duration-300"
+        >
+          View All Bookings
+        </button>
+
+        {/* Home Button */}
+        <button
+          onClick={() => {
+            window.location.href = '/';
+          }}
+          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-50 transition-colors duration-300"
+        >
+          Go to Home
+        </button>
+
+        {/* Support Button */}
         <a
           href={`tel:+91${brand.mobile}`}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-50 transition-colors duration-300"
@@ -1421,9 +1628,93 @@ function BookingContent() {
           Call Support
         </a>
       </div>
+
+      {/* Download/Share Options */}
+   {/*    <div className="flex flex-wrap gap-3 justify-center mt-6">
+        <button
+          onClick={() => {
+            // Generate and download booking summary as PDF
+            const bookingSummary = `
+Booking Summary
+===============
+Booking ID: ${confirmedBooking?.uniqueId || confirmedBooking?._id || 'N/A'}
+Service Type: ${confirmedBooking?.serviceType || 'N/A'}
+Status: ${confirmedBooking?.status || 'N/A'}
+Start Date: ${confirmedBooking?.startDate ? new Date(confirmedBooking.startDate).toLocaleDateString() : 'N/A'}
+Total Amount: ₹${confirmedBooking?.pricing?.totalPrice || confirmedBooking?.payment?.amount || 0}
+Payment Method: ${confirmedBooking?.payment?.method || 'Cash'}
+Payment Status: ${confirmedBooking?.payment?.status || 'Pending'}
+${confirmedBooking?.pickupLocation?.address ? `Pickup: ${confirmedBooking.pickupLocation.address}` : ''}
+${confirmedBooking?.dropoffLocation?.address ? `Drop-off: ${confirmedBooking.dropoffLocation.address}` : ''}
+            `.trim();
+            
+            const blob = new Blob([bookingSummary], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `booking-${confirmedBooking?.uniqueId || confirmedBooking?._id || 'summary'}.txt`;
+            a.click();
+          }}
+          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 text-sm"
+          disabled={!confirmedBooking}
+        >
+          Download Summary
+        </button>
+
+        <button
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({
+                title: 'Booking Confirmation - Safar Sathi',
+                text: `My ${confirmedBooking?.serviceType || 'booking'} has been confirmed. Booking ID: ${confirmedBooking?.uniqueId || confirmedBooking?._id}`,
+                url: window.location.href,
+              });
+            }
+          }}
+          className="px-4 py-2 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 text-sm"
+          disabled={!confirmedBooking}
+        >
+          Share Booking
+        </button>
+
+        <button
+          onClick={() => {
+            if (confirmedBooking) {
+              window.print();
+            }
+          }}
+          className="px-4 py-2 bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 text-sm"
+          disabled={!confirmedBooking}
+        >
+          Print Details
+        </button>
+      </div> */}
+
+      {/* Quick Actions for Instant Booking */}
+      {isInstantBooking && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 max-w-md mx-auto">
+          <h4 className="font-bold text-yellow-800 mb-2">Quick Actions</h4>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <a
+              href={`https://wa.me/${brand.mobile}?text=Hi, I need help with my instant booking. Booking ID: ${confirmedBooking?.uniqueId || bookingId}`}
+              className="px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 text-sm text-center"
+            >
+              WhatsApp Support
+            </a>
+            <button
+              onClick={() => {
+                // Simulate driver calling
+                alert('Calling driver...');
+              }}
+              className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 text-sm"
+            >
+              Call Driver
+            </button>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
       <SEOHead
