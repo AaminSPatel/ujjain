@@ -353,7 +353,7 @@ const markAllAsRead = async (userId) => {
 
 
 
-  const serviceData = {
+  /* const serviceData = {
     "temple-tour-packages": {
       title: "Temple Tour Packages",
       subtitle: "Complete Spiritual Journey Experience",
@@ -486,7 +486,7 @@ const markAllAsRead = async (userId) => {
         },
       ],
     },
-  };
+  }; */
   // Fetch all data on mount
   const fetchPlaces = async () => {
     try {
@@ -1229,7 +1229,6 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     installPrompt,
     installApp,
     hotels,
-    serviceData,
     hotels,
     verifiedHotels,
     logistics,

@@ -1,3 +1,4 @@
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
   devIndicators: {
@@ -16,11 +17,6 @@ const nextConfig = {
     ],
   },
   
-  // Disable development features that might access localStorage
-  /* compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  }, */
-  
   // Add headers for sitemap.xml
   async headers() {
     return [
@@ -31,11 +27,6 @@ const nextConfig = {
             key: 'Content-Type',
             value: 'application/xml',
           },
-        ],
-      },
-      {
-        source: '/sitemap.xml',
-        headers: [
           {
             key: 'Cache-Control',
             value: 'public, max-age=86400, stale-while-revalidate=86400',
@@ -43,6 +34,16 @@ const nextConfig = {
         ],
       },
     ];
+  },
+
+  // ADD THIS TURBOPACK CONFIGURATION
+  turbopack: {
+    // Disable Turbopack for production builds when PWA is enabled
+    enabled: process.env.NODE_ENV !== 'production',
+    
+    // Or you can try with these options if you want Turbopack in dev:
+    // resolveAlias: {},
+    // resolveExtensions: [],
   },
 };
 
@@ -52,7 +53,7 @@ if (process.env.NODE_ENV === 'production') {
     dest: "public",
     register: true,
     skipWaiting: true,
-    disable: process.env.NODE_ENV === 'development', // Disable in dev if needed
+    disable: process.env.NODE_ENV === 'development',
   });
   module.exports = withPWA(nextConfig);
 } else {
