@@ -143,7 +143,7 @@ export default function MobileHome() {
   const [locationPermission, setLocationPermission] = useState(false)
   const [selectedTransport, setSelectedTransport] = useState(transportOptions[0])
 
-  const { cars, brand, places,verifiedHotels,hotels, reviews, getAverageRating } = useUjjain()
+  const { cars, brand, places,verifiedHotels:hotels, reviews, getAverageRating } = useUjjain()
  // console.log('home hotels verified', verifiedHotels.length,'all hotels :', hotels);
   
 // Filter vehicles for instant booking based on your schema

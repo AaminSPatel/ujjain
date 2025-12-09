@@ -234,6 +234,40 @@ const signIn = async (credentials) => {
     }
   };
 
+  // Verify email OTP function
+  const verifyEmailOTP = async (email, otp) => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await UserService.verifyEmailOTP(email, otp);
+      console.log('response at context',response);
+      
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Email verification failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Resend email OTP function
+  const resendEmailOTP = async (email) => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await UserService.resendEmailOTP(email);
+      return response;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to resend email OTP';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
  //USERS ADMIN
   const fetchUsers = async () => {
     try {
@@ -1233,6 +1267,8 @@ addUserNotification,markAllAsRead,markAsRead,getUserNotifications,
     updateProfile,
     deleteAccount,
     changePassword,
+    verifyEmailOTP,
+    resendEmailOTP,
     clearError,
   };
 

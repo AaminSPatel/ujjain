@@ -541,6 +541,12 @@ export const UserService = {
     return response.data;
   },
 
+  // Verify email OTP for email verification
+  verifyEmailOTP: async (email, otp) => (await api.post('/users/verify-otp', { email, otp })).data,
+
+  // Resend email OTP for email verification
+  resendEmailOTP: async (email) => (await api.post('/users/resend-otp', { email })).data,
+
   logout: async () => {
     const response = await api.post('/users/logout');
     return response.data;
