@@ -163,7 +163,7 @@ export default function CarDetailsPage() {
                   ₹{car?.pricePerKm} / km
                 </div>
                 {car?.pricePerDay ? (
-                  <div className="text-sm text-gray-500 line-through">
+                  <div className="text-sm text-gray-500">
                     ₹{car.pricePerDay} / day
                   </div>
                 ) : null}

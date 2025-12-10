@@ -173,7 +173,10 @@ export const BookingService = {
         isCancelled: false,
         bookingType: bookingData.bookingType,
         isInstantBooking: bookingData.isInstantBooking,
-        transportType: bookingData.transportType
+        transportType: bookingData.transportType,
+        distance: bookingData.distance,
+        duration: bookingData.duration,
+        carBookingType: bookingData.carBookingType
       };
 
    //   console.log('📦 Sending transformed data to backend:', transformedData);

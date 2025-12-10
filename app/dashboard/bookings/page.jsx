@@ -416,7 +416,7 @@ export default function BookingsPage() {
                         onClick={() => handleViewBooking(booking._id)}
                       >
                         <TableCell className="font-medium">
-                          {booking._id?.slice(-8)}
+                          {booking.uniqueId ||booking._id?.slice(-8)}
                         </TableCell>
                         <TableCell>
                           <div>
@@ -527,7 +527,7 @@ export default function BookingsPage() {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="font-semibold text-sm text-muted-foreground">
-                            Booking ID: {booking._id?.slice(-8)}
+                            Booking ID: {booking.uniqueId ||booking._id?.slice(-8)}
                           </h3>
                           <h2 className="font-bold text-lg">
                             {getServiceName(booking)}
@@ -670,7 +670,7 @@ export default function BookingsPage() {
                         </Badge>
                       </CardTitle>
                       <CardDescription>
-                        Booking ID: {selectedBooking._id}
+                        Booking ID: {selectedBooking.uniqueId ||selectedBooking._id?.slice(-8)}
                       </CardDescription>
                     </div>
                     <Button

@@ -8,31 +8,90 @@ import { useUjjain } from "@/components/context/UjjainContext"
 import Head from "next/head"
 
 export default function Hotels() {
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedLocation, setSelectedLocation] = useState("all")
+  const [searchTerm, setSearchTerm] = useState("")
   const [favorites, setFavorites] = useState([])
   const [allHotels, setAllHotels] = useState([])
-const {hotels,getAverageRating ,brand} = useUjjain()
-useEffect(()=>{
-  if(hotels.length >0){
-    setAllHotels(hotels)
-  }
-},[hotels])
-  const categories = [
+  const { hotels, getAverageRating, brand } = useUjjain()
+
+  useEffect(() => {
+    if (hotels.length > 0) {
+      setAllHotels(hotels)
+    }
+  }, [hotels])
+
+  const locations = [
     { id: "all", name: "All Hotels" },
-    { id: "budget", name: "Budget" },
-    { id: "mid-range", name: "Mid-Range" },
-    { id: "luxury", name: "Luxury" },
-    { id: "heritage", name: "Heritage" },
+    { id: "Indore", name: "Indore" },
+    { id: "Ujjain", name: "Ujjain" },
+    { id: "Dewas", name: "Dewas" },
+    { id: "Bhopal", name: "Bhopal" },
   ]
 
+  // Debug function to check hotel locations
+  useEffect(() => {
+    if (allHotels.length > 0) {
+      console.log("Available hotel locations:", allHotels.map(h => h.location))
+      console.log("Unique locations:", [...new Set(allHotels.map(h => h.location))])
+    }
+  }, [allHotels])
 
- 
-  const filteredHotels =
-    selectedCategory === "all" ? allHotels : allHotels.filter((hotel) => allHotels.category === selectedCategory)
+  const filteredHotels = allHotels.filter((hotel) => {
+    // Handle location filter
+    let matchesLocation = true
+    if (selectedLocation !== "all") {
+      // Try multiple comparison methods
+      matchesLocation = 
+        hotel.location?.toLowerCase().includes(selectedLocation.toLowerCase()) ||
+        selectedLocation.toLowerCase().includes(hotel.location?.toLowerCase() || "") ||
+        hotel.location?.toLowerCase() === selectedLocation.toLowerCase()
+    }
+
+    // Handle search filter
+    const matchesSearch = searchTerm === "" ||
+      hotel.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hotel.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hotel.description?.toLowerCase().includes(searchTerm.toLowerCase())
+
+    return matchesLocation && matchesSearch
+  })
+
+  // Alternative location filter function
+  const getFilteredHotels = () => {
+    if (selectedLocation === "all") {
+      return allHotels.filter(hotel =>
+        searchTerm === "" ||
+        hotel.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hotel.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hotel.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    return allHotels.filter(hotel => {
+      const hotelLocation = hotel.location?.toLowerCase() || ""
+      const selectedLoc = selectedLocation.toLowerCase()
+      
+      // More flexible location matching
+      const locationMatches = 
+        hotelLocation === selectedLoc ||
+        hotelLocation.includes(selectedLoc) ||
+        selectedLoc.includes(hotelLocation)
+
+      const searchMatches = searchTerm === "" ||
+        hotel.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hotelLocation.includes(searchTerm.toLowerCase()) ||
+        hotel.description?.toLowerCase().includes(searchTerm.toLowerCase())
+
+      return locationMatches && searchMatches
+    })
+  }
 
   const toggleFavorite = (hotelId) => {
     setFavorites((prev) => (prev.includes(hotelId) ? prev.filter((id) => id !== hotelId) : [...prev, hotelId]))
   }
+
+  // Use the alternative function
+  const displayHotels = getFilteredHotels()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
@@ -323,47 +382,56 @@ useEffect(()=>{
         </div>
       </section>
 
-      {/* Features Banner */}
-      <section className="py-8 bg-white shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-6 text-center">
-            <div className="flex items-center justify-center space-x-3">
-              <FaMapMarkerAlt className="text-2xl text-green-500" />
-              <span className="font-semibold">Near Temples</span>
-            </div>
-            <div className="flex items-center justify-center space-x-3">
-              <FaShieldAlt className="text-2xl text-blue-500" />
-              <span className="font-semibold">Verified Properties</span>
-            </div>
-            <div className="flex items-center justify-center space-x-3">
-              <FaPhone className="text-2xl text-orange-500" />
-              <span className="font-semibold">24/7 Support</span>
-            </div>
-            <div className="flex items-center justify-center space-x-3">
-              <FaStar className="text-2xl text-yellow-500" />
-              <span className="font-semibold">Best Rates</span>
-            </div>
-          </div>
-        </div>
-      </section>
+   
 
-      {/* Category Filter */}
+      {/* Search and Location Filter */}
       <section className="py-8 bg-gray-50">
         <div className="container mx-auto px-4">
+          {/* Search Input */}
+          <div className="mb-6 flex justify-center">
+            <input
+              type="text"
+              placeholder="Search hotels by name, location, or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full max-w-md px-4 py-3 rounded-2xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Location Tabs */}
           <div className="flex flex-wrap justify-center gap-4">
-            {categories.map((category) => (
+            {locations.map((location) => (
               <button
-                key={category.name}
-                onClick={() => setSelectedCategory(category.id)}
+                key={location.id}
+                onClick={() => {
+                  console.log("Selected location:", location.id)
+                  setSelectedLocation(location.id)
+                }}
                 className={`px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ${
-                  selectedCategory === category.id
+                  selectedLocation === location.id
                     ? "bg-green-500 text-white shadow-lg"
                     : "bg-white text-gray-700 hover:bg-green-100"
                 }`}
               >
-                {category.name}
+                {location.name}
+               {/* Show count for each location */}
+               {/*   {location.id !== "all" && (
+                  <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                    {allHotels.filter(h => 
+                      h.location?.toLowerCase().includes(location.id.toLowerCase()) ||
+                      location.id.toLowerCase().includes(h.location?.toLowerCase() || "")
+                    ).length}
+                  </span>
+                )} */}
               </button>
             ))}
+          </div>
+          
+          {/* Debug info (remove in production) */}
+          <div className="mt-4 text-center text-sm text-gray-500">
+            Showing {displayHotels.length} of {allHotels.length} hotels
+            {selectedLocation !== "all" && ` in ${selectedLocation}`}
+            {searchTerm && ` matching "${searchTerm}"`}
           </div>
         </div>
       </section>
@@ -371,13 +439,30 @@ useEffect(()=>{
       {/* Hotels Grid */}
       <section className="py-16">
         <div className="container mx-auto px-4">
+           {displayHotels.length === 0 ? (
+            <div className="text-center py-12">
+              <h3 className="text-2xl font-bold text-gray-700 mb-4">No hotels found</h3>
+              <p className="text-gray-600 mb-6">
+                {searchTerm ? `No hotels match "${searchTerm}"` : `No hotels available in ${selectedLocation}`}
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedLocation("all")
+                  setSearchTerm("")
+                }}
+                className="bg-green-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-600 transition-colors"
+              >
+                View All Hotels
+              </button>
+            </div>
+          ) : (
           <div className="grid lg:grid-cols-2 gap-8">
             {filteredHotels.map((hotel) => (
               <div key={hotel._id} className="card overflow-hidden">
                 <div className="md:flex">
                   <div className="md:w-2/5 relative">
                     <Image
-                      src={hotel?.images[0]?.url || "/placeholder.svg"}
+                      src={hotel?.images[0]?.url || "/logo.png"}
                       alt={hotel.name}
                       width={400}
                       height={300}
@@ -498,10 +583,32 @@ useEffect(()=>{
                 </div>
               </div>
             ))}
+          </div>)}
+        </div>
+      </section>
+  {/* Features Banner */}
+      <section className="py-8 bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-6 text-center">
+            <div className="flex items-center justify-center space-x-3">
+              <FaMapMarkerAlt className="text-2xl text-green-500" />
+              <span className="font-semibold">Near Temples</span>
+            </div>
+            <div className="flex items-center justify-center space-x-3">
+              <FaShieldAlt className="text-2xl text-blue-500" />
+              <span className="font-semibold">Verified Properties</span>
+            </div>
+            <div className="flex items-center justify-center space-x-3">
+              <FaPhone className="text-2xl text-orange-500" />
+              <span className="font-semibold">24/7 Support</span>
+            </div>
+            <div className="flex items-center justify-center space-x-3">
+              <FaStar className="text-2xl text-yellow-500" />
+              <span className="font-semibold">Best Rates</span>
+            </div>
           </div>
         </div>
       </section>
-
       {/* Why Choose Our Hotels */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">

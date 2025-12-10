@@ -87,6 +87,8 @@ function BookingContent() {
   const [isPaymentCompleted, setIsPaymentCompleted] = useState(false)
   const [confirmedBooking, setConfirmedBooking] = useState(null)
   const [isLoadingBooking, setIsLoadingBooking] = useState(false)
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
+  const [isTermsAgreed, setIsTermsAgreed] = useState(false)
   const [pickup, setPickup] = useState("")
   const [destination, setDestination] = useState("")
   const [isInstantBooking, setIsInstantBooking] = useState(false)
@@ -111,6 +113,9 @@ function BookingContent() {
     return {
       serviceType: "Car",
       service: "",
+      carBookingType: "per_day", // Default to per_day
+      distance: 0, // For per_km bookings
+      duration: 1, // For per_day bookings (in days)
       startDate: today,
       endDate: tomorrow,
       dates: [new Date(today), new Date(tomorrow)],
@@ -136,7 +141,7 @@ function BookingContent() {
       },
       specialRequests: "",
       payment: {
-        method: "cash_on_drop",
+        method: "cash",
         amount: 0,
         status: "pending"
       },
@@ -271,6 +276,10 @@ function BookingContent() {
     if (bookingTypeParam === "instant") {
       setIsInstantBooking(true)
       setStep(2) // Skip vehicle selection for instant booking
+      setBookingData(prev => ({
+        ...prev,
+        carBookingType: "per_km" // Set default for instant car bookings
+      }))
     }
   }, [searchParams])
 
@@ -328,6 +337,25 @@ function BookingContent() {
     }
   }, [searchParams, isInstantBooking])
 
+  // Auto-calculate distance when locations change for per_km car bookings
+  useEffect(() => {
+    if (bookingType === "Car" &&
+        bookingData.carBookingType === "per_km" &&
+        bookingData.pickupLocation.coordinates.lat !== 0 &&
+        bookingData.pickupLocation.coordinates.lng !== 0 &&
+        bookingData.dropoffLocation.coordinates.lat !== 0 &&
+        bookingData.dropoffLocation.coordinates.lng !== 0) {
+      const calculatedDistance = haversineDistance(
+        bookingData.pickupLocation.coordinates,
+        bookingData.dropoffLocation.coordinates
+      )
+      setBookingData(prev => ({
+        ...prev,
+        distance: Math.round(calculatedDistance * 100) / 100 // Round to 2 decimal places
+      }))
+    }
+  }, [bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates, bookingType, bookingData.carBookingType])
+
   useEffect(() => {
     if (isInstantBooking) {
       // For instant booking, we don't need to load specific vehicles
@@ -362,9 +390,19 @@ function BookingContent() {
         const service = cars.find(car => car._id === bookingData.service)
         if (service) {
           setSelectedService(service)
-          // Calculate fare based on days for car rentals
-          const days = Math.max(1, Math.ceil((new Date(bookingData.endDate) - new Date(bookingData.startDate)) / (1000 * 60 * 60 * 24)))
-          const price = (service.pricePerDay || 0) * days
+          // Calculate fare based on booking type
+          let price = 0
+          if (bookingData.carBookingType === "per_km") {
+            price = (service.pricePerKm || 12) * (bookingData.distance || 0)
+            // Round up the price if distance has decimal values
+            if (bookingData.distance % 1 !== 0) {
+              price = Math.ceil(price)
+            }
+          } else {
+            // per_day
+            const days = Math.max(1, bookingData.duration || 1)
+            price = (service.pricePerDay || 0) * days
+          }
           updatePricingWithPlatformFee(price);
         }
       }
@@ -391,7 +429,7 @@ function BookingContent() {
         }
       }
     }
-  }, [bookingType, cars, hotels, logistics, bookingData.service, isInstantBooking, selectedTransport, selectedVehicleId, bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates, bookingData.startDate, bookingData.endDate, bookingData.rooms])
+  }, [bookingType, cars, hotels, logistics, bookingData.service, isInstantBooking, selectedTransport, selectedVehicleId, bookingData.pickupLocation.coordinates, bookingData.dropoffLocation.coordinates, bookingData.startDate, bookingData.endDate, bookingData.rooms, bookingData.carBookingType, bookingData.distance, bookingData.duration])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -440,107 +478,117 @@ function BookingContent() {
     setStep(2)
   }
 
-  const handleTransportSelect = (transportId) => {
-    setSelectedTransport(transportId)
-    const transport = transportOptions.find(t => t.id === transportId)
-    if (transport) {
-      setSelectedService({
-        _id: `instant-${transportId}`,
-        name: transport.name,
-        type: "instant",
-        capacity: transport.capacity,
-        price: bookingData.payment.amount
-      })
-    }
-  }
+ 
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  setIsProcessingPayment(true)
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsProcessingPayment(true)
-
-    try {
-      // Check if user is logged in
-      if (!user || !user._id) {
-        alert('Please sign in to continue with your booking.')
-        window.location.href = '/auth/signin'
-        setIsProcessingPayment(false)
-        return
-      }
-
-      // Prepare booking data according to your schema (without personal info)
-      const bookingPayload = {
-        serviceType: isInstantBooking ? "Car" : bookingData.serviceType,
-        service: isInstantBooking ? selectedVehicleId : bookingData.service,
-        startDate: new Date(bookingData.startDate),
-        endDate: bookingData.endDate ? new Date(bookingData.endDate) : undefined,
-        dates: bookingData.endDate
-          ? [new Date(bookingData.startDate), new Date(bookingData.endDate)]
-          : [new Date(bookingData.startDate)],
-
-        // Passenger details
-        passengers: bookingData.passengers,
-
-        // Hotel specific
-        rooms: bookingType === "Hotel" ? bookingData.rooms : undefined,
-        room: bookingData.room || undefined,
-
-        // Location details
-        pickupLocation: bookingData.pickupLocation,
-        dropoffLocation: bookingData.dropoffLocation,
-
-        // Payment and pricing (now includes platform fee)
-        payment: {
-          method: bookingData.payment.method,
-          amount: bookingData.payment.amount,
-          status: "pending"
-        },
-        pricing: bookingData.pricing,
-
-        // Additional fields
-        specialRequests: bookingData.specialRequests,
-        status: "pending",
-        isPaid: false,
-        isCancelled: false,
-        user: user._id,
-
-        // Instant booking flag
-        isInstantBooking: isInstantBooking,
-        bookingType: isInstantBooking ? 'instant' : 'normal',
-        transportType: isInstantBooking ? selectedTransport : undefined
-      }
-
-      const result = await addBooking(bookingPayload)
-      if (result && result._id) {
-        setBookingId(result._id)
-        // If online payment, handle payment, else go to confirmation
-        if (bookingData.payment.method === "razorpay") {
-          await handleRazorpayPayment(result._id)
-        } else {
-          setStep(5) // Go to confirmation
-          await fetchBookingDetails(result._id)
-        }
-      } else {
-        console.error('Booking creation failed')
-      }
-    } catch (error) {
-      console.error('Booking submission error:', error)
-
-      // Check for authentication errors
-      if (error.status === 401 || error.message?.includes('401') || error.message?.includes('unauthorized')) {
-        alert('Your session has expired. Please sign in again.')
-        // Redirect to signin
-        window.location.href = '/auth/signin'
-        return
-      }
-
-      // Show specific error message if available
-      const errorMessage = error.message || error.error || 'An error occurred while creating your booking. Please try again.'
-      alert(errorMessage)
-    } finally {
+  try {
+    // Check if user is logged in
+    if (!user || !user._id) {
+      alert('Please sign in to continue with your booking.')
+      window.location.href = '/auth/signin'
       setIsProcessingPayment(false)
+      return
     }
-  }
 
+    // Create a fresh payload object
+    const payload = {
+      serviceType: isInstantBooking ? "Car" : bookingData.serviceType,
+      service: isInstantBooking ? selectedVehicleId : bookingData.service,
+      startDate: new Date(bookingData.startDate),
+      endDate: bookingData.endDate ? new Date(bookingData.endDate) : undefined,
+      dates: bookingData.endDate
+        ? [new Date(bookingData.startDate), new Date(bookingData.endDate)]
+        : [new Date(bookingData.startDate)],
+      passengers: bookingData.passengers,
+      pickupLocation: bookingData.pickupLocation,
+      dropoffLocation: bookingData.dropoffLocation,
+      specialRequests: bookingData.specialRequests,
+      payment: {
+        method: bookingData.payment.method,
+        amount: bookingData.payment.amount,
+        status: "pending"
+      },
+      pricing: bookingData.pricing,
+      status: "pending",
+      isPaid: false,
+      isCancelled: false,
+      user: user._id,
+      isInstantBooking: isInstantBooking,
+      bookingType: isInstantBooking ? 'instant' : 'normal'
+    };
+
+    // Add hotel-specific fields
+    if (bookingData.serviceType === "Hotel") {
+      payload.rooms = bookingData.rooms;
+      if (bookingData.room) {
+        payload.room = bookingData.room;
+      }
+    }
+
+    // Add car-specific fields - CRITICAL: Always add for Car serviceType
+    if (bookingData.serviceType === "Car") {
+      // Make sure carBookingType has a value
+      payload.carBookingType = bookingData.carBookingType || "per_day";
+      
+      // Add distance or duration based on booking type
+      if (payload.carBookingType === "per_km") {
+        payload.distance = bookingData.distance || 0;
+      } else if (payload.carBookingType === "per_day") {
+        payload.duration = bookingData.duration || 1;
+      }
+    }
+
+    // Add transportType for instant bookings
+    if (isInstantBooking) {
+      payload.transportType = selectedTransport;
+    }
+
+    // Debug logs
+ /*    console.log('Service Type:', bookingData.serviceType);
+    console.log('Car Booking Type:', bookingData.carBookingType);
+    console.log('Final payload before sending:', JSON.stringify(payload, null, 2));
+    console.log('Is carBookingType in payload?', 'carBookingType' in payload);
+    console.log('Payload keys:', Object.keys(payload));
+ */
+    // Call the addBooking function
+    const result = await addBooking(payload);
+    
+    if (result && result._id) {
+      setBookingId(result._id)
+      // If online payment, handle payment, else go to confirmation
+      if (bookingData.payment.method === "razorpay") {
+        await handleRazorpayPayment(result._id)
+      } else {
+        setStep(5) // Go to confirmation
+        await fetchBookingDetails(result._id)
+      }
+    } else {
+      console.error('Booking creation failed')
+    }
+  } catch (error) {
+    console.error('Booking submission error:', error)
+    
+    // More detailed error logging
+    console.error('Full error object:', error);
+   // console.error('Error response data:', error.response?.data);
+    console.error('Error status:', error.status);
+
+    // Check for authentication errors
+    if (error.status === 401 || error.message?.includes('401') || error.message?.includes('unauthorized')) {
+      alert('Your session has expired. Please sign in again.')
+      window.location.href = '/auth/signin'
+      return
+    }
+
+    // Show specific error message if available
+    const errorMessage = error.message || error.error || 'An error occurred while creating your booking. Please try again.'
+    alert(errorMessage,'uiu')
+  } finally {
+    setIsProcessingPayment(false)
+  }
+}
   const renderStep1 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
       <div className="text-center mb-8">
@@ -695,6 +743,48 @@ function BookingContent() {
         <div className="space-y-4">
           {!isInstantBooking && (
             <>
+            {bookingType === "Car" && (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Booking Type *
+    </label>
+    <div className="grid grid-cols-2 gap-2">
+      <label className="flex items-center p-3 border border-gray-300 rounded-xl cursor-pointer hover:border-orange-300 transition-colors">
+        <input
+          type="radio"
+          name="carBookingType"
+          value="per_day"
+          checked={bookingData.carBookingType === "per_day"}
+          onChange={(e) => setBookingData(prev => ({
+            ...prev,
+            carBookingType: e.target.value,
+            distance: 0,
+            duration: prev.duration || 1
+          }))}
+          className="text-orange-500 focus:ring-orange-500"
+        />
+        <span className="ml-2 text-sm font-medium">Per Day</span>
+      </label>
+      <label className="flex items-center p-3 border border-gray-300 rounded-xl cursor-pointer hover:border-orange-300 transition-colors">
+        <input
+          type="radio"
+          name="carBookingType"
+          value="per_km"
+          checked={bookingData.carBookingType === "per_km"}
+          onChange={(e) => setBookingData(prev => ({
+            ...prev,
+            carBookingType: e.target.value,
+            distance: prev.distance || 0,
+            duration: 1
+          }))}
+          className="text-orange-500 focus:ring-orange-500"
+        />
+        <span className="ml-2 text-sm font-medium">Per KM</span>
+      </label>
+    </div>
+  </div>
+)}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {bookingType === "Car" ? "Pickup Date" : bookingType === "Hotel" ? "Check-in Date" : "Service Date"} *
@@ -721,6 +811,41 @@ function BookingContent() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
+
+              {bookingType === "Car" && bookingData.carBookingType === "per_km" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Estimated Distance (KM) *
+                  </label>
+                  <input
+                    type="number"
+                    name="distance"
+                    value={bookingData.distance}
+                    onChange={handleInputChange}
+                    min="1"
+                    step="0.1"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Enter distance in KM"
+                  />
+                </div>
+              )}
+
+              {bookingType === "Car" && bookingData.carBookingType === "per_day" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Days *
+                  </label>
+                  <input
+                    type="number"
+                    name="duration"
+                    value={bookingData.duration}
+                    onChange={handleInputChange}
+                    min="1"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Enter number of days"
+                  />
+                </div>
+              )}
             </>
           )}
 
@@ -936,6 +1061,32 @@ function BookingContent() {
           </div>
         </div>
 
+        {/* Terms and Conditions */}
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 mb-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Terms & Conditions</h3>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <input
+                type="checkbox"
+                id="terms-agree"
+                checked={isTermsAgreed}
+                onChange={(e) => setIsTermsAgreed(e.target.checked)}
+                className="mt-1 h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded"
+              />
+              <label htmlFor="terms-agree" className="text-sm text-gray-700">
+                I agree to the{' '}
+                <button
+                  type="button"
+                  onClick={() => setIsTermsModalOpen(true)}
+                  className="text-orange-500 hover:text-orange-600 underline font-medium"
+                >
+                  Terms and Conditions
+                </button>
+              </label>
+            </div>
+          </div>
+        </div>
+
         {/* Updated Booking Summary with Platform Fee */}
         <div className="bg-gradient-to-br from-orange-50 to-blue-50 rounded-3xl p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Booking Summary</h3>
@@ -1030,6 +1181,124 @@ function BookingContent() {
           </button>
         </div>
       </form>
+
+      {/* Terms and Conditions Modal */}
+      {isTermsModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800">Terms & Conditions</h2>
+                <button
+                  onClick={() => setIsTermsModalOpen(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="space-y-4 text-gray-700">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">1. Toll Tax</h3>
+                  <p className="text-sm leading-relaxed">
+                    Toll tax charges will be applicable on passengers and will be collected separately at toll booths during the journey. The toll charges vary depending on the route and vehicle type.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">2. Cancellation Policy</h3>
+                  <p className="text-sm leading-relaxed mb-2">
+                    <strong>Cancellation after driver arrives:</strong> If you cancel the booking after the driver has arrived at your pickup location, a deduction of 50% of the total fare will be applied as cancellation charges.
+                  </p>
+                  <ul className="text-sm list-disc list-inside space-y-1 ml-4">
+                    <li>Free cancellation up to 2 hours before pickup time</li>
+                    <li>25% deduction if cancelled within 2 hours of pickup</li>
+                    <li>50% deduction if cancelled after driver arrival</li>
+                    <li>No refund for no-show or if passenger is unreachable</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">3. Payment Terms</h3>
+                  <ul className="text-sm list-disc list-inside space-y-1 ml-4">
+                    <li>All payments must be made in full before service commencement</li>
+                    <li>Additional charges (toll, parking, etc.) will be collected separately</li>
+                    <li>Platform fee is non-refundable once service is confirmed</li>
+                    <li>Payment methods accepted: Cash, Online (Razorpay)</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">4. Service Terms</h3>
+                  <ul className="text-sm list-disc list-inside space-y-1 ml-4">
+                    <li>Driver will contact you 30 minutes before pickup</li>
+                    <li>Waiting time at pickup location is limited to 15 minutes</li>
+                    <li>Passengers must provide accurate pickup/drop-off locations</li>
+                    <li>Service is subject to vehicle availability and traffic conditions</li>
+                    <li>Any changes to booking must be communicated 2 hours in advance</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">5. Liability & Safety</h3>
+                  <ul className="text-sm list-disc list-inside space-y-1 ml-4">
+                    <li>Passengers must wear seat belts at all times</li>
+                    <li>Smoking and consumption of alcohol is strictly prohibited</li>
+                    <li>Driver reserves the right to refuse service if passenger is intoxicated</li>
+                    <li>Safar Sathi is not liable for delays due to traffic or unforeseen circumstances</li>
+                    <li>Personal belongings are the responsibility of the passenger</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">6. Refund Policy</h3>
+                  <ul className="text-sm list-disc list-inside space-y-1 ml-4">
+                    <li>Refunds will be processed within 5-7 business days</li>
+                    <li>Refunds will be credited to the original payment method</li>
+                    <li>Platform fee is non-refundable in case of cancellation</li>
+                    <li>Service disruptions due to force majeure will be handled on case-by-case basis</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">7. Contact Information</h3>
+                  <p className="text-sm leading-relaxed">
+                    For any queries or assistance, please contact our support team at +91-{brand.mobile} or email us at support@safarsathi.com
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <p className="text-xs text-gray-500 text-center">
+                  By agreeing to these terms, you acknowledge that you have read, understood, and accept all the conditions mentioned above.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-3xl">
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setIsTermsModalOpen(false)}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-300"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setIsTermsAgreed(true)
+                    setIsTermsModalOpen(false)
+                  }}
+                  className="px-6 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors duration-300"
+                >
+                  I Agree
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
   const fetchBookingDetails = async (bookingId) => {
@@ -1485,7 +1754,7 @@ function BookingContent() {
               {/* Pricing */}
               <div className="bg-white p-4 rounded-2xl">
                 <p className="text-sm text-gray-500 mb-1">Total Amount</p>
-                <p className="font-bold text-orange-600 text-xl">₹{confirmedBooking.pricing?.totalPrice || confirmedBooking.payment?.amount || 0}</p>
+                <p className="font-bold text-orange-600 text-xl">₹{confirmedBooking.payment?.amount || 0}</p>
               </div>
 
               {/* Payment Status */}

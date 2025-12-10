@@ -572,7 +572,7 @@ export default function Cars() {
             <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredCars.map((car, index) => (
                 <motion.div
-                  key={car.id}
+                  key={car._id}
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -686,11 +686,11 @@ export default function Cars() {
                     <div className="flex items-center justify-between mb-6">
                       <div>
                         <div className="flex items-baseline space-x-2">
-                          <span className="text-2xl font-bold text-black">₹{car.pricePerKm} per Km</span>
-                          <span className="text-gray-500">/day</span>
+                          <span className="text-2xl font-bold text-black">₹{car.pricePerKm} </span>
+                          <span className="text-gray-500">per Km</span>
                         </div>
                         {car.pricePerKm && (
-                          <span className="text-sm text-gray-500 line-through">₹{car.pricePerDay} per Day</span>
+                          <span className="text-sm text-gray-500">₹{car.pricePerDay} per Day</span>
                         )}
                       </div>
                       <div className="text-right text-sm">

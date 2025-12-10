@@ -38,7 +38,7 @@ import {
 import Link from "next/link"
 import { useUjjain } from "@/components/context/UjjainContext"
 import  UserUpdateModal  from "@/components/forms/UserUpdateModal"
-import { FaRoute, FaWhatsapp } from "react-icons/fa"
+import { FaFacebook, FaInstagram, FaRoute, FaWhatsapp } from "react-icons/fa"
 
 
 export default function ProfileClient() {
@@ -459,17 +459,17 @@ export default function ProfileClient() {
 
                   <div>
                     <Label className="text-sm font-medium mb-3 block">Share on Social Media</Label>
-                    <div className="flex space-x-3">
-                      <Button onClick={shareToWhatsApp} className="flex-1 bg-green-500 hover:bg-green-600">
-                        <FaWhatsapp className="h-4 w-4 mr-2" />
+                    <div className="flex">
+                      <Button onClick={shareToWhatsApp} className="flex-1 -ml-2 scale-90 bg-green-500 hover:bg-green-600">
+                        <FaWhatsapp className="h-4 w-4 " />
                         WhatsApp
                       </Button>
-                      <Button onClick={shareToFacebook} className="flex-1 bg-blue-600 hover:bg-blue-700">
-                        <Facebook className="h-4 w-4 mr-2" />
+                      <Button onClick={shareToFacebook} className="flex-1 -ml-1 scale-90 bg-blue-600 hover:bg-blue-700">
+                        <FaFacebook className="h-4 w-4" />
                         Facebook
                       </Button>
-                      <Button onClick={shareToInstagram} className="flex-1 bg-pink-500 hover:bg-pink-600">
-                        <Instagram className="h-4 w-4 mr-2" />
+                      <Button onClick={shareToInstagram} className="flex-1 -ml-1 scale-90 bg-pink-500 hover:bg-pink-600">
+                        <FaInstagram className="h-4 w-4" />
                         Instagram
                       </Button>
                     </div>
@@ -508,7 +508,7 @@ export default function ProfileClient() {
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
+             {/*  <Card>
                 <CardHeader>
                   <CardTitle>Account Settings</CardTitle>
                 </CardHeader>
@@ -542,8 +542,8 @@ export default function ProfileClient() {
                   </div>
                 </CardContent>
               </Card>
-
-              <Card>
+ */}
+              {/* <Card>
                 <CardHeader>
                   <CardTitle>Privacy Settings</CardTitle>
                 </CardHeader>
@@ -576,10 +576,10 @@ export default function ProfileClient() {
                     </Button>
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
             <div>
-              <Button onClick={() => logout()}>Logout</Button>
+              <Button onClick={() => logout()} className="ml-6">Logout</Button>
             </div>
           </TabsContent>
 
