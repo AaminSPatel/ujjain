@@ -297,6 +297,7 @@ function ActiveBookingContent() {
 
   const [booking, setBooking] = useState(null);
   const [hotel, setHotel] = useState(null);
+  const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -458,6 +459,24 @@ function ActiveBookingContent() {
             console.error('Error fetching hotel details:', hotelError);
           }
         }
+
+        // If serviceType is car, fetch car details
+        if (bookingData.serviceType === 'Car' && bookingData.service) {
+          try {
+            const carResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cars/${bookingData.service._id}`, {
+              headers: {
+                'Authorization': `Bearer ${safeStorage.get('token')}`,
+              },
+            });
+            if (carResponse.ok) {          
+              const carData = await carResponse.json();
+             // console.log('car data fatched',carData);
+              setCar(carData);
+            }
+          } catch (carError) {
+            console.error('Error fetching car details:', carError);
+          }
+        }
       } catch (error) {
         console.error('Error fetching booking:', error);
         setError(error.message || 'Failed to load booking details');
@@ -574,9 +593,14 @@ function ActiveBookingContent() {
                 ) : (
                   <FaCar className="text-xl text-blue-600" />
                 )}
-                <span className="text-gray-700 font-semibold">
+                <div className="text-gray-700 font-semibold">
                   {booking.serviceType} Booking
-                </span>
+                  {isCarBooking && booking.carBookingType && (
+                    <div className="text-sm text-gray-500 mt-1">
+                      ({booking.carBookingType.replace('_', ' ')})
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center space-x-2">
                 <StatusIcon className="text-lg" />
@@ -705,9 +729,9 @@ function ActiveBookingContent() {
         ) : (
           // Car Booking Layout (Original Layout)
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Left Column - Map */}
+            {/* Left Column - Map and Payment Details */}
             <div className="w-full lg:w-2/3">
-              <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+              <div className="bg-white rounded-3xl shadow-xl overflow-hidden mb-6">
                 <div className="p-3 pb-12">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-9 flex items-center">
                     <FaRoute className="mr-3 text-orange-500" />
@@ -720,6 +744,56 @@ function ActiveBookingContent() {
                       // Handle live location updates
                     }}
                   />
+                </div>
+              </div>
+
+              {/* Payment Details for Car Booking */}
+              <div className="bg-white rounded-2xl shadow-xl p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                  <FaCreditCard className="mr-2 text-green-600" />
+                  Payment Details
+                </h3>
+                <div className="space-y-4">
+                  {booking.carBookingType === 'per_km' && car?.pricePerKm && booking.distance ? (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Price per Km (₹{car.pricePerKm} × {booking.distance} km)</span>
+                      <span className="font-semibold">₹{car.pricePerKm * booking.distance}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Base Fare</span>
+                      <span className="font-semibold">₹{ booking?.pricing?.basePrice|| 0}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Taxes & Fees</span>
+                    <span className="font-semibold">₹{booking?.pricing?.tax || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Discount</span>
+                    <span className="font-semibold text-green-600">-₹{booking?.coupon?.discountAmount || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Platform Fee</span>
+                    <span className="font-semibold text-green-600">₹{booking?.pricing?.platformFee || 0}</span>
+                  </div>
+                  <div className="border-t pt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-bold text-gray-800">Total Amount</span>
+                      <span className="text-2xl font-bold text-green-600">
+                        ₹{booking?.pricing?.totalPrice || 0}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Payment Status</span>
+                    <span className={`px-3 py-1 rounded-full text-white text-sm font-semibold ${
+                      booking?.payment?.status === 'completed' ? 'bg-green-500' :
+                      booking?.payment?.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}>
+                      {booking?.payment?.status?.toUpperCase() || 'PENDING'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

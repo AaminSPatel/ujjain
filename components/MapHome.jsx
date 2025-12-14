@@ -29,7 +29,7 @@ const categoryIcons = {
   cab: <FaCar className="text-2xl" />,
   bike: <FaMotorcycle className="text-2xl" />,
   bus: <FaBus className="text-2xl" />,
-  riksha: <MdElectricRickshaw className="text-2xl" />,
+  e_rikshaw: <MdElectricRickshaw className="text-2xl" />,
 }
 
 // Colors mapping based on category
@@ -38,7 +38,8 @@ const categoryColors = {
   cab: { color: "bg-blue-500", textColor: "text-blue-500", borderColor: "border-blue-200" },
   bike: { color: "bg-green-500", textColor: "text-green-500", borderColor: "border-green-200" },
   bus: { color: "bg-purple-500", textColor: "text-purple-500", borderColor: "border-purple-200" },
-  riksha: { color: "bg-yellow-500", textColor: "text-yellow-500", borderColor: "border-yellow-200" },
+  rikshaw: { color: "bg-yellow-500", textColor: "text-yellow-500", borderColor: "border-yellow-200" },
+  e_rikshaw: { color: "bg-violet-500", textColor: "text-yellow-500", borderColor: "border-yellow-200" },
 }
 
 // Display names for categories
@@ -47,7 +48,8 @@ const categoryDisplayNames = {
   cab: "Cab",
   bike: "Bike",
   bus: "Bus",
-  riksha: "E-Rickshaw",
+  rikshaw: "Rickshaw",
+  e_rikshaw: "E-Rickshaw",
 }
 
 // Custom SVG Marker icons
@@ -281,47 +283,31 @@ export default function MapPicker({
   // Process instant vehicles from database
   useEffect(() => {
     if (instantVehicles && instantVehicles.length > 0) {
-      // Group vehicles by category and get the best price for each category
-      const groupedByCategory = {}
-      
-      instantVehicles.forEach(vehicle => {
+      const options = instantVehicles.map(vehicle => {
         const category = vehicle.category || 'car'
-        const displayName = categoryDisplayNames[category] || vehicle.model || 'Vehicle'
+        const displayName = vehicle.model || categoryDisplayNames[category] || 'Vehicle'
         const icon = categoryIcons[category] || <FaCar className="text-2xl" />
         const colors = categoryColors[category] || categoryColors.car
-        
+
         // Use basePrice as baseFare, fallback to pricePerDay for calculation
         const baseFare = vehicle.basePrice || vehicle.pricePerDay || 0
         const perKm = vehicle.pricePerKm || 10
-        
-        if (!groupedByCategory[category]) {
-          groupedByCategory[category] = {
-            id: `category_${category}`, // Use category as ID since we're grouping
-            name: displayName,
-            icon,
-            baseFare,
-            perKm,
-            capacity: vehicle.seats ? `${vehicle.seats} passengers` : '2-4 passengers',
-            ...colors,
-            category: category,
-            // Store the actual vehicle data for this category
-            vehicleIds: [vehicle._id],
-            vehicles: [vehicle]
-          }
-        } else {
-          // Update with the minimum price for this category
-          groupedByCategory[category].baseFare = Math.min(groupedByCategory[category].baseFare, baseFare)
-          groupedByCategory[category].perKm = Math.min(groupedByCategory[category].perKm, perKm)
-          groupedByCategory[category].vehicleIds.push(vehicle._id)
-          groupedByCategory[category].vehicles.push(vehicle)
+
+        return {
+          id: vehicle._id,
+          name: displayName,
+          icon,
+          baseFare,
+          perKm,
+          capacity: vehicle.seats ? `${vehicle.seats} passengers` : '2-4 passengers',
+          ...colors,
+          category: category,
+          vehicle: vehicle // Store the actual vehicle data
         }
       })
-      
-      // Convert grouped object to array
-      const options = Object.values(groupedByCategory)
-      
+
       setTransportOptions(options)
-      
+
       // Set default selected transport if not already set
       if (!selectedTransport && options.length > 0) {
         onTransportSelect(options[0])
@@ -391,6 +377,8 @@ export default function MapPicker({
   }
 
   const handleTransportSelection = (transport) => {
+    console.log('maphome', transport);
+    
     onTransportSelect(transport)
   }
 
@@ -704,11 +692,11 @@ export default function MapPicker({
               {selectedTransport.name} • {distance || 0}km • Approximate distance 
             </p>
             
-            {/* Available Vehicles Count */}
-            {selectedTransport.vehicles && (
+            {/* Vehicle Info */}
+            {selectedTransport.vehicle && (
               <div className="flex items-center space-x-1 mt-2 pt-2 border-t border-orange-100">
                 <span className="text-xs text-gray-600">
-                  {selectedTransport.vehicles.length} {selectedTransport.name}{selectedTransport.vehicles.length > 1 ? 's' : ''} available
+                  {selectedTransport.vehicle.model || selectedTransport.name} - {selectedTransport.vehicle.seats || '2-4'} passengers
                 </span>
               </div>
             )}

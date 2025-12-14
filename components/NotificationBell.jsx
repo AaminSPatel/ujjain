@@ -40,7 +40,7 @@ export default function NotificationBell() {
       setIsLoading(true)
       // Fetch fresh notifications from server
       const response = await getUserNotifications(user._id)
-      console.log('notifications from server', response.data.notifications);
+    //  console.log('notifications from server', response.data.notifications);
 
       setNotifications(response.data.notifications?.reverse() || [])
     } catch (error) {

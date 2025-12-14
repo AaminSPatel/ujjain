@@ -98,7 +98,7 @@ export const UjjainProvider = ({ children }) => {
     const storedUser = safeStorage.get("user");
 
     if (storedToken && storedUser) {
-      console.log('login succesfull with token and user from local');
+    //  console.log('login succesfull with token and user from local');
       setToken(storedToken);
       setUser(storedUser);
     }
@@ -114,7 +114,7 @@ export const UjjainProvider = ({ children }) => {
         try {
           const userData = await UserService.getProfile();
           setUser(userData.data.user);
-          console.log('login succesfull with token');
+         // console.log('login succesfull with token');
         } catch (err) {
           console.error('Authentication check failed:', err);
           safeStorage.remove('token');
@@ -177,7 +177,7 @@ const signIn = async (credentials) => {
       console.error('Logout error:', err);
     } finally {
       setUser(null);
-      console.log('logout final');
+      //console.log('logout final');
       safeStorage.remove('token');
       safeStorage.remove('user');
       setLoading(false);
@@ -240,7 +240,7 @@ const signIn = async (credentials) => {
       setLoading(true);
       setError('');
       const response = await UserService.verifyEmailOTP(email, otp);
-      console.log('response at context',response);
+     // console.log('response at context',response);
       
       return response;
     } catch (err) {
@@ -517,7 +517,7 @@ const markAllAsRead = async (userId) => {
   const fetchCars = async () => {
     try {
       const data = await CarService.getAll();
-      console.log(data, "cars");
+     // console.log(data, "cars");
 
       setCars(data);
     } catch (err) {
@@ -740,7 +740,7 @@ const getBookingById = async (id) => {
   const driverCancelAcceptedBooking = async (bookingId) => {
     try {
       const result = await BookingService.driverCancelAcceptedBooking(bookingId);
-      console.log('Driver cancelled accepted booking:', result);
+     // console.log('Driver cancelled accepted booking:', result);
       fetchDriverBookings(); // Refresh driver bookings
       return result;
     } catch (err) {
@@ -907,67 +907,7 @@ const getBookingById = async (id) => {
   };
 
 // Create a review for a car
-const createCarReview = async () => {
-  try {
-    const reviewData = {
-      rating: 5,
-      comment: "Excellent car! Very comfortable and clean.",
-      reviewedItem: "car_id_here",
-      reviewedModel: "Car"
-    };
-    
-    const result = await ReviewService.create(reviewData);
-   // console.log("Review created:", result);
-  } catch (error) {
-    console.error("Error creating review:", error);
-  }
-};
 
-// Create a review for a driver
-const createDriverReview = async () => {
-  try {
-    const reviewData = {
-      rating: 4,
-      comment: "Great driver, very professional.",
-      reviewedItem: "booking_id_here", // or driver_id depending on your schema
-      reviewedModel: "Driver",
-      driver: "driver_user_id_here"
-    };
-    
-    const result = await ReviewService.create(reviewData);
-    console.log("Driver review created:", result);
-  } catch (error) {
-    console.error("Error creating driver review:", error);
-  }
-};
-
-// Get reviews for a hotel
-const getHotelReviews = async () => {
-  try {
-    const result = await ReviewService.getByItem("hotel_id_here", "Hotel", {
-      page: 1,
-      limit: 10,
-      sortBy: "rating",
-      sortOrder: "desc"
-    });
-    console.log("Hotel reviews:", result);
-  } catch (error) {
-    console.error("Error fetching reviews:", error);
-  }
-};
-
-// Update a review
-const updateReview = async () => {
-  try {
-    const result = await ReviewService.update("review_id_here", {
-      rating: 4,
-      comment: "Updated review comment"
-    });
-    console.log("Review updated:", result);
-  } catch (error) {
-    console.error("Error updating review:", error);
-  }
-};
   // ADS
   const fetchAds = async () => {
     try {
@@ -1150,7 +1090,7 @@ const updateReview = async () => {
         dropoffLocation
       });
 
-      console.log('Booking locations updated:', response);
+      //console.log('Booking locations updated:', response);
       // Refresh bookings list
       fetchBookings();
       fetchMyBookings();

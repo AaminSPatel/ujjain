@@ -98,7 +98,7 @@ function BookingContent() {
 
   // Platform fee configuration
   const [platformFee, setPlatformFee] = useState({
-    percentage: 5, // 5% platform fee
+    percentage: 10, // 10% platform fee
     fixedFee: 0, // No fixed fee, only percentage
     minFee: 10, // Minimum platform fee ₹10
     maxFee: 100, // Maximum platform fee ₹100
@@ -370,7 +370,7 @@ function BookingContent() {
           bookingData.pickupLocation.coordinates,
           bookingData.dropoffLocation.coordinates
         )
-        calculatedPrice = transport.baseFare + (distance * transport.perKm)
+        calculatedPrice = transport.baseFare +  Math.round(distance * transport.perKm)
         calculatedPrice = Math.round(calculatedPrice) // Round to nearest rupee
       }
 
@@ -452,7 +452,7 @@ function BookingContent() {
     }
   }
 
-  const handleServiceSelect = (service) => {
+  const handleServiceSelect = (service) => {    
     setSelectedService(service)
     const price = service.price || service.pricePerDay || service.pricePerNight || (service.priceRange?.max ?? 0)
     
@@ -482,6 +482,7 @@ function BookingContent() {
 const handleSubmit = async (e) => {
   e.preventDefault()
   setIsProcessingPayment(true)
+//console.log('selectedVehicleId',selectedVehicleId , ' bookingData.service', bookingData.service);
 
   try {
     // Check if user is logged in
@@ -495,7 +496,7 @@ const handleSubmit = async (e) => {
     // Create a fresh payload object
     const payload = {
       serviceType: isInstantBooking ? "Car" : bookingData.serviceType,
-      service: isInstantBooking ? selectedVehicleId : bookingData.service,
+      service: bookingData.service,
       startDate: new Date(bookingData.startDate),
       endDate: bookingData.endDate ? new Date(bookingData.endDate) : undefined,
       dates: bookingData.endDate
@@ -1061,32 +1062,7 @@ const handleSubmit = async (e) => {
           </div>
         </div>
 
-        {/* Terms and Conditions */}
-        <div className="bg-white rounded-3xl p-6 border border-gray-200 mb-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Terms & Conditions</h3>
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <input
-                type="checkbox"
-                id="terms-agree"
-                checked={isTermsAgreed}
-                onChange={(e) => setIsTermsAgreed(e.target.checked)}
-                className="mt-1 h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded"
-              />
-              <label htmlFor="terms-agree" className="text-sm text-gray-700">
-                I agree to the{' '}
-                <button
-                  type="button"
-                  onClick={() => setIsTermsModalOpen(true)}
-                  className="text-orange-500 hover:text-orange-600 underline font-medium"
-                >
-                  Terms and Conditions
-                </button>
-              </label>
-            </div>
-          </div>
-        </div>
-
+        
         {/* Updated Booking Summary with Platform Fee */}
         <div className="bg-gradient-to-br from-orange-50 to-blue-50 rounded-3xl p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Booking Summary</h3>
@@ -1160,6 +1136,32 @@ const handleSubmit = async (e) => {
             <div className="flex justify-between text-gray-600">
               <span>Payment Method:</span>
               <span className="font-semibold capitalize">{bookingData.payment.method.replace("_", " ")}</span>
+            </div>
+          </div>
+        </div>
+
+{/* Terms and Conditions */}
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 mb-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Terms & Conditions</h3>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <input
+                type="checkbox"
+                id="terms-agree"
+                checked={isTermsAgreed}
+                onChange={(e) => setIsTermsAgreed(e.target.checked)}
+                className="mt-1 h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded"
+              />
+              <label htmlFor="terms-agree" className="text-sm text-gray-700">
+                I agree to the{' '}
+                <button
+                  type="button"
+                  onClick={() => setIsTermsModalOpen(true)}
+                  className="text-orange-500 hover:text-orange-600 underline font-medium"
+                >
+                  Terms and Conditions
+                </button>
+              </label>
             </div>
           </div>
         </div>
@@ -1626,6 +1628,8 @@ const handleSubmit = async (e) => {
       </div>
     </motion.div>
   )
+
+
   const renderStep5 = () => (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -1872,7 +1876,7 @@ const handleSubmit = async (e) => {
         {/* View All Bookings */}
         <button
           onClick={() => {
-            window.location.href = '/my-bookings';
+            window.location.href = '/active-booking';
           }}
           className="px-6 py-3 bg-blue-500 text-white rounded-2xl font-semibold hover:bg-blue-600 transition-colors duration-300"
         >
@@ -1898,68 +1902,7 @@ const handleSubmit = async (e) => {
         </a>
       </div>
 
-      {/* Download/Share Options */}
-   {/*    <div className="flex flex-wrap gap-3 justify-center mt-6">
-        <button
-          onClick={() => {
-            // Generate and download booking summary as PDF
-            const bookingSummary = `
-Booking Summary
-===============
-Booking ID: ${confirmedBooking?.uniqueId || confirmedBooking?._id || 'N/A'}
-Service Type: ${confirmedBooking?.serviceType || 'N/A'}
-Status: ${confirmedBooking?.status || 'N/A'}
-Start Date: ${confirmedBooking?.startDate ? new Date(confirmedBooking.startDate).toLocaleDateString() : 'N/A'}
-Total Amount: ₹${confirmedBooking?.pricing?.totalPrice || confirmedBooking?.payment?.amount || 0}
-Payment Method: ${confirmedBooking?.payment?.method || 'Cash'}
-Payment Status: ${confirmedBooking?.payment?.status || 'Pending'}
-${confirmedBooking?.pickupLocation?.address ? `Pickup: ${confirmedBooking.pickupLocation.address}` : ''}
-${confirmedBooking?.dropoffLocation?.address ? `Drop-off: ${confirmedBooking.dropoffLocation.address}` : ''}
-            `.trim();
-            
-            const blob = new Blob([bookingSummary], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `booking-${confirmedBooking?.uniqueId || confirmedBooking?._id || 'summary'}.txt`;
-            a.click();
-          }}
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 text-sm"
-          disabled={!confirmedBooking}
-        >
-          Download Summary
-        </button>
-
-        <button
-          onClick={() => {
-            if (navigator.share) {
-              navigator.share({
-                title: 'Booking Confirmation - Safar Sathi',
-                text: `My ${confirmedBooking?.serviceType || 'booking'} has been confirmed. Booking ID: ${confirmedBooking?.uniqueId || confirmedBooking?._id}`,
-                url: window.location.href,
-              });
-            }
-          }}
-          className="px-4 py-2 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 text-sm"
-          disabled={!confirmedBooking}
-        >
-          Share Booking
-        </button>
-
-        <button
-          onClick={() => {
-            if (confirmedBooking) {
-              window.print();
-            }
-          }}
-          className="px-4 py-2 bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 text-sm"
-          disabled={!confirmedBooking}
-        >
-          Print Details
-        </button>
-      </div> */}
-
-      {/* Quick Actions for Instant Booking */}
+           {/* Quick Actions for Instant Booking */}
       {isInstantBooking && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 max-w-md mx-auto">
           <h4 className="font-bold text-yellow-800 mb-2">Quick Actions</h4>
@@ -1970,15 +1913,15 @@ ${confirmedBooking?.dropoffLocation?.address ? `Drop-off: ${confirmedBooking.dro
             >
               WhatsApp Support
             </a>
-            <button
+            {/* <button
               onClick={() => {
                 // Simulate driver calling
-                alert('Calling driver...');
+                //alert('Calling driver...');
               }}
               className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 text-sm"
             >
               Call Driver
-            </button>
+            </button> */}
           </div>
         </div>
       )}
@@ -2010,7 +1953,7 @@ ${confirmedBooking?.dropoffLocation?.address ? `Drop-off: ${confirmedBooking.dro
       {/* Progress Bar */}
       <section className="py-8 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center space-x-4 md:space-x-8">
+          <div className="flex items-center justify-center space-x-0">
             {[1, 2, 3, 4, 5].map((stepNum) => (
               <div key={stepNum} className="flex items-center">
                 <div

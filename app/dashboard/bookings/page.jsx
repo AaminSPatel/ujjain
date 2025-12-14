@@ -431,6 +431,11 @@ export default function BookingsPage() {
                         <TableCell>{getServiceName(booking)}</TableCell>
                         <TableCell className="capitalize">
                           {booking.serviceType || "N/A"}
+                          {booking.serviceType === "Car" && booking.carBookingType && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              ({booking.carBookingType.replace('_', ' ')})
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
@@ -558,6 +563,11 @@ export default function BookingsPage() {
                           </span>
                           <span className="text-sm font-medium capitalize">
                             {booking.serviceType || "N/A"}
+                            {booking.serviceType === "Car" && booking.carBookingType && (
+                              <div className="text-xs text-muted-foreground">
+                                ({booking.carBookingType.replace('_', ' ')})
+                              </div>
+                            )}
                           </span>
                         </div>
 
@@ -730,6 +740,11 @@ export default function BookingsPage() {
                             <span className="text-muted-foreground">Type</span>
                             <span className="font-medium capitalize">
                               {selectedBooking.serviceType || "N/A"}
+                              {selectedBooking.serviceType === "Car" && selectedBooking.carBookingType && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  ({selectedBooking.carBookingType.replace('_', ' ')})
+                                </div>
+                              )}
                             </span>
                           </div>
                           <div className="flex items-center justify-between">

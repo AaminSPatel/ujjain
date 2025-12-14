@@ -263,7 +263,14 @@ export default function ActiveBookingPage() {
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-2 min-w-0 flex-1">
                                 {getServiceIcon(booking.serviceType)}
-                                <span className="font-medium truncate">{booking.serviceType}</span>
+                                <span className="font-medium truncate">
+                                  {booking.serviceType}
+                                  {booking.serviceType === "Car" && booking.carBookingType && (
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      ({booking.carBookingType.replace('_', ' ')})
+                                    </div>
+                                  )}
+                                </span>
                               </div>
                               <Badge variant="outline" className={`${getStatusColor(booking.status)} text-xs shrink-0`}>
                                 {booking.status.replace('_', ' ')}

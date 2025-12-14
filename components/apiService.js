@@ -182,7 +182,7 @@ export const BookingService = {
    //   console.log('📦 Sending transformed data to backend:', transformedData);
 
       const response = await api.post('/bookings', transformedData);
-      console.log('✅ BookingService.create() SUCCESS:', response.data);
+    //  console.log('✅ BookingService.create() SUCCESS:', response.data);
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.create() ERROR:', error);
@@ -335,10 +335,10 @@ export const BookingService = {
 
   driverCancelAcceptedBooking: async (bookingId) => {
     try {
-      console.log('🔍 BookingService.driverCancelAcceptedBooking() called with bookingId:', bookingId);
+      //console.log('🔍 BookingService.driverCancelAcceptedBooking() called with bookingId:', bookingId);
 
       const response = await api.put(`/bookings/${bookingId}/driver-cancel-accepted`);
-      console.log('✅ BookingService.driverCancelAcceptedBooking() SUCCESS');
+     // console.log('✅ BookingService.driverCancelAcceptedBooking() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.driverCancelAcceptedBooking() ERROR:', error);
@@ -433,10 +433,10 @@ export const BookingService = {
   // Hotel manager accept booking
   acceptHotelBooking: async (bookingId) => {
     try {
-      console.log('🔍 BookingService.acceptHotelBooking() called with bookingId:', bookingId);
+    //  console.log('🔍 BookingService.acceptHotelBooking() called with bookingId:', bookingId);
 
       const response = await api.post(`/bookings/${bookingId}/accept-hotel-booking`);
-      console.log('✅ BookingService.acceptHotelBooking() SUCCESS');
+      //console.log('✅ BookingService.acceptHotelBooking() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.acceptHotelBooking() ERROR:', error);
@@ -447,7 +447,7 @@ export const BookingService = {
   // Hotel manager reject booking
   rejectHotelBooking: async (bookingId, cancellationReason = null) => {
     try {
-      console.log('🔍 BookingService.rejectHotelBooking() called:', { bookingId, cancellationReason });
+     // console.log('🔍 BookingService.rejectHotelBooking() called:', { bookingId, cancellationReason });
 
       const data = {};
       if (cancellationReason) {
@@ -455,7 +455,7 @@ export const BookingService = {
       }
 
       const response = await api.post(`/bookings/${bookingId}/reject-hotel-booking`, data);
-      console.log('✅ BookingService.rejectHotelBooking() SUCCESS');
+      //console.log('✅ BookingService.rejectHotelBooking() SUCCESS');
       return response.data;
     } catch (error) {
       console.error('❌ BookingService.rejectHotelBooking() ERROR:', error);
@@ -759,7 +759,7 @@ export const HotelService = {
   updateStatus: async (id, status) => (await api.put(`/hotels/${id}/status`, { status })).data,
 
 create: async (hotelData) => {
-  console.log('hotelData at apiServices', hotelData);
+ // console.log('hotelData at apiServices', hotelData);
   
   const formData = new FormData();
   
@@ -1030,7 +1030,7 @@ export const AdService = {
   getAll: async () => (await api.get('/ads')).data,
   getActive: async () => (await api.get('/ads/active')).data,
   create: async (adData) => {
-    console.log(adData);
+   // console.log(adData);
 
     let formData;
     if (adData instanceof FormData) {

@@ -77,54 +77,58 @@ const LoadingSearchResult = () => (
   </motion.div>
 )
 
-// Transportation options data
-const transportOptions = [
-  {
-    id: "68e3627f58138fe47e4e56fc",
-    name: "Cab",
+// Local transport options configuration with icons, colors, etc.
+const transportConfig = {
+  "cab": {
     icon: <FaCar className="text-2xl" />,
-    baseFare: 40,
-    perKm: 12,
-    capacity: "4 passengers",
     color: "bg-blue-500",
     textColor: "text-blue-500",
-    borderColor: "border-blue-200"
+    borderColor: "border-blue-200",
+    baseFare: 40,
+    perKm: 12,
   },
-  {
-    id: "68e3627f58138fe47e4e56fd",
-    name: "Bike",
+  "bike": {
     icon: <FaMotorcycle className="text-2xl" />,
-    baseFare: 20,
-    perKm: 8,
-    capacity: "1 passenger",
     color: "bg-green-500",
     textColor: "text-green-500",
-    borderColor: "border-green-200"
+    borderColor: "border-green-200",
+    baseFare: 20,
+    perKm: 8,
   },
-  {
-    id: "68e3627f58138fe47e4e56fe",
-    name: "E-Rickshaw",
+  "e_ricksha": {
     icon: <MdElectricRickshaw className="text-2xl" />,
-    baseFare: 30,
-    perKm: 10,
-    capacity: "3 passengers",
     color: "bg-yellow-500",
     textColor: "text-yellow-500",
-    borderColor: "border-yellow-200"
+    borderColor: "border-yellow-200",
+    baseFare: 30,
+    perKm: 8,
   },
-  {
-    id: "68e3627f58138fe47e4e56ff",
-    name: "Bus",
+  "bus": {
     icon: <FaBus className="text-2xl" />,
-    baseFare: 15,
-    perKm: 5,
-    capacity: "40+ passengers",
     color: "bg-purple-500",
     textColor: "text-purple-500",
-    borderColor: "border-purple-200"
+    borderColor: "border-purple-200",
+    baseFare: 10,
+    perKm: 5,
+  },
+  "rickshaw": {
+    icon: <MdElectricRickshaw className="text-2xl" />,
+    color: "bg-amber-500",
+    textColor: "text-indigo-500",
+    borderColor: "border-red-200",
+    baseFare: 20,
+    perKm: 10,
+  }, 
+  "default": {
+    icon: <FaCar className="text-2xl" />,
+    color: "bg-gray-500",
+    textColor: "text-gray-500",
+    borderColor: "border-gray-200",
+    baseFare: 40,
+    perKm: 12,
   }
-]
-
+}
+ 
 export default function MobileHome() {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("cars")
@@ -133,6 +137,7 @@ export default function MobileHome() {
   const [passengers, setPassengers] = useState("")
   const [filteredResults, setFilteredResults] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [transportOptions, setTransportOptions] = useState([])
 
   // Location states
   const [pickupLocation, setPickupLocation] = useState({ address: "", coordinates: { lat: 0, lng: 0 } })
@@ -145,12 +150,41 @@ export default function MobileHome() {
 
   const { cars, brand, places,verifiedHotels:hotels, reviews, getAverageRating } = useUjjain()
  // console.log('home hotels verified', verifiedHotels.length,'all hotels :', hotels);
-  
-// Filter vehicles for instant booking based on your schema
-  const instantVehicles = cars.filter(car => 
-    car.bookingType === 'instant' && 
-    car.availability === true // Only show available vehicles
-  )
+    const [transport_id, setTransport_id] = useState("")
+
+
+
+  // Process transport options from database and merge with local config
+  useEffect(() => {
+    if (cars.length) {
+      const instantCars = cars.filter((item) => item.bookingType === 'instant')
+      
+      const processedTransports = instantCars.map(car => {
+        // Get the transport type from model or use default
+        const transportType = car.model?.toLowerCase() || "default"
+        const config = transportConfig[transportType] || transportConfig.default
+        
+        return {
+          ...car,
+          icon: config.icon,
+          color: config.color,
+          textColor: config.textColor,
+          borderColor: config.borderColor,
+          baseFare: config.baseFare,
+          
+        }
+      })
+   //   console.log('all instant vehicles', processedTransports);
+      
+      setTransportOptions(processedTransports)
+      
+      // Set default selected transport
+      if (processedTransports.length > 0 && !transport_id) {
+        setSelectedTransport(processedTransports[0].model?.toLowerCase() || "cab")
+        setTransport_id(processedTransports[0]._id)
+      }
+    }
+  }, [cars, transport_id])
 
 
   const containerVariants = {
@@ -234,94 +268,55 @@ export default function MobileHome() {
       },
     )
   }
-const calculateFare = useCallback((transport = selectedTransport) => {
-    if (!transport || !distance) return 0
-    
-    // Use the actual pricing from your schema
-    // baseFare comes from transport.baseFare which is vehicle.basePrice
-    // perKm comes from transport.perKm which is vehicle.pricePerKm
-    const baseFare = transport.baseFare || 0
-    const perKm = transport.perKm || 10
-    return Math.floor((baseFare + distance * perKm))
-  }, [selectedTransport, distance])
+  
+  const calculateFare = useCallback((transportType = selectedTransport, dist = distance || 0) => {
+    if (!transportType) return 0
+    //console.log('transportType', transportType);
+
+    if (typeof transportType === 'object') {
+      // transportType is an object from MapHome
+      return Math.floor(transportType.baseFare + dist * transportType.perKm)
+    } else {
+      // transportType is a string (selectedTransport)
+      const transport = transportOptions.find(option =>
+        option.model?.toLowerCase() === transportType
+      )
+      console.log('transport', transport);
+      return Math.floor((transport?.baseFare + dist * transport?.pricePerKm) || 0)
+    }
+  }, [selectedTransport, distance, transportOptions])
 
   const handleBookNow = () => {
     if (pickupLocation.address && destinationLocation.address && selectedTransport) {
       const today = new Date().toISOString().split('T')[0]
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-      
+
       const fare = calculateFare()
-      
-      // Since we're grouping by category, we need to handle the booking differently
-      // You might want to redirect to a vehicle selection page or automatically assign a vehicle
-      const bookingUrl = `/booking?pickup=${encodeURIComponent(pickupLocation.address)}&pickupLat=${pickupLocation.coordinates.lat}&pickupLng=${pickupLocation.coordinates.lng}&destination=${encodeURIComponent(destinationLocation.address)}&destLat=${destinationLocation.coordinates.lat}&destLng=${destinationLocation.coordinates.lng}&transportType=${selectedTransport.category}&fare=${fare}&bookingType=instant&startDate=${today}&endDate=${tomorrow}`
-      
+
+      // Handle both string and object types for selectedTransport
+      let transportCategory = ''
+      let transportId = ''
+
+      if (typeof selectedTransport === 'object') {
+        transportCategory = selectedTransport.category || selectedTransport.name || 'cab'
+        transportId = selectedTransport.id || selectedTransport._id || ''
+      } else {
+        // selectedTransport is a string, find the corresponding transport object
+        const transport = transportOptions.find(option =>
+          option.model?.toLowerCase() === selectedTransport
+        )
+        transportCategory = transport?.category || transport?.model?.toLowerCase() || 'cab'
+        transportId = transport?._id || ''
+      }
+
+      const bookingUrl = `/booking?pickup=${encodeURIComponent(pickupLocation.address)}&pickupLat=${pickupLocation.coordinates.lat}&pickupLng=${pickupLocation.coordinates.lng}&destination=${encodeURIComponent(destinationLocation.address)}&destLat=${destinationLocation.coordinates.lat}&destLng=${destinationLocation.coordinates.lng}&transportType=${transportCategory}&fare=${fare}&bookingType=instant&startDate=${today}&endDate=${tomorrow}&_id=${transportId}`
+
       window.location.href = bookingUrl
     }
   }
 
-  const getFilteredResults = () => {
-    if (!searchTerm) return []
 
-    const allResults = [
-      ...cars.map((item) => ({ ...item, type: "car" })),
-      ...hotels.map((item) => ({ ...item, type: "hotel" })),
-      ...places.map((item) => ({ ...item, type: "place" })),
-    ]
-
-    return allResults
-      .filter((item) => {
-        const searchLower = searchTerm.toLowerCase()
-        return (
-          item?.model?.toLowerCase().includes(searchLower) ||
-          item?.name?.toLowerCase().includes(searchLower) ||
-          item?.title?.toLowerCase().includes(searchLower) ||
-          item?.keywords?.some((keyword) => keyword.toLowerCase().includes(searchLower)) ||
-          item?.description?.toLowerCase().includes(searchLower) ||
-          item?.location?.toLowerCase().includes(searchLower)
-        )
-      })
-      .filter((item) => {
-        if (!budget) return true
-        const price = Number.parseInt(item.pricePerDay) || Number.parseInt(item.price) || 0
-        return price >= budget[0] && price <= budget[1]
-      })
-      .filter((item) => {
-        if (!passengers || item.type !== "car") return true
-        const seats = item.seats || 0
-        if (passengers === "2") return seats <= 2
-        if (passengers === "4") return seats <= 4
-        if (passengers === "6") return seats >= 6
-        return true
-      })
-      .slice(0, 8)
-  }
-
-  const handleTabClick = (tabId) => {
-    setActiveTab(tabId)
-    if (searchTerm) {
-      if (tabId === "cars") {
-        setFilteredResults(getFilteredResults())
-      } else {
-        const filtered = getFilteredResults().filter((item) => item.type === tabId.slice(0, -1))
-        setFilteredResults(filtered)
-      }
-    }
-  }
-
-  const stats = [
-    { value: "100+", details: "Places Traveled" },
-    { value: "500+", details: "Happy Pilgrims" },
-    { value: "50+", details: "Cars Added" },
-  ]
-
-  const tabs = [
-    { id: "cars", label: "Cars", icon: <FaCar /> },
-    { id: "hotels", label: "Hotels", icon: <MdHotel /> },
-    { id: "places", label: "Places", icon: <MdPlace /> },
-    { id: "tours", label: "Tours", icon: <BiTab /> },
-  ]
-
+  
   return (
     <div className="min-h-screen bg-background">
       {/* Enhanced Hero Section with Map Picker */}
@@ -345,7 +340,7 @@ const calculateFare = useCallback((transport = selectedTransport) => {
             pickupLocation={pickupLocation}
             destinationLocation={destinationLocation}
             onPickupChange={setPickupLocation}
-            instantVehicles={instantVehicles}
+            instantVehicles={transportOptions}
             onDestinationChange={setDestinationLocation}
             selectedTransport={selectedTransport}
             onTransportSelect={setSelectedTransport}

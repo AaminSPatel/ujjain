@@ -22,6 +22,32 @@ import safeStorage from "../utils/safeStorage.js"
 
 export function BookingForm({ open, onOpenChange, booking, onSubmit, cars, hotels, logistics }) {
   const { addBooking } = useUjjain()
+
+  // Platform fee configuration
+  const platformFeeConfig = {
+    percentage: 10, // 10% platform fee
+    fixedFee: 0, // No fixed fee, only percentage
+    minFee: 10, // Minimum platform fee ₹10
+    maxFee: 100, // Maximum platform fee ₹100
+  }
+
+  // Function to calculate platform fee
+  const calculatePlatformFee = (baseAmount) => {
+    const { percentage, fixedFee, minFee, maxFee } = platformFeeConfig;
+
+    // Calculate percentage fee
+    let calculatedFee = (baseAmount * percentage) / 100;
+
+    // Add fixed fee if any
+    calculatedFee += fixedFee;
+
+    // Apply minimum and maximum limits
+    calculatedFee = Math.max(minFee, Math.min(calculatedFee, maxFee));
+
+    // Round to nearest rupee
+    return Math.round(calculatedFee);
+  };
+
   const [formData, setFormData] = useState({
     serviceType: "cab",
     service: "",
@@ -41,6 +67,7 @@ export function BookingForm({ open, onOpenChange, booking, onSubmit, cars, hotel
       basePrice: 0,
       discount: 0,
       tax: 0,
+      platformFee: 0,
       totalPrice: 0
     },
     coupon: {
@@ -155,11 +182,16 @@ export function BookingForm({ open, onOpenChange, booking, onSubmit, cars, hotel
         throw new Error('User not authenticated')
       }
 
+      // Calculate platform fee based on base price
+      const basePrice = Number(formData.pricing.basePrice) || 0;
+      const platformFee = calculatePlatformFee(basePrice);
+
       // Ensure pricing fields are defined and valid numbers
       const pricing = {
-        basePrice: Number(formData.pricing.basePrice) || 0,
+        basePrice: basePrice,
         discount: Number(formData.pricing.discount) || 0,
         tax: Number(formData.pricing.tax) || 0,
+        platformFee: platformFee,
         totalPrice: Number(formData.pricing.totalPrice) || 0,
       };
 
